@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  database:
+    image: postgres:11.4-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: gitrello
+      POSTGRES_USER: gitrello
+      POSTGRES_PASSWORD: admin

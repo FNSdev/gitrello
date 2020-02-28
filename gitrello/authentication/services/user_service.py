@@ -1,12 +1,18 @@
+import logging
 from typing import Optional, Tuple
 
 from django.db import IntegrityError
+from django.views.decorators.debug import sensitive_variables
+
 from rest_framework.authtoken.models import Token
 
 from authentication.models import User
 
+logger = logging.getLogger(__name__)
+
 
 class UserService:
+    @sensitive_variables('password')
     def create_user(
         self,
         username: str,
@@ -24,8 +30,8 @@ class UserService:
             )
             user.set_password(password)
             user.save()
-        except IntegrityError as e:
-            # TODO logging
+        except IntegrityError:
+            logger.exception('Something happened when creating a new User')
             return None, None
 
         token = Token.objects.create(user=user)

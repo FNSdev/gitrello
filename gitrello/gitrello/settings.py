@@ -8,6 +8,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+ADMINS = [
+    ('Uladzislau Stasheuski', 'fnsdevelopment@gmail.com'),
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -100,9 +104,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Auth
+
 AUTH_USER_MODEL = 'authentication.User'
 
 # REST
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
@@ -115,3 +121,68 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'gitrello.handlers.custom_exception_handler',
     'PAGE_SIZE': 5
 }
+
+# Logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {funcName} {lineno} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console_debug': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'console_info': {
+            'level': 'INFO',
+            'filters': ['require_debug_false'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+            'filters': ['require_debug_false'],
+            'formatter': 'verbose',
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console_info', 'mail_admins'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['console_debug', 'console_info', 'mail_admins'],
+            'level': 'DEBUG',
+            'propagate': False,
+        }
+    }
+}
+
+# Mailing
+# TODO consider moving to settings_prod.py
+
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')

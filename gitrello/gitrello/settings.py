@@ -16,6 +16,7 @@ ADMINS = [
 
 INSTALLED_APPS = [
     'authentication',
+    'organizations',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

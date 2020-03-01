@@ -5,7 +5,6 @@ from authentication.api.serializers import CreateUserSerializer
 from authentication.exceptions import UserAlreadyExistsException
 from authentication.services import UserService
 from gitrello.exceptions import APIRequestValidationException
-from gitrello.status_codes import StatusCode
 
 
 class CreateUserView(views.APIView):
@@ -20,7 +19,7 @@ class CreateUserView(views.APIView):
             return Response(
                 status=400,
                 data={
-                    'error_code': StatusCode.ALREADY_EXISTS.value,
+                    'error_code': e.code,
                     'error_message': e.message,
                 }
             )

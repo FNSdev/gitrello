@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from authentication.exceptions import UserNotFoundException
-from gitrello.exceptions import APIRequestValidationException
+from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from organizations.api.serializers import CreateOrganizationSerializer, CreateOrganizationInviteSerializer
 from organizations.exceptions import GITrelloOrganizationsException
 from organizations.services import OrganizationService, OrganizationInviteService
@@ -49,7 +49,15 @@ class CreateOrganizationInviteView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         try:
-            invite = OrganizationInviteService().send_invite(**serializer.validated_data)
+            invite = OrganizationInviteService().send_invite(user_id=request.user.id, **serializer.validated_data)
+        except PermissionDeniedException as e:
+            return Response(
+                status=403,
+                data={
+                    'error_code': e.code,
+                    'error_message': e.message,
+                }
+            )
         except (GITrelloOrganizationsException, UserNotFoundException) as e:
             return Response(
                 status=400,

@@ -164,9 +164,14 @@ LOGGING = {
         }
     },
     'loggers': {
+        'django.db': {
+            'handlers': ['console_debug'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'django': {
             'handlers': ['console_info', 'mail_admins'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         '': {

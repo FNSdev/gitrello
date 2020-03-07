@@ -6,7 +6,7 @@ from authentication.services import UserService
 from gitrello.exceptions import APIRequestValidationException
 
 
-class CreateUserView(views.APIView):
+class UserView(views.APIView):
     def post(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
         if not serializer.is_valid():

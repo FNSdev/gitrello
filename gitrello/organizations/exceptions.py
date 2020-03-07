@@ -20,6 +20,16 @@ class OrganizationInviteAlreadyExistsException(GITrelloOrganizationsException):
     code = 312
 
 
-class OrganizationMembershipAlreadyExists(GITrelloOrganizationsException):
+class OrganizationMembershipNotFoundException(GITrelloOrganizationsException):
+    message = 'User is not a member of a given organization'
+    code = 321
+
+
+class OrganizationMembershipAlreadyExistsException(GITrelloOrganizationsException):
     message = "User is already in organization"
     code = 322
+
+
+class CanNotLeaveOrganizationException(GITrelloOrganizationsException):
+    message = "Owner can not leave organization"
+    code = 323

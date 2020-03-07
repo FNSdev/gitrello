@@ -23,9 +23,8 @@ class OrganizationInviteService:
     _user_not_found_pattern = r'User matching query'
     _already_invited_pattern = r'already exists'
 
-    # TODO is it possible to avoid extra query?
-    def send_invite(self, user_id: int, organization_id: int, email: str, message: str) -> OrganizationInvite:
-        if not self._can_send_invite(user_id, organization_id):
+    def send_invite(self, auth_user_id: int, organization_id: int, email: str, message: str) -> OrganizationInvite:
+        if not self._can_send_invite(auth_user_id, organization_id):
             raise PermissionDeniedException
 
         try:
@@ -40,8 +39,8 @@ class OrganizationInviteService:
             self._process_send_invite_exception(e)
 
     @atomic
-    def update_invite(self, user_id: int, organization_invite_id: int, accept: bool) -> OrganizationInvite:
-        if not self._can_send_invite(user_id, organization_invite_id):
+    def update_invite(self, auth_user_id: int, organization_invite_id: int, accept: bool) -> OrganizationInvite:
+        if not self._can_accept_invite(auth_user_id, organization_invite_id):
             raise PermissionDeniedException
 
         invite = OrganizationInvite.objects.select_for_update().get(id=organization_invite_id)
@@ -49,21 +48,21 @@ class OrganizationInviteService:
         invite.save()
 
         if accept:
-            OrganizationMembershipService().add_member(invite.organization_id, user_id)
+            OrganizationMembershipService().add_member(invite.organization_id, auth_user_id)
 
         return invite
 
-    def _can_send_invite(self, user_id: int, organization_id: int):
+    def _can_send_invite(self, auth_user_id: int, organization_id: int):
         return OrganizationMembership.objects.filter(
             Q(organization_id=organization_id),
-            Q(user_id=user_id),
+            Q(user_id=auth_user_id),
             Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN)
         ).exists()
 
-    def _can_accept_invite(self, user_id: int, organization_invite_id: int):
+    def _can_accept_invite(self, auth_user_id: int, organization_invite_id: int):
         return OrganizationInvite.objects.filter(
             id=organization_invite_id,
-            user_id=user_id
+            user_id=auth_user_id
         ).exists()
 
     def _process_send_invite_exception(self, e: IntegrityError):

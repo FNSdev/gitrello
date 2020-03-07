@@ -7,10 +7,10 @@ from gitrello.exceptions import APIRequestValidationException
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
 )
-from organizations.services import OrganizationService, OrganizationInviteService
+from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
 
-class CreateOrganizationView(views.APIView):
+class OrganizationView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -38,7 +38,7 @@ class OrganizationInviteView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        invite = OrganizationInviteService().send_invite(user_id=request.user.id, **serializer.validated_data)
+        invite = OrganizationInviteService().send_invite(auth_user_id=request.user.id, **serializer.validated_data)
         return Response(
             status=201,
             data={
@@ -53,7 +53,7 @@ class OrganizationInviteView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         invite = OrganizationInviteService().update_invite(
-            user_id=request.user.id,
+            auth_user_id=request.user.id,
             organization_invite_id=kwargs['id'],
             **serializer.validated_data,
         )
@@ -64,3 +64,15 @@ class OrganizationInviteView(views.APIView):
                 'status': invite.get_status_display(),
             }
         )
+
+
+class OrganizationMembershipView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def delete(self, request, *args, **kwargs):
+        OrganizationMembershipService().delete_member(
+            auth_user_id=request.user.id,
+            organization_membership_id=kwargs['id'],
+        )
+        return Response(status=204)

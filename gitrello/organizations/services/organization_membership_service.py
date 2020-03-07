@@ -41,9 +41,6 @@ class OrganizationMembershipService:
         if not self._can_delete_member(auth_user_id, membership):
             raise PermissionDeniedException
 
-        if membership.role == OrganizationMemberRole.OWNER:
-            raise CanNotLeaveOrganizationException
-
         membership.delete()
 
     def _can_delete_member(self, auth_user_id: int, membership: OrganizationMembership):

@@ -9,8 +9,8 @@ def custom_exception_handler(exc, context):
         return Response(
             status=400,
             data={
-                'error_code': APIRequestValidationException.code,
-                'error_message': 'Request validation failed',
+                'error_code': exc.code,
+                'error_message': exc.message,
                 'error_details': {field: errors for field, errors in exc.serializer_errors.items()},
             }
         )

@@ -18,3 +18,8 @@ class OrganizationAlreadyExistsException(GITrelloOrganizationsException):
 class OrganizationInviteAlreadyExistsException(GITrelloOrganizationsException):
     message = 'Invite has been already sent'
     code = 312
+
+
+class OrganizationMembershipAlreadyExists(GITrelloOrganizationsException):
+    message = "User is already in organization"
+    code = 322

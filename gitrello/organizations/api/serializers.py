@@ -9,3 +9,7 @@ class CreateOrganizationInviteSerializer(serializers.Serializer):
     organization_id = serializers.IntegerField()
     email = serializers.EmailField()
     message = serializers.CharField()
+
+
+class UpdateOrganizationInviteSerializer(serializers.Serializer):
+    accept = serializers.BooleanField()

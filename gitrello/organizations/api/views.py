@@ -3,10 +3,10 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from authentication.exceptions import UserNotFoundException
-from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
-from organizations.api.serializers import CreateOrganizationSerializer, CreateOrganizationInviteSerializer
-from organizations.exceptions import GITrelloOrganizationsException
+from gitrello.exceptions import APIRequestValidationException
+from organizations.api.serializers import (
+    CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
+)
 from organizations.services import OrganizationService, OrganizationInviteService
 
 
@@ -19,17 +19,7 @@ class CreateOrganizationView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        try:
-            organization = OrganizationService().create_organization(owner=request.user, **serializer.validated_data)
-        except GITrelloOrganizationsException as e:
-            return Response(
-                status=400,
-                data={
-                    'error_code': e.code,
-                    'error_message': e.message,
-                }
-            )
-
+        organization = OrganizationService().create_organization(owner=request.user, **serializer.validated_data)
         return Response(
             status=201,
             data={
@@ -39,7 +29,7 @@ class CreateOrganizationView(views.APIView):
         )
 
 
-class CreateOrganizationInviteView(views.APIView):
+class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -48,27 +38,27 @@ class CreateOrganizationInviteView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        try:
-            invite = OrganizationInviteService().send_invite(user_id=request.user.id, **serializer.validated_data)
-        except PermissionDeniedException as e:
-            return Response(
-                status=403,
-                data={
-                    'error_code': e.code,
-                    'error_message': e.message,
-                }
-            )
-        except (GITrelloOrganizationsException, UserNotFoundException) as e:
-            return Response(
-                status=400,
-                data={
-                    'error_code': e.code,
-                    'error_message': e.message,
-                }
-            )
-
+        invite = OrganizationInviteService().send_invite(user_id=request.user.id, **serializer.validated_data)
         return Response(
             status=201,
+            data={
+                'id': invite.id,
+                'status': invite.get_status_display(),
+            }
+        )
+
+    def put(self, request, *args, **kwargs):
+        serializer = UpdateOrganizationInviteSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise APIRequestValidationException(serializer_errors=serializer.errors)
+
+        invite = OrganizationInviteService().update_invite(
+            user_id=request.user.id,
+            organization_invite_id=kwargs['id'],
+            **serializer.validated_data,
+        )
+        return Response(
+            status=200,
             data={
                 'id': invite.id,
                 'status': invite.get_status_display(),

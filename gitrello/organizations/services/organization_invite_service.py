@@ -2,16 +2,18 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Q, Subquery
+from django.db.transaction import atomic
 
 from authentication.exceptions import UserNotFoundException
 from authentication.models import User
 from gitrello.exceptions import PermissionDeniedException
-from organizations.choices import OrganizationMemberRole
+from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     GITrelloOrganizationsException, OrganizationNotFoundException, OrganizationInviteAlreadyExistsException,
 )
 from organizations.models import OrganizationInvite, OrganizationMembership
+from organizations.services.organization_membership_service import OrganizationMembershipService
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,7 @@ class OrganizationInviteService:
         try:
             invite = OrganizationInvite.objects.create(
                 organization_id=organization_id,
-                user=User.objects.get(email=email),
+                user_id=Subquery(User.objects.filter(email=email).values('id')),
                 message=message,
             )
             return invite
@@ -37,12 +39,32 @@ class OrganizationInviteService:
             logger.warning('Could not send invite in organization %s to user %s', organization_id, email)
             self._process_send_invite_exception(e)
 
+    @atomic
+    def update_invite(self, user_id: int, organization_invite_id: int, accept: bool) -> OrganizationInvite:
+        if not self._can_send_invite(user_id, organization_invite_id):
+            raise PermissionDeniedException
+
+        invite = OrganizationInvite.objects.select_for_update().get(id=organization_invite_id)
+        invite.status = OrganizationInviteStatus.ACCEPTED if accept else OrganizationInviteStatus.DECLINED
+        invite.save()
+
+        if accept:
+            OrganizationMembershipService().add_member(invite.organization_id, user_id)
+
+        return invite
+
     def _can_send_invite(self, user_id: int, organization_id: int):
         return OrganizationMembership.objects.filter(
             Q(organization_id=organization_id),
             Q(user_id=user_id),
             Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN)
-        )
+        ).exists()
+
+    def _can_accept_invite(self, user_id: int, organization_invite_id: int):
+        return OrganizationInvite.objects.filter(
+            id=organization_invite_id,
+            user_id=user_id
+        ).exists()
 
     def _process_send_invite_exception(self, e: IntegrityError):
         if e.args[0].find(self._organization_not_found_pattern) != -1:

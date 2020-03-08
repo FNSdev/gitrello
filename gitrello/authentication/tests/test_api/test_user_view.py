@@ -10,14 +10,6 @@ from gitrello.exceptions import APIRequestValidationException
 
 
 class TestUserView(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.api_client = APIClient()
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
     def test_create_user(self):
         payload = {
             'username': 'username',
@@ -30,7 +22,7 @@ class TestUserView(TestCase):
         token = TokenFactory()
 
         with patch.object(UserService, 'create_user', return_value=(token.user, token)) as mocked_create_user:
-            response = self.api_client.post('/api/v1/users', data=payload, format='json')
+            response = APIClient().post('/api/v1/users', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
         mocked_create_user.assert_called_with(
@@ -46,7 +38,7 @@ class TestUserView(TestCase):
         payload = {
             'extra_argument': 42
         }
-        response = self.api_client.post('/api/v1/users', data=payload, format='json')
+        response = APIClient().post('/api/v1/users', data=payload, format='json')
         self.assertEqual(response.status_code, 400)
 
         expected_response = {
@@ -80,7 +72,7 @@ class TestUserView(TestCase):
             'email': 'test@test.com',
             'password': 'password123',
         }
-        response = self.api_client.post('/api/v1/users', data=payload, format='json')
+        response = APIClient().post('/api/v1/users', data=payload, format='json')
         self.assertEqual(response.status_code, 400)
 
         expected_response = {
@@ -103,7 +95,7 @@ class TestUserView(TestCase):
             'password': 'fsD43AasdSAFfV',
         }
         with patch.object(UserService, 'create_user', side_effect=UserAlreadyExistsException) as mocked_create_user:
-            response = self.api_client.post('/api/v1/users', data=payload, format='json')
+            response = APIClient().post('/api/v1/users', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
         mocked_create_user.assert_called_with(

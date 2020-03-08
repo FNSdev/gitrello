@@ -10,7 +10,7 @@ from authentication.models import User
 from gitrello.exceptions import PermissionDeniedException
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
-    GITrelloOrganizationsException, OrganizationNotFoundException, OrganizationInviteAlreadyExistsException,
+    GITrelloOrganizationsException, OrganizationInviteAlreadyExistsException,
 )
 from organizations.models import OrganizationInvite, OrganizationMembership
 from organizations.services.organization_membership_service import OrganizationMembershipService
@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class OrganizationInviteService:
-    _organization_not_found_pattern = r'Key (organization_id)='
-    _user_not_found_pattern = r'User matching query'
+    _user_not_found_pattern = r'null value in column "user_id"'
     _already_invited_pattern = r'already exists'
 
     def send_invite(self, auth_user_id: int, organization_id: int, email: str, message: str) -> OrganizationInvite:
@@ -48,7 +47,10 @@ class OrganizationInviteService:
         invite.save()
 
         if accept:
-            OrganizationMembershipService().add_member(invite.organization_id, auth_user_id)
+            OrganizationMembershipService().add_member(
+                organization_id=invite.organization_id,
+                user_id=auth_user_id
+            )
 
         return invite
 
@@ -66,9 +68,6 @@ class OrganizationInviteService:
         ).exists()
 
     def _process_send_invite_exception(self, e: IntegrityError):
-        if e.args[0].find(self._organization_not_found_pattern) != -1:
-            raise OrganizationNotFoundException
-
         if e.args[0].find(self._user_not_found_pattern) != -1:
             raise UserNotFoundException
 

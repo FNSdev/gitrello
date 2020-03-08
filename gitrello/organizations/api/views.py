@@ -19,7 +19,7 @@ class OrganizationView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        organization = OrganizationService().create_organization(owner=request.user, **serializer.validated_data)
+        organization = OrganizationService().create_organization(owner_id=request.user.id, **serializer.validated_data)
         return Response(
             status=201,
             data={

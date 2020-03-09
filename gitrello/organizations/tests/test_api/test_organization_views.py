@@ -10,7 +10,7 @@ from organizations.services import OrganizationService
 from organizations.tests.factories import OrganizationFactory
 
 
-class TestOrganizationView(TestCase):
+class TestCreateOrganizationView(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

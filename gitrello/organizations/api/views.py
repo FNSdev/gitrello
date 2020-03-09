@@ -10,7 +10,7 @@ from organizations.api.serializers import (
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
 
-class OrganizationView(views.APIView):
+class CreateOrganizationView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -29,7 +29,7 @@ class OrganizationView(views.APIView):
         )
 
 
-class OrganizationInviteView(views.APIView):
+class CreateOrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -47,7 +47,12 @@ class OrganizationInviteView(views.APIView):
             }
         )
 
-    def put(self, request, *args, **kwargs):
+
+class UpdateOrganizationInviteView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
@@ -66,7 +71,7 @@ class OrganizationInviteView(views.APIView):
         )
 
 
-class OrganizationMembershipView(views.APIView):
+class DeleteOrganizationMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 

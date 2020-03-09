@@ -9,7 +9,7 @@ from authentication.tests.factories import TokenFactory
 from gitrello.exceptions import APIRequestValidationException
 
 
-class TestUserView(TestCase):
+class TestCreateUserView(TestCase):
     def test_create_user(self):
         payload = {
             'username': 'username',

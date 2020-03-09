@@ -8,59 +8,44 @@ from gitrello.exceptions import PermissionDeniedException
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     OrganizationInviteAlreadyExistsException, OrganizationMembershipAlreadyExistsException,
+    OrganizationNotFoundException,
 )
+from organizations.models import Organization
 from organizations.services import OrganizationInviteService, OrganizationMembershipService
-from organizations.tests.factories import OrganizationMembershipFactory, OrganizationInviteFactory
+from organizations.tests.factories import OrganizationFactory, OrganizationMembershipFactory, OrganizationInviteFactory
 
 
 class TestOrganizationInviteService(TestCase):
     def test_send_invite(self):
-        members = (
-            OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER),
-            OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN),
-        )
+        organization = OrganizationFactory()
         user = UserFactory()
 
-        for member in members:
-            invite = OrganizationInviteService().send_invite(
-                auth_user_id=member.user_id,
-                organization_id=member.organization_id,
+        invite = OrganizationInviteService().send_invite(
+            organization_id=organization.id,
+            email=user.email,
+            message='message',
+        )
+
+        self.assertIsNotNone(invite)
+        self.assertEqual(invite.organization.id, organization.id)
+        self.assertEqual(invite.user.id, user.id)
+        self.assertEqual(invite.message, 'message')
+        self.assertEqual(invite.status, OrganizationInviteStatus.PENDING)
+
+    def test_send_invite_organization_not_found(self):
+        user = UserFactory()
+        with self.assertRaises(OrganizationNotFoundException):
+            _ = OrganizationInviteService().send_invite(
+                organization_id=-1,
                 email=user.email,
                 message='message',
             )
 
-            self.assertIsNotNone(invite)
-            self.assertEqual(invite.organization_id, member.organization_id)
-            self.assertEqual(invite.user.id, user.id)
-            self.assertEqual(invite.message, 'message')
-            self.assertEqual(invite.status, OrganizationInviteStatus.PENDING)
-
-    def test_send_invite_permission_denied(self):
-        member = OrganizationMembershipFactory()
-        with self.assertRaises(PermissionDeniedException):
-            _ = OrganizationInviteService().send_invite(
-                auth_user_id=member.user_id,
-                organization_id=member.organization_id,
-                email='does_not_matter@test.com',
-                message='message',
-            )
-
-    def test_send_invite_organization_not_found(self):
-        member = OrganizationMembershipFactory()
-        with self.assertRaises(PermissionDeniedException):
-            _ = OrganizationInviteService().send_invite(
-                auth_user_id=member.user_id,
-                organization_id=-1,
-                email='does_not_matter@test.com',
-                message='message',
-            )
-
     def test_send_invite_user_not_found(self):
-        member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        organization = OrganizationFactory()
         with self.assertRaises(UserNotFoundException):
             _ = OrganizationInviteService().send_invite(
-                auth_user_id=member.user_id,
-                organization_id=member.organization_id,
+                organization_id=organization.id,
                 email='does_not_exist@test.com',
                 message='message',
             )
@@ -75,11 +60,34 @@ class TestOrganizationInviteService(TestCase):
 
         with self.assertRaises(OrganizationInviteAlreadyExistsException):
             _ = OrganizationInviteService().send_invite(
-                auth_user_id=member.user_id,
                 organization_id=member.organization_id,
                 email=user.email,
                 message='message',
             )
+
+    def test_can_send_invite(self):
+        members = (
+            OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER),
+            OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN),
+        )
+
+        for member in members:
+            self.assertTrue(
+                OrganizationInviteService().can_send_invite(
+                    auth_user_id=member.user_id,
+                    organization_id=member.organization_id,
+                )
+            )
+
+    def test_can_send_invite_permission_denied(self):
+        member = OrganizationMembershipFactory()
+
+        self.assertFalse(
+            OrganizationInviteService().can_send_invite(
+                auth_user_id=member.user_id,
+                organization_id=member.organization_id,
+            )
+        )
 
     def test_update_invite_accept(self):
         user = UserFactory()

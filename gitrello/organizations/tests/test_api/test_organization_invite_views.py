@@ -40,7 +40,6 @@ class TestOrganizationInviteView(TestCase):
 
             self.assertEqual(response.status_code, 201)
             mocked_send_invite.assert_called_with(
-                auth_user_id=member.user_id,
                 organization_id=payload['organization_id'],
                 email=payload['email'],
                 message=payload['message']
@@ -106,9 +105,9 @@ class TestOrganizationInviteView(TestCase):
         }
         with patch.object(
                 OrganizationInviteService,
-                'send_invite',
+                'can_send_invite',
                 side_effect=PermissionDeniedException
-        ) as mocked_send_invite:
+        ) as mocked_can_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -116,11 +115,9 @@ class TestOrganizationInviteView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_send_invite.assert_called_with(
+        mocked_can_send_invite.assert_called_with(
             auth_user_id=member.user_id,
             organization_id=payload['organization_id'],
-            email=payload['email'],
-            message=payload['message'],
         )
         self.assertDictEqual(response.data, expected_response)
 
@@ -136,9 +133,9 @@ class TestOrganizationInviteView(TestCase):
         }
         with patch.object(
                 OrganizationInviteService,
-                'send_invite',
+                'can_send_invite',
                 side_effect=PermissionDeniedException
-        ) as mocked_send_invite:
+        ) as mocked_can_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -146,11 +143,9 @@ class TestOrganizationInviteView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_send_invite.assert_called_with(
+        mocked_can_send_invite.assert_called_with(
             auth_user_id=member.user_id,
             organization_id=payload['organization_id'],
-            email=payload['email'],
-            message=payload['message'],
         )
         self.assertDictEqual(response.data, expected_response)
 
@@ -177,7 +172,6 @@ class TestOrganizationInviteView(TestCase):
             'error_message': UserNotFoundException.message,
         }
         mocked_send_invite.assert_called_with(
-            auth_user_id=member.user_id,
             organization_id=payload['organization_id'],
             email=payload['email'],
             message=payload['message'],
@@ -208,7 +202,6 @@ class TestOrganizationInviteView(TestCase):
             'error_message': OrganizationInviteAlreadyExistsException.message,
         }
         mocked_send_invite.assert_called_with(
-            auth_user_id=member.user_id,
             organization_id=payload['organization_id'],
             email=payload['email'],
             message=payload['message'],

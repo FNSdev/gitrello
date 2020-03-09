@@ -3,7 +3,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from gitrello.exceptions import APIRequestValidationException
+from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
 )
@@ -38,7 +38,13 @@ class CreateOrganizationInviteView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        invite = OrganizationInviteService().send_invite(auth_user_id=request.user.id, **serializer.validated_data)
+        service = OrganizationInviteService()
+        if not service.can_send_invite(
+                auth_user_id=request.user.id,
+                organization_id=serializer.validated_data['organization_id']):
+            raise PermissionDeniedException
+
+        invite = OrganizationInviteService().send_invite(**serializer.validated_data)
         return Response(
             status=201,
             data={

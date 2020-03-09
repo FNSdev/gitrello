@@ -106,7 +106,7 @@ class TestOrganizationInviteView(TestCase):
         with patch.object(
                 OrganizationInviteService,
                 'can_send_invite',
-                side_effect=PermissionDeniedException
+                return_value=False
         ) as mocked_can_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
@@ -134,7 +134,7 @@ class TestOrganizationInviteView(TestCase):
         with patch.object(
                 OrganizationInviteService,
                 'can_send_invite',
-                side_effect=PermissionDeniedException
+                return_value=False,
         ) as mocked_can_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 

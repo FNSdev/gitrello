@@ -116,7 +116,7 @@ class TestOrganizationInviteView(TestCase):
             'error_message': PermissionDeniedException.message,
         }
         mocked_can_send_invite.assert_called_with(
-            auth_user_id=member.user_id,
+            user_id=member.user_id,
             organization_id=payload['organization_id'],
         )
         self.assertDictEqual(response.data, expected_response)
@@ -144,7 +144,7 @@ class TestOrganizationInviteView(TestCase):
             'error_message': PermissionDeniedException.message,
         }
         mocked_can_send_invite.assert_called_with(
-            auth_user_id=member.user_id,
+            user_id=member.user_id,
             organization_id=payload['organization_id'],
         )
         self.assertDictEqual(response.data, expected_response)

@@ -74,7 +74,7 @@ class TestOrganizationInviteService(TestCase):
         for member in members:
             self.assertTrue(
                 OrganizationInviteService().can_send_invite(
-                    auth_user_id=member.user_id,
+                    user_id=member.user_id,
                     organization_id=member.organization_id,
                 )
             )
@@ -84,7 +84,7 @@ class TestOrganizationInviteService(TestCase):
 
         self.assertFalse(
             OrganizationInviteService().can_send_invite(
-                auth_user_id=member.user_id,
+                user_id=member.user_id,
                 organization_id=member.organization_id,
             )
         )

@@ -40,7 +40,7 @@ class CreateOrganizationInviteView(views.APIView):
 
         service = OrganizationInviteService()
         if not service.can_send_invite(
-                auth_user_id=request.user.id,
+                user_id=request.user.id,
                 organization_id=serializer.validated_data['organization_id']):
             raise PermissionDeniedException
 

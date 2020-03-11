@@ -1,7 +1,6 @@
 import logging
 
 from django.db import IntegrityError
-from django.db.models import Q
 
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
@@ -9,7 +8,6 @@ from organizations.exceptions import (
     CanNotLeaveOrganizationException,
 )
 from organizations.models import OrganizationMembership
-from gitrello.exceptions import PermissionDeniedException
 
 logger = logging.getLogger(__name__)
 
@@ -32,27 +30,33 @@ class OrganizationMembershipService:
             raise OrganizationMembershipAlreadyExistsException
 
     # TODO delete/update invite?
-    def delete_member(self, auth_user_id: int, organization_membership_id):
-        try:
-            membership = OrganizationMembership.objects.get(id=organization_membership_id)
-        except OrganizationMembership.DoesNotExist:
+    def delete_member(self, organization_membership_id):
+        membership = OrganizationMembership.objects.filter(id=organization_membership_id).first()
+        if not membership:
             raise OrganizationMembershipNotFoundException
-
-        if not self._can_delete_member(auth_user_id, membership):
-            raise PermissionDeniedException
 
         membership.delete()
 
-    def _can_delete_member(self, auth_user_id: int, membership: OrganizationMembership):
-        query = OrganizationMembership.objects.filter(
-            Q(organization_id=membership.organization_id),
-            Q(user_id=auth_user_id),
-        )
-        if membership.role == OrganizationMemberRole.OWNER:
-            raise CanNotLeaveOrganizationException
-        elif membership.role == OrganizationMemberRole.ADMIN:
-            query = query.filter(role=OrganizationMemberRole.OWNER)
-        elif membership.role == OrganizationMemberRole.MEMBER:
-            query = query.filter(Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN))
+    def can_delete_member(self, user_id: int, organization_membership_id: int):
+        membership_to_delete = OrganizationMembership.objects.filter(id=organization_membership_id).first()
+        if not membership_to_delete:
+            return False
 
-        return query.exists() or auth_user_id == membership.user_id
+        if membership_to_delete.role == OrganizationMemberRole.OWNER:
+            raise CanNotLeaveOrganizationException
+
+        # User wants to leave organization
+        if membership_to_delete.user_id == user_id:
+            return True
+
+        membership = OrganizationMembership.objects.filter(
+            organization_id=membership_to_delete.organization_id,
+            user_id=user_id,
+        ).values('role').first()
+
+        # ADMIN users can be deleted from organization only by it's owner
+        if membership_to_delete.role == OrganizationMemberRole.ADMIN:
+            return membership['role'] == OrganizationMemberRole.OWNER
+
+        # MEMBER users can be deleted from organization by owner and admins
+        return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN

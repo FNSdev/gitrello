@@ -85,8 +85,9 @@ class OrganizationMembershipView(views.APIView):
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
     def delete(self, request, *args, **kwargs):
-        OrganizationMembershipService().delete_member(
-            auth_user_id=request.user.id,
-            organization_membership_id=kwargs['id'],
-        )
+        service = OrganizationMembershipService()
+        if not service.can_delete_member(user_id=request.user.id, organization_membership_id=kwargs['id']):
+            raise PermissionDeniedException
+
+        OrganizationMembershipService().delete_member(organization_membership_id=kwargs['id'])
         return Response(status=204)

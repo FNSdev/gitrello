@@ -94,12 +94,12 @@ class TestOrganizationInvitesView(TestCase):
         mocked_send_invite.assert_not_called()
 
     def test_create_invite_permission_denied(self):
-        member = OrganizationMembershipFactory()
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=member.user)
+        api_client.force_authenticate(user=user)
 
         payload = {
-            'organization_id': member.organization_id,
+            'organization_id': 1,
             'email': 'test@test.com',
             'message': 'message',
         }
@@ -116,15 +116,15 @@ class TestOrganizationInvitesView(TestCase):
             'error_message': PermissionDeniedException.message,
         }
         mocked_can_send_invite.assert_called_with(
-            user_id=member.user_id,
+            user_id=user.id,
             organization_id=payload['organization_id'],
         )
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_invite_organization_not_found(self):
-        member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=member.user)
+        api_client.force_authenticate(user=user)
 
         payload = {
             'organization_id': -1,
@@ -144,7 +144,7 @@ class TestOrganizationInvitesView(TestCase):
             'error_message': PermissionDeniedException.message,
         }
         mocked_can_send_invite.assert_called_with(
-            user_id=member.user_id,
+            user_id=user.id,
             organization_id=payload['organization_id'],
         )
         self.assertDictEqual(response.data, expected_response)
@@ -262,7 +262,6 @@ class TestOrganizationInviteView(TestCase):
         mocked_update_invite.assert_not_called()
 
     def test_update_invite_permission_denied(self):
-        invite = OrganizationInviteFactory()
         user = UserFactory()
         api_client = APIClient()
         api_client.force_authenticate(user=user)
@@ -273,12 +272,12 @@ class TestOrganizationInviteView(TestCase):
                 'can_update_invite',
                 return_value=False,
         ) as mocked_can_update_invite:
-            response = api_client.patch(f'/api/v1/organization-invites/{invite.id}', data=payload, format='json')
+            response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
         mocked_can_update_invite.assert_called_with(
             user_id=user.id,
-            organization_invite_id=invite.id,
+            organization_invite_id=1,
         )
         expected_response = {
             'error_code': PermissionDeniedException.code,

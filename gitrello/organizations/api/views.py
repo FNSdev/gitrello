@@ -10,7 +10,7 @@ from organizations.api.serializers import (
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
 
-class CreateOrganizationView(views.APIView):
+class OrganizationsView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -29,7 +29,7 @@ class CreateOrganizationView(views.APIView):
         )
 
 
-class CreateOrganizationInviteView(views.APIView):
+class OrganizationInvitesView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -54,7 +54,7 @@ class CreateOrganizationInviteView(views.APIView):
         )
 
 
-class UpdateOrganizationInviteView(views.APIView):
+class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 
@@ -80,7 +80,7 @@ class UpdateOrganizationInviteView(views.APIView):
         )
 
 
-class DeleteOrganizationMembershipView(views.APIView):
+class OrganizationMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, TokenAuthentication)
 

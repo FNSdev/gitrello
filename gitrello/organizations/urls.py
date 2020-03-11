@@ -1,19 +1,19 @@
 from django.urls import path
 
 from organizations.api.views import (
-    CreateOrganizationView, CreateOrganizationInviteView, UpdateOrganizationInviteView,
-    DeleteOrganizationMembershipView,
+    OrganizationsView, OrganizationInvitesView, OrganizationInviteView,
+    OrganizationMembershipView,
 )
 
 app_name = 'organizations'
 
 urlpatterns = [
-    path('v1/organizations', CreateOrganizationView.as_view(), name='create_organization'),
-    path('v1/organization-invites', CreateOrganizationInviteView.as_view(), name='create_organization_invite'),
-    path('v1/organization-invites/<int:id>', UpdateOrganizationInviteView.as_view(), name='update_organization_invite'),
+    path('v1/organizations', OrganizationsView.as_view(), name='organizations'),
+    path('v1/organization-invites', OrganizationInvitesView.as_view(), name='organization_invites'),
+    path('v1/organization-invites/<int:id>', OrganizationInviteView.as_view(), name='organization_invite'),
     path(
         'v1/organization-memberships/<int:id>',
-        DeleteOrganizationMembershipView.as_view(),
-        name='delete_organization_membership'
+        OrganizationMembershipView.as_view(),
+        name='organization_membership'
     ),
 ]

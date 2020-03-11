@@ -14,7 +14,7 @@ from organizations.services import OrganizationInviteService
 from organizations.tests.factories import OrganizationMembershipFactory, OrganizationInviteFactory
 
 
-class TestOrganizationInviteView(TestCase):
+class TestOrganizationInvitesView(TestCase):
     def test_create_invite(self):
         members = (
             OrganizationMembershipFactory(
@@ -209,7 +209,7 @@ class TestOrganizationInviteView(TestCase):
         self.assertDictEqual(response.data, expected_response)
 
 
-class TestUpdateOrganizationInviteView(TestCase):
+class TestOrganizationInviteView(TestCase):
     def test_update_invite(self):
         invite = OrganizationInviteFactory(status=OrganizationInviteStatus.ACCEPTED)
         api_client = APIClient()

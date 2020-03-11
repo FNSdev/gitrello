@@ -11,25 +11,14 @@ from organizations.tests.factories import OrganizationFactory
 
 
 class TestOrganizationsView(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        cls.user = UserFactory()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.user.delete()
-
-        super().tearDownClass()
-
     def test_create_organization(self):
         payload = {
             'name': 'GITrello',
         }
 
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=self.user)
+        api_client.force_authenticate(user=user)
         organization = OrganizationFactory()
 
         with patch.object(OrganizationService, 'create_organization', return_value=organization) as mocked_create_organization:
@@ -37,7 +26,7 @@ class TestOrganizationsView(TestCase):
 
         self.assertEqual(response.status_code, 201)
         mocked_create_organization.assert_called_with(
-            owner_id=self.user.id,
+            owner_id=user.id,
             name=payload['name'],
         )
         self.assertDictEqual(response.data, {'id': organization.id, 'name': organization.name})
@@ -58,7 +47,7 @@ class TestOrganizationsView(TestCase):
         }
 
         api_client = APIClient()
-        api_client.force_authenticate(user=self.user)
+        api_client.force_authenticate(user=UserFactory())
         response = api_client.post('/api/v1/organizations', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -80,8 +69,9 @@ class TestOrganizationsView(TestCase):
             'name': organization.name,
         }
 
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=self.user)
+        api_client.force_authenticate(user=user)
 
         with patch.object(
                 OrganizationService,
@@ -92,7 +82,7 @@ class TestOrganizationsView(TestCase):
 
         self.assertEqual(response.status_code, 400)
         mocked_create_organization.assert_called_with(
-            owner_id=self.user.id,
+            owner_id=user.id,
             name=payload['name'],
         )
         expected_response = {

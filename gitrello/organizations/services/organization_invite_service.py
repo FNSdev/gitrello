@@ -8,7 +8,6 @@ from django.db.transaction import atomic
 
 from authentication.exceptions import UserNotFoundException
 from authentication.models import User
-from gitrello.exceptions import PermissionDeniedException
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     GITrelloOrganizationsException, OrganizationNotFoundException, OrganizationInviteAlreadyExistsException,
@@ -39,10 +38,7 @@ class OrganizationInviteService:
             self._process_send_invite_exception(e)
 
     @atomic
-    def update_invite(self, auth_user_id: int, organization_invite_id: int, accept: bool) -> OrganizationInvite:
-        if not self._can_accept_invite(auth_user_id, organization_invite_id):
-            raise PermissionDeniedException
-
+    def update_invite(self, organization_invite_id: int, accept: bool) -> OrganizationInvite:
         invite = OrganizationInvite.objects.select_for_update().get(id=organization_invite_id)
         invite.status = OrganizationInviteStatus.ACCEPTED if accept else OrganizationInviteStatus.DECLINED
         invite.save()
@@ -50,7 +46,7 @@ class OrganizationInviteService:
         if accept:
             OrganizationMembershipService().add_member(
                 organization_id=invite.organization_id,
-                user_id=auth_user_id
+                user_id=invite.user_id,
             )
 
         return invite
@@ -59,13 +55,13 @@ class OrganizationInviteService:
         return OrganizationMembership.objects.filter(
             Q(organization_id=organization_id),
             Q(user_id=user_id),
-            Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN)
+            Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
         ).exists()
 
-    def _can_accept_invite(self, auth_user_id: int, organization_invite_id: int):
+    def can_update_invite(self, user_id: int, organization_invite_id: int):
         return OrganizationInvite.objects.filter(
             id=organization_invite_id,
-            user_id=auth_user_id
+            user_id=user_id,
         ).exists()
 
     def _process_send_invite_exception(self, e: Union[IntegrityError, ObjectDoesNotExist]):

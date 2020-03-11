@@ -63,8 +63,11 @@ class UpdateOrganizationInviteView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
+        service = OrganizationInviteService()
+        if not service.can_update_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
+            raise PermissionDeniedException
+
         invite = OrganizationInviteService().update_invite(
-            auth_user_id=request.user.id,
             organization_invite_id=kwargs['id'],
             **serializer.validated_data,
         )

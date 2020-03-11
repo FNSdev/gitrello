@@ -221,7 +221,6 @@ class TestUpdateOrganizationInviteView(TestCase):
 
         self.assertEqual(response.status_code, 200)
         mocked_update_invite.assert_called_with(
-            auth_user_id=invite.user_id,
             organization_invite_id=invite.id,
             accept=payload['accept'],
         )
@@ -271,16 +270,15 @@ class TestUpdateOrganizationInviteView(TestCase):
         payload = {'accept': True}
         with patch.object(
                 OrganizationInviteService,
-                'update_invite',
-                side_effect=PermissionDeniedException
-        ) as mocked_update_invite:
+                'can_update_invite',
+                return_value=False,
+        ) as mocked_can_update_invite:
             response = api_client.patch(f'/api/v1/organization-invites/{invite.id}', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
-        mocked_update_invite.assert_called_with(
-            auth_user_id=user.id,
+        mocked_can_update_invite.assert_called_with(
+            user_id=user.id,
             organization_invite_id=invite.id,
-            accept=payload['accept'],
         )
         expected_response = {
             'error_code': PermissionDeniedException.code,
@@ -296,16 +294,15 @@ class TestUpdateOrganizationInviteView(TestCase):
         payload = {'accept': True}
         with patch.object(
                 OrganizationInviteService,
-                'update_invite',
-                side_effect=PermissionDeniedException,
-        ) as mocked_update_invite:
+                'can_update_invite',
+                return_value=False,
+        ) as mocked_can_update_invite:
             response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
-        mocked_update_invite.assert_called_with(
-            auth_user_id=user.id,
+        mocked_can_update_invite.assert_called_with(
+            user_id=user.id,
             organization_invite_id=1,
-            accept=payload['accept'],
         )
         expected_response = {
             'error_code': PermissionDeniedException.code,
@@ -314,9 +311,9 @@ class TestUpdateOrganizationInviteView(TestCase):
         self.assertDictEqual(response.data, expected_response)
 
     def test_update_invite_already_a_member(self):
-        user = UserFactory()
+        invite = OrganizationInviteFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=user)
+        api_client.force_authenticate(user=invite.user)
 
         payload = {'accept': True}
         with patch.object(
@@ -324,12 +321,11 @@ class TestUpdateOrganizationInviteView(TestCase):
                 'update_invite',
                 side_effect=OrganizationMembershipAlreadyExistsException
         ) as mocked_update_invite:
-            response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
+            response = api_client.patch(f'/api/v1/organization-invites/{invite.id}', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
         mocked_update_invite.assert_called_with(
-            auth_user_id=user.id,
-            organization_invite_id=1,
+            organization_invite_id=invite.id,
             accept=payload['accept'],
         )
         expected_response = {

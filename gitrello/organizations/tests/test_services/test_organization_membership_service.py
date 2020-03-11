@@ -1,7 +1,6 @@
 from django.test import TestCase
 
 from authentication.tests.factories import UserFactory
-from gitrello.exceptions import PermissionDeniedException
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationMembershipAlreadyExistsException, OrganizationMembershipNotFoundException,

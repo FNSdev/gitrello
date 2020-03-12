@@ -16,6 +16,7 @@ ADMINS = [
 
 INSTALLED_APPS = [
     'authentication',
+    'boards',
     'organizations',
     'django.contrib.admin',
     'django.contrib.auth',

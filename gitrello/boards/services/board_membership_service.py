@@ -30,7 +30,11 @@ class BoardMembershipService:
                 ),
             )
         except (IntegrityError, ObjectDoesNotExist) as e:
-            logger.warning('Could not add user %s to board %s', user_id, board_id)
+            logger.warning(
+                'Could not add organization_membership_id %s to board %s',
+                organization_membership_id,
+                board_id
+            )
             self._process_add_member_exception(e)
 
     def delete_member(self, board_membership_id: int):
@@ -66,8 +70,11 @@ class BoardMembershipService:
             user_id=user_id,
         ).values('role').first()
 
+        if not membership:
+            return False
+
         # ADMIN users can be deleted from board only by it's owner
-        if membership_to_delete.role == OrganizationMemberRole.ADMIN:
+        if membership_to_delete.organization_membership.role == OrganizationMemberRole.ADMIN:
             return membership['role'] == OrganizationMemberRole.OWNER
 
         # MEMBER users can be deleted from board by owner and admins

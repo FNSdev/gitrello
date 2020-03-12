@@ -21,7 +21,7 @@ class OrganizationInviteAlreadyExistsException(GITrelloOrganizationsException):
 
 
 class OrganizationMembershipNotFoundException(GITrelloOrganizationsException):
-    message = 'User is not a member of a given organization'
+    message = 'Organization membership was not found'
     code = 321
 
 

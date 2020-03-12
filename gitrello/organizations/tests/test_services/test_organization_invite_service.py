@@ -4,7 +4,6 @@ from django.test import TestCase
 
 from authentication.exceptions import UserNotFoundException
 from authentication.tests.factories import UserFactory
-from gitrello.exceptions import PermissionDeniedException
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     OrganizationInviteAlreadyExistsException, OrganizationMembershipAlreadyExistsException,
@@ -51,16 +50,12 @@ class TestOrganizationInviteService(TestCase):
 
     def test_send_invite_already_invited(self):
         member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
-        user = UserFactory()
-        _ = OrganizationInviteFactory(
-            organization_id=member.organization_id,
-            user_id=user.id,
-        )
+        invite = OrganizationInviteFactory(organization_id=member.organization_id)
 
         with self.assertRaises(OrganizationInviteAlreadyExistsException):
             _ = OrganizationInviteService().send_invite(
                 organization_id=member.organization_id,
-                email=user.email,
+                email=invite.user.email,
                 message='message',
             )
 

@@ -54,6 +54,9 @@ class OrganizationMembershipService:
             user_id=user_id,
         ).values('role').first()
 
+        if not membership:
+            return False
+
         # ADMIN users can be deleted from organization only by it's owner
         if membership_to_delete.role == OrganizationMemberRole.ADMIN:
             return membership['role'] == OrganizationMemberRole.OWNER

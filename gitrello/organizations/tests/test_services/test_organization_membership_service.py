@@ -129,3 +129,26 @@ class TestOrganizationMembershipService(TestCase):
                     organization_membership_id=membership.id,
                 )
             )
+
+    def test_random_user_can_not_delete_anyone(self):
+        user = UserFactory()
+        organization = OrganizationFactory()
+
+        memberships = (
+            OrganizationMembershipFactory(
+                role=OrganizationMemberRole.ADMIN,
+                organization_id=organization.id,
+            ),
+            OrganizationMembershipFactory(
+                role=OrganizationMemberRole.MEMBER,
+                organization_id=organization.id,
+            ),
+        )
+
+        for membership in memberships:
+            self.assertFalse(
+                OrganizationMembershipService().can_delete_member(
+                    user_id=user.id,
+                    organization_membership_id=membership.id,
+                )
+            )

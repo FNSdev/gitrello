@@ -21,7 +21,8 @@ class TestOrganizationsView(TestCase):
         api_client.force_authenticate(user=user)
         organization = OrganizationFactory()
 
-        with patch.object(OrganizationService, 'create_organization', return_value=organization) as mocked_create_organization:
+        with patch.object(
+                OrganizationService, 'create_organization', return_value=organization) as mocked_create_organization:
             response = api_client.post('/api/v1/organizations', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
@@ -76,8 +77,7 @@ class TestOrganizationsView(TestCase):
         with patch.object(
                 OrganizationService,
                 'create_organization',
-                side_effect=OrganizationAlreadyExistsException
-        ) as mocked_create_organization:
+                side_effect=OrganizationAlreadyExistsException) as mocked_create_organization:
             response = api_client.post('/api/v1/organizations', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)

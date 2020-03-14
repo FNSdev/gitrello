@@ -1,6 +1,5 @@
 import logging
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Subquery, Q
 
@@ -11,7 +10,7 @@ from boards.exceptions import (
 from boards.models import BoardMembership, Board
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import OrganizationMembershipNotFoundException
-from organizations.models import OrganizationMembership, Organization
+from organizations.models import OrganizationMembership
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class BoardMembershipService:
                     OrganizationMembership.objects.filter(id=organization_membership_id).values('id')
                 ),
             )
-        except (IntegrityError, ObjectDoesNotExist) as e:
+        except IntegrityError as e:
             logger.warning(
                 'Could not add organization_membership_id %s to board %s',
                 organization_membership_id,
@@ -83,7 +82,7 @@ class BoardMembershipService:
         # MEMBER users can be deleted from board by owner and admins
         return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN
 
-    def _process_add_member_exception(self, e: ObjectDoesNotExist):
+    def _process_add_member_exception(self, e: IntegrityError):
         if e.args[0].find(self._board_not_found_pattern) != -1:
             raise BoardNotFoundException
 

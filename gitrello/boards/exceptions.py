@@ -10,6 +10,11 @@ class BoardNotFoundException(GITrelloBoardsException):
     code = 401
 
 
+class BoardAlreadyExistsException(GITrelloBoardsException):
+    message = 'Board with given name already exists'
+    code = 402
+
+
 class BoardMembershipNotFoundException(GITrelloBoardsException):
     message = 'Board membership was not found'
     code = 411

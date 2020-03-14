@@ -44,7 +44,7 @@ class OrganizationInvitesView(views.APIView):
                 organization_id=serializer.validated_data['organization_id']):
             raise PermissionDeniedException
 
-        invite = OrganizationInviteService().send_invite(**serializer.validated_data)
+        invite = service.send_invite(**serializer.validated_data)
         return Response(
             status=201,
             data={
@@ -67,7 +67,7 @@ class OrganizationInviteView(views.APIView):
         if not service.can_update_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
             raise PermissionDeniedException
 
-        invite = OrganizationInviteService().update_invite(
+        invite = service.update_invite(
             organization_invite_id=kwargs['id'],
             **serializer.validated_data,
         )
@@ -89,5 +89,5 @@ class OrganizationMembershipView(views.APIView):
         if not service.can_delete_member(user_id=request.user.id, organization_membership_id=kwargs['id']):
             raise PermissionDeniedException
 
-        OrganizationMembershipService().delete_member(organization_membership_id=kwargs['id'])
+        service.delete_member(organization_membership_id=kwargs['id'])
         return Response(status=204)

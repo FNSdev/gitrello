@@ -141,3 +141,55 @@ class TestBoardMembershipsView(TestCase):
             'error_message': PermissionDeniedException.message,
         }
         self.assertDictEqual(response.data, expected_response)
+
+
+class TestBoardMembershipView(TestCase):
+    def test_delete_board_membership(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        other_organization_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+        )
+        board = BoardFactory(organization_id=organization_membership.organization_id)
+        board_membership = BoardMembershipFactory(
+            organization_membership_id=other_organization_membership.id,
+            board_id=board.id,
+        )
+        api_client = APIClient()
+        api_client.force_authenticate(user=organization_membership.user)
+
+        with patch.object(BoardMembershipService, 'delete_member') as mocked_delete_member:
+            response = api_client.delete(f'/api/v1/board-membership/{board_membership.id}')
+
+        self.assertEqual(response.status_code, 204)
+        mocked_delete_member.assert_called_with(board_membership_id=board_membership.id)
+
+    def test_create_board_membership_not_authenticated(self):
+        api_client = APIClient()
+
+        with patch.object(BoardMembershipService, 'can_delete_member') as mocked_can_delete_member:
+            response = api_client.delete(f'/api/v1/board-membership/1')
+
+        self.assertEqual(response.status_code, 403)
+        mocked_can_delete_member.assert_not_called()
+
+    def test_create_board_membership_permission_denied(self):
+        user = UserFactory()
+        api_client = APIClient()
+        api_client.force_authenticate(user=user)
+
+        with patch.object(
+                BoardMembershipService,
+                'can_delete_member',
+                return_value=False) as mocked_can_delete_member:
+            response = api_client.delete('/api/v1/board-membership/1')
+
+        self.assertEqual(response.status_code, 403)
+        mocked_can_delete_member.assert_called_with(
+            user_id=user.id,
+            board_membership_id=1,
+        )
+        expected_response = {
+            'error_code': PermissionDeniedException.code,
+            'error_message': PermissionDeniedException.message,
+        }
+        self.assertDictEqual(response.data, expected_response)

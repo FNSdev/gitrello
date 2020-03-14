@@ -11,7 +11,7 @@ from boards.exceptions import (
 from boards.models import BoardMembership, Board
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import OrganizationMembershipNotFoundException
-from organizations.models import OrganizationMembership
+from organizations.models import OrganizationMembership, Organization
 
 logger = logging.getLogger(__name__)
 
@@ -44,14 +44,17 @@ class BoardMembershipService:
 
         membership.delete()
 
-    def can_add_member(self, organization_id: int, user_id: int) -> bool:
+    def can_add_member(self, organization_id: int, organization_membership_id: int, user_id: int) -> bool:
         return OrganizationMembership.objects.filter(
             Q(organization_id=organization_id),
             Q(user_id=user_id),
             Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
+        ).exists() and OrganizationMembership.objects.filter(
+            id=organization_membership_id,
+            organization_id=organization_id,
         ).exists()
 
-    def can_delete_member(self, user_id, board_membership_id):
+    def can_delete_member(self, user_id: int, board_membership_id: int) -> bool:
         membership_to_delete = BoardMembership.objects.filter(
             id=board_membership_id,
         ).prefetch_related('organization_membership').first()

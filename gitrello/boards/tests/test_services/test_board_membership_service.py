@@ -57,42 +57,61 @@ class TestBoardMembershipService(TestCase):
 
     def test_owner_can_add_member(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertTrue(
             BoardMembershipService().can_add_member(
                 organization_id=organization_membership.organization_id,
+                organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
         )
 
     def test_admin_can_add_member(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertTrue(
             BoardMembershipService().can_add_member(
                 organization_id=organization_membership.organization_id,
+                organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
         )
 
-    def test_member_can_not_other_members(self):
+    def test_member_can_not_add_other_members(self):
         organization_membership = OrganizationMembershipFactory()
+        other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertFalse(
             BoardMembershipService().can_add_member(
                 organization_id=organization_membership.organization_id,
+                organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
         )
 
     def test_random_user_can_not_add_member(self):
-        organization = OrganizationFactory()
+        organization_membership = OrganizationMembershipFactory()
         user = UserFactory()
 
         self.assertFalse(
             BoardMembershipService().can_add_member(
-                organization_id=organization.id,
+                organization_id=organization_membership.organization_id,
+                organization_membership_id=organization_membership.id,
                 user_id=user.id,
+            )
+        )
+
+    def test_can_not_add_user_not_in_organization(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        other_organization_membership = OrganizationMembershipFactory()
+
+        self.assertFalse(
+            BoardMembershipService().can_add_member(
+                organization_id=organization_membership.organization_id,
+                organization_membership_id=other_organization_membership.id,
+                user_id=organization_membership.user_id,
             )
         )
 

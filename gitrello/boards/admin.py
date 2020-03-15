@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from boards.models import Board, BoardMembership
+
+
+admin.site.register(Board)
+admin.site.register(BoardMembership)

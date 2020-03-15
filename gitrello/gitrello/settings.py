@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'authentication',
     'boards',
     'organizations',
+    'tickets',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

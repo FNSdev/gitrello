@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class OrganizationInviteService:
     _organization_not_found_pattern = r'null value in column "organization_id"'
     _user_not_found_pattern = r'null value in column "user_id"'
-    _already_invited_pattern = r'already exists'
+    _already_invited_pattern = r'duplicate key'
 
     # Django checks foreign key constraint only when transaction is committed.
     # It will be impossible to test it using TestCase, if I'll write it like `organization_id=organization_id`

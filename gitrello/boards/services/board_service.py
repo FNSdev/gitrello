@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class BoardService:
     _organization_not_found_pattern = r'null value in column "organization_id"'
-    _already_exists_pattern = r'already exists'
+    _already_exists_pattern = r'duplicate key'
 
     @atomic
     def create_board(self, name: str, organization_id: int) -> Board:

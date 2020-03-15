@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class BoardMembershipService:
     _board_not_found_pattern = r'null value in column "board_id"'
     _organization_membership_not_found_pattern = r'null value in column "organization_membership_id"'
-    _already_exists_pattern = r'already exists'
+    _already_exists_pattern = r'duplicate key'
 
     def add_member(self, board_id: int, organization_membership_id: int) -> BoardMembership:
         try:

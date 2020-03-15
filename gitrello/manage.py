@@ -5,10 +5,13 @@ import sys
 
 from load_env import load_env
 
-load_env()
-
 
 def main():
+    if sys.argv[1] == 'test':
+        load_env('.env.test')
+    else:
+        load_env()
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitrello.settings')
     try:
         from django.core.management import execute_from_command_line

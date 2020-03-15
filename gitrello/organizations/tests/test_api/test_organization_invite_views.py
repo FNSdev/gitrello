@@ -121,34 +121,6 @@ class TestOrganizationInvitesView(TestCase):
         )
         self.assertDictEqual(response.data, expected_response)
 
-    def test_create_invite_organization_not_found(self):
-        user = UserFactory()
-        api_client = APIClient()
-        api_client.force_authenticate(user=user)
-
-        payload = {
-            'organization_id': -1,
-            'email': 'test@test.com',
-            'message': 'message',
-        }
-        with patch.object(
-                OrganizationInviteService,
-                'can_send_invite',
-                return_value=False,
-        ) as mocked_can_send_invite:
-            response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
-
-        self.assertEqual(response.status_code, 403)
-        expected_response = {
-            'error_code': PermissionDeniedException.code,
-            'error_message': PermissionDeniedException.message,
-        }
-        mocked_can_send_invite.assert_called_with(
-            user_id=user.id,
-            organization_id=payload['organization_id'],
-        )
-        self.assertDictEqual(response.data, expected_response)
-
     def test_create_invite_user_not_found(self):
         member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
         api_client = APIClient()
@@ -262,30 +234,6 @@ class TestOrganizationInviteView(TestCase):
         mocked_update_invite.assert_not_called()
 
     def test_update_invite_permission_denied(self):
-        user = UserFactory()
-        api_client = APIClient()
-        api_client.force_authenticate(user=user)
-
-        payload = {'accept': True}
-        with patch.object(
-                OrganizationInviteService,
-                'can_update_invite',
-                return_value=False,
-        ) as mocked_can_update_invite:
-            response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
-
-        self.assertEqual(response.status_code, 403)
-        mocked_can_update_invite.assert_called_with(
-            user_id=user.id,
-            organization_invite_id=1,
-        )
-        expected_response = {
-            'error_code': PermissionDeniedException.code,
-            'error_message': PermissionDeniedException.message,
-        }
-        self.assertDictEqual(response.data, expected_response)
-
-    def test_update_invite_not_found(self):
         user = UserFactory()
         api_client = APIClient()
         api_client.force_authenticate(user=user)

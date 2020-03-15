@@ -30,29 +30,6 @@ class TestOrganizationMembershipView(TestCase):
         self.assertEqual(response.status_code, 403)
         mocked_can_delete_member.assert_not_called()
 
-    def test_delete_membership_membership_does_not_exist(self):
-        user = UserFactory()
-        client = APIClient()
-        client.force_authenticate(user=user)
-
-        with patch.object(
-            OrganizationMembershipService,
-            'can_delete_member',
-            return_value=False,
-        ) as mocked_can_delete_member:
-            response = client.delete('/api/v1/organization-memberships/1')
-
-        self.assertEqual(response.status_code, 403)
-        mocked_can_delete_member.assert_called_with(
-            user_id=user.id,
-            organization_membership_id=1,
-        )
-        expected_response = {
-            'error_code': PermissionDeniedException.code,
-            'error_message': PermissionDeniedException.message,
-        }
-        self.assertDictEqual(response.data, expected_response)
-
     def test_delete_membership_permission_denied(self):
         user = UserFactory()
         client = APIClient()

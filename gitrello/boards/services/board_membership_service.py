@@ -1,7 +1,7 @@
 import logging
 
 from django.db import IntegrityError
-from django.db.models import Subquery, Q
+from django.db.models import Subquery, Q, Case, When
 
 from boards.exceptions import (
     GITrelloBoardsException, BoardNotFoundException, BoardMembershipAlreadyExistsException,
@@ -43,14 +43,17 @@ class BoardMembershipService:
 
         membership.delete()
 
-    def can_add_member(self, organization_id: int, organization_membership_id: int, user_id: int) -> bool:
-        return OrganizationMembership.objects.filter(
-            Q(organization_id=organization_id),
-            Q(user_id=user_id),
-            Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
-        ).exists() and OrganizationMembership.objects.filter(
-            id=organization_membership_id,
-            organization_id=organization_id,
+    def can_add_member(self, board_id: int, user_id: int, organization_membership_id: int) -> bool:
+        return BoardMembership.objects.filter(
+            Q(board_id=board_id),
+            Q(organization_membership__user_id=user_id),
+            Q(organization_membership__role=OrganizationMemberRole.OWNER) |
+            Q(organization_membership__role=OrganizationMemberRole.ADMIN),
+            Q(
+                board__organization_id=Subquery(
+                    OrganizationMembership.objects.filter(id=organization_membership_id).values('organization_id')
+                )
+            )
         ).exists()
 
     def can_delete_member(self, user_id: int, board_membership_id: int) -> bool:
@@ -67,20 +70,22 @@ class BoardMembershipService:
         if membership_to_delete.organization_membership.user_id == user_id:
             return True
 
-        membership = OrganizationMembership.objects.filter(
-            organization_id=membership_to_delete.organization_membership.organization_id,
-            user_id=user_id,
-        ).values('role').first()
+        membership = BoardMembership.objects.filter(
+            organization_membership__organization_id=membership_to_delete.organization_membership.organization_id,
+            organization_membership__user_id=user_id,
+        ).values('organization_membership__role').first()
 
         if not membership:
             return False
 
         # ADMIN users can be deleted from board only by it's owner
         if membership_to_delete.organization_membership.role == OrganizationMemberRole.ADMIN:
-            return membership['role'] == OrganizationMemberRole.OWNER
+            return membership['organization_membership__role'] == OrganizationMemberRole.OWNER
 
         # MEMBER users can be deleted from board by owner and admins
-        return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN
+        return \
+            membership['organization_membership__role'] == OrganizationMemberRole.OWNER \
+            or membership['organization_membership__role'] == OrganizationMemberRole.ADMIN
 
     def _process_add_member_exception(self, e: IntegrityError):
         if e.args[0].find(self._board_not_found_pattern) != -1:

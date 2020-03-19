@@ -19,6 +19,7 @@ class TestBoardMembershipsView(TestCase):
             organization_id=organization_membership.organization_id,
         )
         board = BoardFactory(organization_id=organization_membership.organization_id)
+        _ = BoardMembershipFactory(organization_membership_id=organization_membership.id, board_id=board.id)
         api_client = APIClient()
         api_client.force_authenticate(user=organization_membership.user)
         board_membership = BoardMembershipFactory()
@@ -72,9 +73,6 @@ class TestBoardMembershipsView(TestCase):
                 "board_id": [
                     "This field is required."
                 ],
-                "organization_id": [
-                    "This field is required."
-                ],
                 "organization_membership_id": [
                     "This field is required."
                 ],
@@ -88,6 +86,7 @@ class TestBoardMembershipsView(TestCase):
             organization_id=organization_membership.organization_id,
         )
         board = BoardFactory(organization_id=organization_membership.organization_id)
+        _ = BoardMembershipFactory(organization_membership_id=organization_membership.id, board_id=board.id)
         api_client = APIClient()
         api_client.force_authenticate(user=organization_membership.user)
 
@@ -120,7 +119,6 @@ class TestBoardMembershipsView(TestCase):
         api_client.force_authenticate(user=user)
         payload = {
             'board_id': 1,
-            'organization_id': 1,
             'organization_membership_id': 1,
         }
 
@@ -133,7 +131,7 @@ class TestBoardMembershipsView(TestCase):
         self.assertEqual(response.status_code, 403)
         mocked_can_add_member.assert_called_with(
             user_id=user.id,
-            organization_id=payload['organization_id'],
+            board_id=payload['board_id'],
             organization_membership_id=payload['organization_membership_id'],
         )
         expected_response = {
@@ -150,6 +148,7 @@ class TestBoardMembershipView(TestCase):
             organization_id=organization_membership.organization_id,
         )
         board = BoardFactory(organization_id=organization_membership.organization_id)
+        _ = BoardMembershipFactory(organization_membership_id=organization_membership.id, board_id=board.id)
         board_membership = BoardMembershipFactory(
             organization_membership_id=other_organization_membership.id,
             board_id=board.id,

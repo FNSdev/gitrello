@@ -9,4 +9,3 @@ class CreateBoardSerializer(serializers.Serializer):
 class CreateBoardMembershipSerializer(serializers.Serializer):
     board_id = serializers.IntegerField()
     organization_membership_id = serializers.IntegerField()
-    organization_id = serializers.IntegerField()

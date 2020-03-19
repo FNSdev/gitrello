@@ -43,16 +43,10 @@ class BoardMembershipsView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         service = BoardMembershipService()
-        if not service.can_add_member(
-                user_id=request.user.id,
-                organization_id=serializer.validated_data['organization_id'],
-                organization_membership_id=serializer.validated_data['organization_membership_id']):
+        if not service.can_add_member(user_id=request.user.id, **serializer.validated_data):
             raise PermissionDeniedException
 
-        board_membership = service.add_member(
-            board_id=serializer.validated_data['board_id'],
-            organization_membership_id=serializer.validated_data['organization_membership_id'],
-        )
+        board_membership = service.add_member(**serializer.validated_data)
         return Response(
             status=201,
             data={

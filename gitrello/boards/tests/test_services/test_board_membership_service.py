@@ -57,11 +57,13 @@ class TestBoardMembershipService(TestCase):
 
     def test_owner_can_add_member(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        board = BoardFactory(organization_id=organization_membership.organization_id)
+        _ = BoardMembershipFactory(organization_membership_id=organization_membership.id, board_id=board.id)
         other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertTrue(
             BoardMembershipService().can_add_member(
-                organization_id=organization_membership.organization_id,
+                board_id=board.id,
                 organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
@@ -69,11 +71,13 @@ class TestBoardMembershipService(TestCase):
 
     def test_admin_can_add_member(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        board = BoardFactory(organization_id=organization_membership.organization_id)
+        _ = BoardMembershipFactory(organization_membership_id=organization_membership.id, board_id=board.id)
         other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertTrue(
             BoardMembershipService().can_add_member(
-                organization_id=organization_membership.organization_id,
+                board_id=board.id,
                 organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
@@ -81,11 +85,51 @@ class TestBoardMembershipService(TestCase):
 
     def test_member_can_not_add_other_members(self):
         organization_membership = OrganizationMembershipFactory()
+        board_membership = BoardMembershipFactory(organization_membership_id=organization_membership.id)
         other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
 
         self.assertFalse(
             BoardMembershipService().can_add_member(
-                organization_id=organization_membership.organization_id,
+                board_id=board_membership.board_id,
+                organization_membership_id=other_membership.id,
+                user_id=organization_membership.user_id,
+            )
+        )
+
+    def test_admin_not_on_board_can_not_add_member(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        board = BoardFactory(organization_id=organization_membership.organization_id)
+        other_membership = OrganizationMembershipFactory(organization_id=organization_membership.organization_id)
+
+        self.assertFalse(
+            BoardMembershipService().can_add_member(
+                board_id=board.id,
+                organization_membership_id=other_membership.id,
+                user_id=organization_membership.user_id,
+            )
+        )
+
+    def test_owner_can_not_add_user_not_in_organization(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        board_membership = BoardMembershipFactory(organization_membership_id=organization_membership.id)
+        other_membership = OrganizationMembershipFactory()
+
+        self.assertFalse(
+            BoardMembershipService().can_add_member(
+                board_id=board_membership.board_id,
+                organization_membership_id=other_membership.id,
+                user_id=organization_membership.user_id,
+            )
+        )
+
+    def test_admin_can_not_add_user_not_in_organization(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        board_membership = BoardMembershipFactory(organization_membership_id=organization_membership.id)
+        other_membership = OrganizationMembershipFactory()
+
+        self.assertFalse(
+            BoardMembershipService().can_add_member(
+                board_id=board_membership.board_id,
                 organization_membership_id=other_membership.id,
                 user_id=organization_membership.user_id,
             )
@@ -93,23 +137,25 @@ class TestBoardMembershipService(TestCase):
 
     def test_random_user_can_not_add_member(self):
         organization_membership = OrganizationMembershipFactory()
+        board = BoardFactory()
         user = UserFactory()
 
         self.assertFalse(
             BoardMembershipService().can_add_member(
-                organization_id=organization_membership.organization_id,
+                board_id=board.id,
                 organization_membership_id=organization_membership.id,
                 user_id=user.id,
             )
         )
 
-    def test_can_not_add_user_not_in_organization(self):
+    def test_random_user_can_not_add_random_user(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        board = BoardFactory(organization_id=organization_membership.organization_id)
         other_organization_membership = OrganizationMembershipFactory()
 
         self.assertFalse(
             BoardMembershipService().can_add_member(
-                organization_id=organization_membership.organization_id,
+                board_id=board.id,
                 organization_membership_id=other_organization_membership.id,
                 user_id=organization_membership.user_id,
             )
@@ -127,11 +173,15 @@ class TestBoardMembershipService(TestCase):
 
     def test_owner_can_delete_admin(self):
         owner_organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        owner_board_membership = BoardMembershipFactory(organization_membership_id=owner_organization_membership.id)
         admin_organization_membership = OrganizationMembershipFactory(
             organization_id=owner_organization_membership.organization_id,
             role=OrganizationMemberRole.ADMIN
         )
-        admin_board_membership = BoardMembershipFactory(organization_membership=admin_organization_membership)
+        admin_board_membership = BoardMembershipFactory(
+            organization_membership_id=admin_organization_membership.id,
+            board_id=owner_board_membership.board_id,
+        )
 
         self.assertTrue(
             BoardMembershipService().can_delete_member(
@@ -142,10 +192,14 @@ class TestBoardMembershipService(TestCase):
 
     def test_owner_can_delete_member(self):
         owner_organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        owner_board_membership = BoardMembershipFactory(organization_membership_id=owner_organization_membership.id)
         member_organization_membership = OrganizationMembershipFactory(
             organization_id=owner_organization_membership.organization_id,
         )
-        member_board_membership = BoardMembershipFactory(organization_membership=member_organization_membership)
+        member_board_membership = BoardMembershipFactory(
+            organization_membership=member_organization_membership,
+            board_id=owner_board_membership.board_id,
+        )
 
         self.assertTrue(
             BoardMembershipService().can_delete_member(
@@ -156,10 +210,14 @@ class TestBoardMembershipService(TestCase):
 
     def test_admin_can_delete_member(self):
         admin_organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        admin_board_membership = BoardMembershipFactory(organization_membership_id=admin_organization_membership.id)
         member_organization_membership = OrganizationMembershipFactory(
             organization_id=admin_organization_membership.organization_id,
         )
-        member_board_membership = BoardMembershipFactory(organization_membership=member_organization_membership)
+        member_board_membership = BoardMembershipFactory(
+            organization_membership=member_organization_membership,
+            board_id=admin_board_membership.board_id,
+        )
 
         self.assertTrue(
             BoardMembershipService().can_delete_member(
@@ -170,11 +228,15 @@ class TestBoardMembershipService(TestCase):
 
     def test_admin_can_not_delete_admin(self):
         admin_organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        admin_board_membership = BoardMembershipFactory(organization_membership_id=admin_organization_membership.id)
         other_admin_organization_membership = OrganizationMembershipFactory(
             organization_id=admin_organization_membership.organization_id,
             role=OrganizationMemberRole.ADMIN,
         )
-        other_admin_board_membership = BoardMembershipFactory(organization_membership=other_admin_organization_membership)
+        other_admin_board_membership = BoardMembershipFactory(
+            organization_membership=other_admin_organization_membership,
+            board_id=admin_board_membership.board_id,
+        )
 
         self.assertFalse(
             BoardMembershipService().can_delete_member(
@@ -185,12 +247,15 @@ class TestBoardMembershipService(TestCase):
 
     def test_member_can_not_delete_admin(self):
         member_organization_membership = OrganizationMembershipFactory()
+        member_board_membership = BoardMembershipFactory(organization_membership_id=member_organization_membership.id)
         admin_organization_membership = OrganizationMembershipFactory(
             organization_id=member_organization_membership.organization_id,
             role=OrganizationMemberRole.ADMIN,
         )
         admin_board_membership = BoardMembershipFactory(
-            organization_membership=admin_organization_membership)
+            organization_membership_id=admin_organization_membership.id,
+            board_id=member_board_membership.board_id,
+        )
 
         self.assertFalse(
             BoardMembershipService().can_delete_member(
@@ -201,11 +266,44 @@ class TestBoardMembershipService(TestCase):
 
     def test_member_can_not_delete_member(self):
         member_organization_membership = OrganizationMembershipFactory()
+        member_board_membership = BoardMembershipFactory(organization_membership_id=member_organization_membership.id)
         other_member_organization_membership = OrganizationMembershipFactory(
             organization_id=member_organization_membership.organization_id,
         )
         other_member_board_membership = BoardMembershipFactory(
-            organization_membership=other_member_organization_membership)
+            organization_membership_id=other_member_organization_membership.id,
+            board_id=member_board_membership.board_id,
+        )
+
+        self.assertFalse(
+            BoardMembershipService().can_delete_member(
+                user_id=member_organization_membership.user_id,
+                board_membership_id=other_member_board_membership.id,
+            )
+        )
+
+    def test_admin_not_on_board_can_not_delete_member(self):
+        admin_organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        member_organization_membership = OrganizationMembershipFactory(
+            organization_id=admin_organization_membership.organization_id,
+        )
+        member_board_membership = BoardMembershipFactory(organization_membership_id=member_organization_membership.id)
+
+        self.assertFalse(
+            BoardMembershipService().can_delete_member(
+                user_id=admin_organization_membership.user_id,
+                board_membership_id=member_board_membership.id,
+            )
+        )
+
+    def test_member_not_on_board_can_not_delete_member(self):
+        member_organization_membership = OrganizationMembershipFactory()
+        other_member_organization_membership = OrganizationMembershipFactory(
+            organization_id=member_organization_membership.organization_id,
+        )
+        other_member_board_membership = BoardMembershipFactory(
+            organization_membership_id=other_member_organization_membership.id,
+        )
 
         self.assertFalse(
             BoardMembershipService().can_delete_member(

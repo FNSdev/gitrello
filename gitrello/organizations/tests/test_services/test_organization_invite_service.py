@@ -7,7 +7,7 @@ from authentication.tests.factories import UserFactory
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     OrganizationInviteAlreadyExistsException, OrganizationMembershipAlreadyExistsException,
-    OrganizationNotFoundException,
+    OrganizationNotFoundException, OrganizationInviteNotFoundException,
 )
 from organizations.services import OrganizationInviteService, OrganizationMembershipService
 from organizations.tests.factories import OrganizationFactory, OrganizationMembershipFactory, OrganizationInviteFactory
@@ -113,6 +113,13 @@ class TestOrganizationInviteService(TestCase):
         self.assertIsNotNone(invite)
         self.assertEqual(invite.status, OrganizationInviteStatus.DECLINED)
         mocked_add_member.assert_not_called()
+
+    def test_update_invite_invite_not_found(self):
+        with self.assertRaises(OrganizationInviteNotFoundException):
+            _ = OrganizationInviteService().update_invite(
+                organization_invite_id=-1,
+                accept=True,
+            )
 
     def test_can_update_invite(self):
         invite = OrganizationInviteFactory()

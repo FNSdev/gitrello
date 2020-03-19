@@ -15,6 +15,11 @@ class OrganizationAlreadyExistsException(GITrelloOrganizationsException):
     code = 302
 
 
+class OrganizationInviteNotFoundException(GITrelloOrganizationsException):
+    message = 'OrganizationInvite was not found'
+    code = 311
+
+
 class OrganizationInviteAlreadyExistsException(GITrelloOrganizationsException):
     message = 'Invite has been already sent'
     code = 312

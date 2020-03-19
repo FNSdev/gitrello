@@ -11,7 +11,7 @@ from authentication.models import User
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     GITrelloOrganizationsException, OrganizationNotFoundException, OrganizationInviteAlreadyExistsException,
-)
+    OrganizationInviteNotFoundException)
 from organizations.models import Organization, OrganizationInvite, OrganizationMembership
 from organizations.services.organization_membership_service import OrganizationMembershipService
 
@@ -39,7 +39,10 @@ class OrganizationInviteService:
 
     @atomic
     def update_invite(self, organization_invite_id: int, accept: bool) -> OrganizationInvite:
-        invite = OrganizationInvite.objects.select_for_update().get(id=organization_invite_id)
+        invite = OrganizationInvite.objects.filter(id=organization_invite_id).first()
+        if not invite:
+            raise OrganizationInviteNotFoundException
+
         invite.status = OrganizationInviteStatus.ACCEPTED if accept else OrganizationInviteStatus.DECLINED
         invite.save()
 

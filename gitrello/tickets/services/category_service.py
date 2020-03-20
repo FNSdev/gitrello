@@ -1,27 +1,26 @@
-import logging
-
-from django.db import IntegrityError
 from django.db.models import Subquery
+from django.db.transaction import atomic
 
 from boards.exceptions import BoardNotFoundException
 from boards.models import Board, BoardMembership
+from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.models import OrganizationMembership
 from tickets.models import Category
 
-logger = logging.getLogger(__name__)
-
 
 class CategoryService:
+    @retry_on_transaction_serialization_error
+    @atomic
     def create_category(self, name: str, board_id: int) -> Category:
-        try:
-            return Category.objects.create(
-                name=name,
-                board_id=Subquery(Board.objects.filter(id=board_id).values('id')),
-            )
-        except IntegrityError:
-            logger.warning('Could not create category %s on board %s', name, board_id)
+        if not Board.objects.filter(id=board_id).exists():
             raise BoardNotFoundException
 
+        return Category.objects.create(
+            name=name,
+            board_id=Subquery(Board.objects.filter(id=board_id).values('id')),
+        )
+
+    @retry_on_transaction_serialization_error
     def can_create_category(self, user_id: int, board_id: int):
         return BoardMembership.objects.filter(
             board_id=board_id,

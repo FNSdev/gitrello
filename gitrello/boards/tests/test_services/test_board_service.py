@@ -14,7 +14,7 @@ class TestBoardService(TestCase):
     def test_create_board(self):
         organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
 
-        with patch.object(BoardMembershipService, 'add_member') as mocked_add_member:
+        with patch.object(BoardMembershipService, 'add_member_inside_transaction') as mocked_add_member:
             board = BoardService().create_board(name='board', organization_id=organization_membership.organization_id)
 
         self.assertIsNotNone(board)

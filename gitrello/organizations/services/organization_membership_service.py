@@ -1,15 +1,12 @@
-import logging
+from django.db.transaction import atomic
 
-from django.db import IntegrityError
-
+from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationMembershipAlreadyExistsException, OrganizationMembershipNotFoundException,
     CanNotLeaveOrganizationException,
 )
 from organizations.models import OrganizationMembership
-
-logger = logging.getLogger(__name__)
 
 
 class OrganizationMembershipService:
@@ -19,17 +16,17 @@ class OrganizationMembershipService:
         user_id: int,
         role: str = OrganizationMemberRole.MEMBER
     ) -> OrganizationMembership:
-        try:
-            return OrganizationMembership.objects.create(
-                organization_id=organization_id,
-                user_id=user_id,
-                role=role,
-            )
-        except IntegrityError:
-            logger.warning('Could not add user %s to organization %s', user_id, organization_id)
+        if OrganizationMembership.objects.filter(organization_id=organization_id, user_id=user_id).exists():
             raise OrganizationMembershipAlreadyExistsException
 
+        return OrganizationMembership.objects.create(
+            organization_id=organization_id,
+            user_id=user_id,
+            role=role,
+        )
+
     # TODO delete/update invite?
+    @retry_on_transaction_serialization_error
     def delete_member(self, organization_membership_id):
         membership = OrganizationMembership.objects.filter(id=organization_membership_id).first()
         if not membership:
@@ -37,6 +34,8 @@ class OrganizationMembershipService:
 
         membership.delete()
 
+    @retry_on_transaction_serialization_error
+    @atomic
     def can_delete_member(self, user_id: int, organization_membership_id: int):
         membership_to_delete = OrganizationMembership.objects.filter(id=organization_membership_id).first()
         if not membership_to_delete:

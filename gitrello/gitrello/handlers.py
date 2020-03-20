@@ -1,7 +1,16 @@
+import logging
+import time
+from functools import wraps
+from typing import Callable
+
+from django.db import IntegrityError
+from psycopg2 import errorcodes
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
 from gitrello.exceptions import GITrelloException, APIRequestValidationException, PermissionDeniedException
+
+logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
@@ -35,3 +44,43 @@ def custom_exception_handler(exc, context):
 
     response = exception_handler(exc, context)
     return response
+
+
+def retry_on_transaction_serialization_error(
+        original_function: Callable = None,
+        *,
+        num_retries: int = 3,
+        on_failure: GITrelloException = GITrelloException,
+        delay: float = 0.02,
+        backoff: float = 2,
+) -> Callable:
+    """
+    Should be used along with atomic() decorator to retry when transaction with serializable isolation level fails.
+    Should not be used in an inner nested transaction
+    """
+
+    def retry(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            delay_ = delay
+            for i in range(num_retries):
+                try:
+                    return func(*args, **kwargs)
+                except IntegrityError as e:
+                    if i == num_retries - 1:
+                        logger.exception('Attempted to retry %s %s times, but failed', func.__name__, num_retries)
+                        raise on_failure
+
+                    if getattr(e.__cause__, 'pgcode', '') == errorcodes.SERIALIZATION_FAILURE:
+                        logger.warning('Transaction failed for %s. Retrying', func.__name__)
+                        time.sleep(delay_)
+                        delay_ *= backoff
+                    else:
+                        raise e
+
+        return wrapper
+
+    if original_function:
+        return retry(original_function)
+
+    return retry

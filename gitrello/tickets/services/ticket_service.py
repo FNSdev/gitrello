@@ -2,7 +2,6 @@ from django.db.models import Subquery
 from django.db.transaction import atomic
 
 from boards.models import BoardMembership
-from organizations.models import OrganizationMembership
 from gitrello.handlers import retry_on_transaction_serialization_error
 from tickets.exceptions import CategoryNotFoundException, TicketNotFoundException
 from tickets.models import Category, Ticket
@@ -35,34 +34,23 @@ class TicketService:
     @retry_on_transaction_serialization_error
     @atomic
     def can_create_ticket(self, user_id: int, category_id: int) -> bool:
-        category = Category.objects.filter(id=category_id).values('board_id', 'board__organization_id').first()
+        category = Category.objects.filter(id=category_id).values('board_id').first()
+        if not category:
+            return False  # TODO add tests
 
         return BoardMembership.objects.filter(
-            organization_membership_id=Subquery(
-                OrganizationMembership.objects.filter(
-                    organization_id=category['board__organization_id'],
-                    user_id=user_id,
-                ).values('id')
-            ),
+            organization_membership__user_id=user_id,
             board_id=category['board_id'],
         ).exists()
 
     @retry_on_transaction_serialization_error
     @atomic
-    def can_update_ticket(self, user_id: int, ticket_id: int):
-        ticket = Ticket.objects.filter(
-            id=ticket_id
-        ).values(
-            'category__board_id',
-            'category__board__organization_id',
-        ).first()
+    def can_update_ticket(self, user_id: int, ticket_id: int) -> bool:
+        ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
+        if not ticket:
+            return False
 
         return BoardMembership.objects.filter(
-            organization_membership_id=Subquery(
-                OrganizationMembership.objects.filter(
-                    organization_id=ticket['category__board__organization_id'],
-                    user_id=user_id,
-                ).values('id')
-            ),
+            organization_membership__user_id=user_id,
             board_id=ticket['category__board_id'],
         ).exists()

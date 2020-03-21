@@ -79,6 +79,14 @@ class TestTicketService(TestCase):
             )
         )
 
+    def test_can_create_ticket_category_not_found(self):
+        self.assertFalse(
+            TicketService().can_create_ticket(
+                user_id=UserFactory().id,
+                category_id=-1,
+            )
+        )
+
     def test_board_member_can_update_ticket(self):
         board_membership = BoardMembershipFactory()
         ticket = TicketFactory(category=CategoryFactory(board_id=board_membership.board_id))
@@ -108,5 +116,13 @@ class TestTicketService(TestCase):
             TicketService().can_update_ticket(
                 user_id=UserFactory().id,
                 ticket_id=TicketFactory().id,
+            )
+        )
+
+    def test_can_update_ticket_ticket_not_found(self):
+        self.assertFalse(
+            TicketService().can_update_ticket(
+                user_id=UserFactory().id,
+                ticket_id=-1,
             )
         )

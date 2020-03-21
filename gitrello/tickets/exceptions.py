@@ -13,3 +13,13 @@ class CategoryNotFoundException(GITrelloTicketsException):
 class TicketNotFoundException(GITrelloTicketsException):
     message = 'Ticket was not found'
     code = 511
+
+
+class TicketAssignmentNotFoundException(GITrelloTicketsException):
+    message = 'TicketAssignment was not found'
+    code = 521
+
+
+class TicketAssignmentAlreadyExistsException(GITrelloTicketsException):
+    message = 'Already assigned'
+    code = 522

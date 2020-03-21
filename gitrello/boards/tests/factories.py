@@ -16,8 +16,8 @@ class BoardMembershipFactory(factory.DjangoModelFactory):
     class Meta:
         model = BoardMembership
 
-    organization_membership = factory.SubFactory(OrganizationMembershipFactory)
-    board = factory.SubFactory(
-        BoardFactory,
-        organization_id=factory.SelfAttribute('..organization_membership.organization_id')
+    board = factory.SubFactory(BoardFactory)
+    organization_membership = factory.SubFactory(
+        OrganizationMembershipFactory,
+        organization_id=factory.SelfAttribute('..board.organization_id')
     )

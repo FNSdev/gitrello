@@ -92,3 +92,6 @@ GitHub.sublime-settings
 
 # Data
 .data/
+
+# Credentials
+gcs_creds.json

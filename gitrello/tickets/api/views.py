@@ -7,7 +7,7 @@ from gitrello.exceptions import APIRequestValidationException, PermissionDeniedE
 from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, UpdateTicketSerializer, CreateTicketAssignmentSerializer,
 )
-from tickets.services import CategoryService, TicketService
+from tickets.services import CategoryService, TicketAssignmentService, TicketService
 
 
 class CategoriesView(views.APIView):
@@ -83,7 +83,31 @@ class TicketView(views.APIView):
 
 
 class TicketAssignmentsView(views.APIView):
-    pass
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def post(self, request, *args, **kwargs):
+        serializer = CreateTicketAssignmentSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise APIRequestValidationException(serializer_errors=serializer.errors)
+
+        service = TicketAssignmentService()
+        if not service.can_assign_member(
+            user_id=request.user.id,
+            ticket_id=serializer.validated_data['ticket_id'],
+            board_membership_id=serializer.validated_data['board_membership_id'],
+        ):
+            raise PermissionDeniedException
+
+        ticket_assignment = service.assign_member(**serializer.validated_data)
+        return Response(
+            status=201,
+            data={
+                'id': ticket_assignment.id,
+                'ticket_id': ticket_assignment.ticket_id,
+                'assignee_id': ticket_assignment.assignee_id,
+            }
+        )
 
 
 class TicketAssignmentView(views.APIView):

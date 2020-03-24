@@ -17,4 +17,5 @@ class UpdateTicketSerializer(serializers.Serializer):
 
 
 class CreateTicketAssignmentSerializer(serializers.Serializer):
-    pass
+    ticket_id = serializers.IntegerField()
+    board_membership_id = serializers.IntegerField()

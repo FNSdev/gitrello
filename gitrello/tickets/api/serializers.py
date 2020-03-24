@@ -11,7 +11,9 @@ class CreateTicketSerializer(serializers.Serializer):
 
 
 class UpdateTicketSerializer(serializers.Serializer):
-    pass
+    title = serializers.CharField(max_length=100, allow_null=True, required=False)
+    body = serializers.CharField(allow_null=True, required=False)
+    due_date = serializers.DateField(allow_null=True, required=False)
 
 
 class CreateTicketAssignmentSerializer(serializers.Serializer):

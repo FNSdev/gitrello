@@ -9,4 +9,5 @@ app_name = 'tickets'
 urlpatterns = [
     path('v1/categories', CategoriesView.as_view(), name='categories'),
     path('v1/tickets', TicketsView.as_view(), name='tickets'),
+    path('v1/tickets/<int:id>', TicketView.as_view(), name='ticket'),
 ]

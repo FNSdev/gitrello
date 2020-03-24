@@ -58,7 +58,28 @@ class TicketsView(views.APIView):
 
 
 class TicketView(views.APIView):
-    pass
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = UpdateTicketSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise APIRequestValidationException(serializer_errors=serializer.errors)
+
+        service = TicketService()
+        if not service.can_update_ticket(user_id=request.user.id, ticket_id=kwargs['id']):
+            raise PermissionDeniedException
+
+        ticket = service.update_ticket(ticket_id=kwargs['id'], validated_data=serializer.validated_data)
+        return Response(
+            status=200,
+            data={
+                'id': ticket.id,
+                'title': ticket.title,
+                'body': ticket.body,
+                'due_date': ticket.due_date,
+            }
+        )
 
 
 class TicketAssignmentsView(views.APIView):

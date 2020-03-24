@@ -93,7 +93,7 @@ class TestCategoriesView(TestCase):
                 CategoryService,
                 'can_create_category',
                 return_value=False,
-        ) as mocked_can_crate_category:
+        ) as mocked_can_create_category:
             response = api_client.post('/api/v1/categories', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -101,7 +101,7 @@ class TestCategoriesView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_crate_category.assert_called_with(
+        mocked_can_create_category.assert_called_with(
             user_id=user.id,
             board_id=payload['board_id'],
         )
@@ -116,11 +116,9 @@ class TestCategoriesView(TestCase):
             'board_id': 1,
             'name': 'category',
         }
-        with patch.object(
-                CategoryService,
-                'can_create_category',
-                side_effect=BoardNotFoundException,
-        ) as mocked_can_create_category:
+        with patch.object(CategoryService, 'can_create_category', return_value=True), \
+                patch.object(CategoryService, 'create_category', side_effect=BoardNotFoundException) \
+                as mocked_create_category:
             response = api_client.post('/api/v1/categories', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -128,8 +126,8 @@ class TestCategoriesView(TestCase):
             'error_code': BoardNotFoundException.code,
             'error_message': BoardNotFoundException.message,
         }
-        mocked_can_create_category.assert_called_with(
-            user_id=user.id,
+        mocked_create_category.assert_called_with(
             board_id=payload['board_id'],
+            name=payload['name'],
         )
         self.assertDictEqual(response.data, expected_response)

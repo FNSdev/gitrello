@@ -61,9 +61,7 @@ class BoardMembershipView(views.APIView):
 
     def delete(self, request, *args, **kwargs):
         service = BoardMembershipService()
-        if not service.can_delete_member(
-                user_id=request.user.id,
-                board_membership_id=kwargs['id']):
+        if not service.can_delete_member(user_id=request.user.id, board_membership_id=kwargs['id']):
             raise PermissionDeniedException
 
         service.delete_member(board_membership_id=kwargs['id'])

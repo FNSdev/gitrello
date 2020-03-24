@@ -111,4 +111,13 @@ class TicketAssignmentsView(views.APIView):
 
 
 class TicketAssignmentView(views.APIView):
-    pass
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def delete(self, request, *args, **kwargs):
+        service = TicketAssignmentService()
+        if not service.can_unassign_member(user_id=request.user.id, ticket_assignment_id=kwargs['id']):
+            raise PermissionDeniedException
+
+        service.unassign_member(ticket_assignment_id=kwargs['id'])
+        return Response(status=204)

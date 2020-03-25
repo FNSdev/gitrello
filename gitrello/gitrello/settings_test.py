@@ -1,5 +1,7 @@
 from gitrello.settings import *
 
+SECRET_KEY = 'TEST_SECRET_KEY'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

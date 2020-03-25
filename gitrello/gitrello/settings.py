@@ -1,7 +1,5 @@
 import os
 
-from google.oauth2 import service_account
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
@@ -185,17 +183,3 @@ LOGGING = {
         }
     }
 }
-
-# Google Cloud Storage
-
-DEFAULT_FILE_STORAGE = 'gitrello.gcloud_storages.GoogleCloudMediaStorage'
-STATICFILES_STORAGE = 'gitrello.gcloud_storages.GoogleCloudStaticFilesStorage'
-GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(
-        BASE_DIR,
-        os.getenv('GS_CREDENTIALS'),
-    )
-)
-GS_PROJECT_ID = os.getenv('GS_PROJECT_ID')
-GS_DEFAULT_ACL = 'publicRead'

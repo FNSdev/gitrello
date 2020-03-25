@@ -1,0 +1,38 @@
+name: run_tests
+on:
+ push:
+   tags:
+     - '!refs/tags/*'
+   branches:
+     - 'develop'
+jobs:
+  build_and_publish:
+    runs-on: [ubuntu-latest]
+    env:
+      DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: login_to_docker
+        run:  echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: build_image
+        run: docker build -t $DOCKER_LOGIN/gitrello:latest -f deploy/Dockerfile .
+      - name: push_image_to_docker.io
+        run: docker push $DOCKER_LOGIN/gitrello:latest
+  run_tests:
+    needs: [build_and_publish]
+    runs-on: [ubuntu-latest]
+    env:
+      K8S_URL: ${{ secrets.K8S_URL }}
+      K8S_TOKEN: ${{ secrets.K8S_TOKEN }}
+    steps:
+     - uses: actions/checkout@master
+     - uses: actions/setup-python@v1
+       with:
+         python-version: '3.8.2'
+         architecture: 'x64'
+     - name: install_requirements
+       run: pip install requests
+     - name: run_tests
+       run: python gitrello/run_tests.py

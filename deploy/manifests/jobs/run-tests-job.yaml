@@ -5,9 +5,6 @@ metadata:
   namespace: test
 spec:
   template:
-    metadata:
-      labels:
-        responsibility: run_tests
     spec:
       containers:
       - name: gitrello-tests

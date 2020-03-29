@@ -22,4 +22,5 @@ spec:
           - name: DJANGO_DB_PORT
             value: "5432"
       restartPolicy: Never
+  backoffLimit: 1
   activeDeadlineSeconds: 120

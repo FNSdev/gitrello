@@ -2,7 +2,7 @@ FROM python:3.8.1-slim-buster
 
 WORKDIR /home/gitrello
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y gcc linux-libc-dev libc6-dev && \
+    apt-get install --no-install-recommends -y gcc libc6-dev libpq-dev && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

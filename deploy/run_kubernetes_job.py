@@ -41,7 +41,7 @@ class KubernetesJob:
 
         print('Cleaning up')
         response = requests.delete(
-            f'{self._url}/apis/batch/v1/namespaces/test/jobs/{self.name}',
+            f'{self._url}/apis/batch/v1/namespaces/jobs/jobs/{self.name}',
             headers=headers,
             json=data,
         )
@@ -74,7 +74,7 @@ class KubernetesJob:
         headers = {'Authorization': f'Bearer {self._token}'}
 
         print('Getting status')
-        response = requests.get(f'{self._url}/apis/batch/v1/namespaces/test/jobs/{self.name}', headers=headers)
+        response = requests.get(f'{self._url}/apis/batch/v1/namespaces/jobs/jobs/{self.name}', headers=headers)
 
         if response.status_code != 200:
             print(response.text)
@@ -94,7 +94,7 @@ class KubernetesJob:
 
         print('Getting logs')
         response = requests.get(
-            f'{self._url}/api/v1/namespaces/test/pods?labelSelector=job-name%3D{self.name}',
+            f'{self._url}/api/v1/namespaces/jobs/pods?labelSelector=job-name%3D{self.name}',
             headers=headers,
         )
         if response.status_code != 200:
@@ -104,7 +104,7 @@ class KubernetesJob:
         pod = response.json()['items'][0]
         pod_name = pod['metadata']['name']
 
-        response = requests.get(f'{self._url}/api/v1/namespaces/test/pods/{pod_name}/log', headers=headers)
+        response = requests.get(f'{self._url}/api/v1/namespaces/jobs/pods/{pod_name}/log', headers=headers)
 
         if response.status_code != 200:
             print(response.text)

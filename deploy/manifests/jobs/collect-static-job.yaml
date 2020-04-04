@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: collect-static-job
+  namespace: jobs
+spec:
+  template:
+    spec:
+      containers:
+      - name: gitrello-collect-static
+        image: fnsdev/gitrello:master
+        command: ["sh", "-c", "python manage.py collectstatic --noinput"]
+        env:
+        - name: GS_BUCKET_NAME
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: gs_bucket_name
+        - name: GS_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: gs_credentials
+        - name: GS_PROJECT_ID
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: gs_project_id
+      restartPolicy: Never
+  backoffLimit: 1
+  activeDeadlineSeconds: 120

@@ -2,7 +2,6 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: test-database-pv
-  namespace: test
   labels:
     app: gitrello
     env: test

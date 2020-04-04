@@ -65,6 +65,16 @@ spec:
             secretKeyRef:
               name: environment
               key: gs_bucket_name
+        - name: GS_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: gs_credentials
+        - name: GS_PROJECT_ID
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: gs_project_id
         ports:
         - containerPort: 80
           name: gitrello

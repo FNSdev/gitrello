@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: test-database-service
-  namespace: test
+  namespace: jobs
   labels:
     app: gitrello
     env: test

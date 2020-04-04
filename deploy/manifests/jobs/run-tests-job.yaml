@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: run-tests-job
-  namespace: test
+  name: run-tests
+  namespace: jobs
 spec:
   template:
     spec:

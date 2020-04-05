@@ -17,7 +17,7 @@ spec:
               secretKeyRef:
                 name: environment
                 key: django_secret_key
-          - name: DJANGO_DB_NAMEa
+          - name: DJANGO_DB_NAME
             valueFrom:
               secretKeyRef:
                 name: environment

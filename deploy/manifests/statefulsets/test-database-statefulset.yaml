@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: test-database-statefulset
-  namespace: jobs
+  namespace: ci
   labels:
     app: gitrello
     env: test

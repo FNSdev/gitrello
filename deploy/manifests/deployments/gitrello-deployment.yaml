@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - image: fnsdev/gitrello:latest
-        name: telegram-stickers
+        name: gitrello
         env:
         - name: DJANGO_SECRET_KEY
           valueFrom:

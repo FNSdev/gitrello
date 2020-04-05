@@ -1,0 +1,72 @@
+name: deploy
+on:
+ push:
+   tags:
+     - '*.*'
+jobs:
+  build_and_publish:
+    runs-on: [ubuntu-latest]
+    env:
+      DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: login_to_docker
+        run:  echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: set_release_version
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF:10}
+      - name: build_image
+        run: docker build -t $DOCKER_LOGIN/gitrello:current -t $DOCKER_LOGIN/gitrello:$RELEASE_VERSION -f deploy/Dockerfile .
+      - name: push_current_image_to_docker_io
+        run: docker push $DOCKER_LOGIN/gitrello:current
+      - name: push_versioned_image_to_docker_io
+        run: docker push $DOCKER_LOGIN/gitrello:$RELEASE_VERSION
+  collect_static:
+    needs: [build_and_publish]
+    runs-on: [ubuntu-latest]
+    env:
+      K8S_URL: ${{ secrets.K8S_URL }}
+      K8S_TOKEN: ${{ secrets.K8S_TOKEN }}
+    steps:
+     - uses: actions/checkout@master
+     - uses: actions/setup-python@v1
+       with:
+         python-version: '3.8.2'
+         architecture: 'x64'
+     - name: install_requirements
+       run: pip install requests
+     - name: run_tests
+       run: python deploy/run_kubernetes_job.py -n collect-static -f collect-static-job.yaml -l 180 -s 10
+  migrate_database:
+    needs: [build_and_publish]
+    runs-on: [ubuntu-latest]
+    env:
+      K8S_URL: ${{ secrets.K8S_URL }}
+      K8S_TOKEN: ${{ secrets.K8S_TOKEN }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8.2'
+          architecture: 'x64'
+      - name: install_requirements
+        run: pip install requests
+      - name: run_tests
+        run: python deploy/run_kubernetes_job.py -n migrate-database -f migrate-database-job.yaml -l 180 -s 10
+  deploy:
+    needs: [collect_static, migrate_database]
+    runs-on: [ubuntu-latest]
+    env:
+      K8S_URL: ${{ secrets.K8S_URL }}
+      K8S_TOKEN: ${{ secrets.K8S_TOKEN }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8.2'
+          architecture: 'x64'
+      - name: install_requirements
+        run: pip install requests
+      - name: run_tests
+        run: python deploy/run_kubernetes_job.py -n collect-static -f collect-static-job.yaml -l 180 -s 10

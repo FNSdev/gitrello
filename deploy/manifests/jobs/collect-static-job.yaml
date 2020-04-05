@@ -9,8 +9,8 @@ spec:
       containers:
       - name: gitrello-collect-static
         image: fnsdev/gitrello:current
-        command: ["sh", "-c", "python manage.py collectstatic --noinput"]
-env:
+        command: ["sh", "-c", "python manage.py collectstatic --noinput --settings=settings_prod"]
+        env:
         - name: DJANGO_SECRET_KEY
           valueFrom:
             secretKeyRef:

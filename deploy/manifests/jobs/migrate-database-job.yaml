@@ -9,14 +9,14 @@ spec:
       containers:
       - name: gitrello-migrate-database
         image: fnsdev/gitrello:current
-        command: ["sh", "-c", "python manage.py migrate --noinput"]
+        command: ["sh", "-c", "python manage.py migrate --noinput --settings=settings_prod"]
         env:
           - name: DJANGO_SECRET_KEY
             valueFrom:
               secretKeyRef:
                 name: environment
                 key: django_secret_key
-          - name: DJANGO_DB_NAME
+          - name: DJANGO_DB_NAMEa
             valueFrom:
               secretKeyRef:
                 name: environment

@@ -35,4 +35,4 @@ jobs:
      - name: install_requirements
        run: pip install requests
      - name: run_tests
-       run: python deploy/run_kubernetes_job.py -n run_tests -f run-tests-job.yaml -l 180 -s 10
+       run: python deploy/run_kubernetes_job.py -n run-tests -f run-tests-job.yaml -l 180 -s 10

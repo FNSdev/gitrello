@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-database-pvc
+  namespace: ci
+  labels:
+    app: gitrello
+    env: test
+spec:
+  storageClassName: test
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -3,16 +3,13 @@
 import os
 import sys
 
-from load_env import load_env
-
 
 def main():
-    if sys.argv[1] == 'test':
-        load_env('.env.test')
+    if len(sys.argv) != 1 and sys.argv[1] == 'test':
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitrello.settings_test')
     else:
-        load_env()
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitrello.settings_local')
 
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gitrello.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: run-tests
+  namespace: ci
+spec:
+  template:
+    spec:
+      containers:
+      - name: gitrello-tests
+        image: fnsdev/gitrello:latest
+        command: ["sh", "-c", "pip install -r requirements_test.txt && python manage.py test --noinput"]
+        env:
+          - name: DJANGO_DB_NAME
+            value: "gitrello"
+          - name: DJANGO_DB_USER
+            value: "gitrello"
+          - name: DJANGO_DB_PASSWORD
+            value: "admin"
+          - name: DJANGO_DB_HOST
+            value: "test-database-service"
+          - name: DJANGO_DB_PORT
+            value: "5432"
+      restartPolicy: Never
+  backoffLimit: 1
+  activeDeadlineSeconds: 120

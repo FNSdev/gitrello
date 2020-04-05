@@ -9,6 +9,7 @@ spec:
       containers:
       - name: gitrello-migrate-database
         image: fnsdev/gitrello:current
+        imagePullPolicy: Always
         command: ["sh", "-c", "python manage.py migrate --noinput --settings=gitrello.settings_prod"]
         env:
           - name: DJANGO_SECRET_KEY

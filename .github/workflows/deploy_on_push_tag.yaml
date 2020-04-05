@@ -36,7 +36,7 @@ jobs:
          architecture: 'x64'
      - name: install_requirements
        run: pip install requests
-     - name: run_tests
+     - name: collect_static
        run: python deploy/run_kubernetes_job.py -n collect-static -f collect-static-job.yaml -l 180 -s 10
   migrate_database:
     needs: [build_and_publish]
@@ -52,7 +52,7 @@ jobs:
           architecture: 'x64'
       - name: install_requirements
         run: pip install requests
-      - name: run_tests
+      - name: migrate_database
         run: python deploy/run_kubernetes_job.py -n migrate-database -f migrate-database-job.yaml -l 180 -s 10
   deploy:
     needs: [collect_static, migrate_database]

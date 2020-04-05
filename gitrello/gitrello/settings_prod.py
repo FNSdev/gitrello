@@ -1,4 +1,4 @@
-import json
+import ast
 
 from google.oauth2 import service_account
 
@@ -28,6 +28,6 @@ STATIC_URL = f'https://storage.googleapis.com/{os.getenv("GS_BUCKET_NAME")}/stat
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
 DEFAULT_FILE_STORAGE = 'gitrello.gcloud_storages.GoogleCloudMediaStorage'
 STATICFILES_STORAGE = 'gitrello.gcloud_storages.GoogleCloudStaticFilesStorage'
-GS_CREDENTIALS = service_account.Credentials.from_service_account_info(json.loads(os.getenv('GS_CREDENTIALS')))
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(**ast.literal_eval(os.getenv('GS_CREDENTIALS')))
 GS_PROJECT_ID = os.getenv('GS_PROJECT_ID')
 GS_DEFAULT_ACL = 'publicRead'

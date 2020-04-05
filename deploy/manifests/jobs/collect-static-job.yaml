@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: collect-static-job
-  namespace: jobs
+  namespace: ci
 spec:
   template:
     spec:

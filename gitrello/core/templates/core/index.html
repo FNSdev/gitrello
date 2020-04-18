@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homePage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navBar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notFoundPage.css' %}">
+    <title>GITrello</title>
+    <script src="https://kit.fontawesome.com/0d12117ec1.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <span class="navbar-toggle" id="navbar-toggle">
+          <i class="fas fa-bars"></i>
+        </span>
+        <a href="#" class="logo">GITrello</a>
+        <ul class="main-nav" id="main-nav">
+          <li><a id="home" href="/" class="nav-links">Home</a></li>
+          <li><a id="profile" href="/profile" class="nav-links">Profile</a></li>
+          <li><a id="organizations" href="/organizations" class="nav-links">Organizations</a></li>
+          <li><a id="boards" href="/boards" class="nav-links">Boards</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <div id="wrapper"></div>
+    </main>
+    <footer></footer>
+    <script src="{% static 'js/app.js' %}" type="module"></script>
+    <script>
+      const mainNav = document.getElementById("main-nav");
+      const navBarToggle = document.getElementById("navbar-toggle");
+      navBarToggle.addEventListener("click", function() {
+        mainNav.classList.toggle("active");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+@import "main.css";
+
+.signup-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 100px;
+}
+
+.signup-container .tab {
+  padding: 20px 40px;
+  border: 1px solid black;
+}
+
+.signup-container .tab-group {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.signup-container .tab-link {
+  padding: 5px 10px;
+  border: 1px solid black;
+}
+
+.signup-container .tab-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-container .login, .signup-container .signup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+}
+
+.signup-container .login > input, .signup-container .signup > input {
+  margin: 10px 0;
+}
+
+.signup-container .login {
+  display: none;
+}
+
+.signup-container .login-btn, .signup-container .signup-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+}

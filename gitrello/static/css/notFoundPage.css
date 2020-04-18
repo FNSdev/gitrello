@@ -1,0 +1,5 @@
+.not-found-container {
+  background: url("../404.png") no-repeat center;
+  height: 100%;
+  width: 100%;
+}

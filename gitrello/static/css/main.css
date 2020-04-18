@@ -1,0 +1,35 @@
+:root {
+  --primary: #64b5f6;
+  --primary-dark: #2286c3;
+  --primary-light: #9be7ff;
+  --secondary: #ffb74d;
+  --secondary-dark: #c88719;
+  --secondary-light: #ffe97d;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: "Josefin Sans", sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: auto;
+}
+
+#wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+footer {
+  height: 25px;
+  background-image: linear-gradient(260deg, var(--primary-dark) 0%, var(--primary) 100%);
+}

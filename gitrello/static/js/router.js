@@ -2,18 +2,12 @@ import {NotFoundPage, } from "./pages/notFoundPage.js";
 
 export class Router {
     constructor(renderer, routes) {
-        this.frame = window["wrapper"]
+        this.frame = window["main-content"]
         this.renderer = renderer
         this.routes = routes
 
         window.addEventListener('popstate', event => this.onPopState(event));
-        window.addEventListener('load', event => {
-                window["home"].addEventListener("click", event => this.pushState(event));
-                window["profile"].addEventListener("click", event => this.pushState(event));
-                window["organizations"].addEventListener("click", event => this.pushState(event));
-                window["boards"].addEventListener("click", event => this.pushState(event));
-            }
-        )
+        document.addEventListener("click", event => this.pushState(event));
 
         const href = window.location.pathname;
         window.history.replaceState({href}, href, href);
@@ -27,6 +21,10 @@ export class Router {
     }
 
     pushState(event) {
+        if (!event.target.classList.contains('route')) {
+            return;
+        }
+
         event.preventDefault();
         let href = event.target.href;
 

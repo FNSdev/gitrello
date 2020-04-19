@@ -1,50 +1,61 @@
 @import "main.css";
 
-.signup-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 100px;
-}
-
-.signup-container .tab {
-  padding: 20px 40px;
+.auth-container {
+  width: 30%;
+  margin: 75px auto auto;
   border: 1px solid black;
+  border-radius: 25px;
 }
 
-.signup-container .tab-group {
+.auth-container__tab {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+}
+
+.auth-container__tab__list {
+  padding: 0;
+  margin-top: 5px;
   display: flex;
   justify-content: center;
-  list-style: none;
-  padding: 0;
+  list-style-type: none;
+}
+
+.auth-container__tab__list__item {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 15px;
+  font-size: 32px;
   cursor: pointer;
 }
 
-.signup-container .tab-link {
-  padding: 5px 10px;
-  border: 1px solid black;
-}
-
-.signup-container .tab-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.signup-container .login, .signup-container .signup {
+.auth-container__tab__content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  align-content: center;
+  justify-content: center;
 }
 
-.signup-container .login > input, .signup-container .signup > input {
-  margin: 10px 0;
+.auth-container__tab__content__signup-form, .auth-container__tab__content__login-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.signup-container .login {
+.auth-container__tab__content__login-form {
   display: none;
 }
 
-.signup-container .login-btn, .signup-container .signup-btn {
-  margin-top: 10px;
-  padding: 5px 10px;
+.auth-container__tab__content__signup-form__header, .auth-container__tab__content__login-form__header {
+  margin: 10px;
+}
+
+.auth-container__tab__content__signup-form__input, .auth-container__tab__content__login-form__input {
+  margin: 10px;
+}
+
+.auth-container__tab__content__signup-form__button, .auth-container__tab__content__login-form__button {
+  margin: 10px;
 }

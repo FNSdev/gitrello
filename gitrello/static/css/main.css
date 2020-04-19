@@ -20,16 +20,20 @@ body {
   flex-direction: column;
 }
 
-main {
+.header {
+  background-image: linear-gradient(260deg, var(--primary-dark) 0%, var(--primary) 100%);
+}
+
+.main {
   flex: auto;
 }
 
-#wrapper {
-  width: 100%;
+.main__content {
   height: 100%;
+  width: 100%;
 }
 
-footer {
+.footer {
   height: 25px;
   background-image: linear-gradient(260deg, var(--primary-dark) 0%, var(--primary) 100%);
 }

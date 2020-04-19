@@ -14,30 +14,40 @@
     <script src="https://kit.fontawesome.com/0d12117ec1.js" crossorigin="anonymous"></script>
   </head>
   <body>
-    <header>
-      <nav class="navbar">
-        <span class="navbar-toggle" id="navbar-toggle">
-          <i class="fas fa-bars"></i>
-        </span>
-        <a href="#" class="logo">GITrello</a>
-        <ul class="main-nav" id="main-nav">
-          <li><a id="home" href="/" class="nav-links">Home</a></li>
-          <li><a id="profile" href="/profile" class="nav-links">Profile</a></li>
-          <li><a id="organizations" href="/organizations" class="nav-links">Organizations</a></li>
-          <li><a id="boards" href="/boards" class="nav-links">Boards</a></li>
+    <header class="header">
+      <div class="header__toggle" id="header-toggle">
+        <i class="header__toggle__icon fas fa-bars"></i>
+      </div>
+      <nav class="header__navbar">
+        <div class="header__navbar__logo">
+          <a href="/" class="header__navbar__logo__link">GITrello</a>
+        </div>
+        <ul class="header__navbar__list" id="header-navbar-list">
+          <li class="header__navbar__list__item">
+            <a href="/" class="header__navbar__list__item__link route">Home</a>
+          </li>
+          <li class="header__navbar__list__item">
+            <a href="/profile" class="header__navbar__list__item__link route">Profile</a>
+          </li>
+          <li class="header__navbar__list__item">
+            <a href="/organizations" class="header__navbar__list__item__link route">Organizations</a>
+          </li>
+          <li class="header__navbar__list__item">
+            <a href="/boards" class="header__navbar__list__item__link route">Boards</a>
+          </li>
         </ul>
       </nav>
     </header>
-    <main>
-      <div id="wrapper"></div>
+    <main class="main">
+      <div class="main__content" id="main-content"></div>
     </main>
-    <footer></footer>
+    <footer class="footer"></footer>
     <script src="{% static 'js/app.js' %}" type="module"></script>
     <script>
-      const mainNav = document.getElementById("main-nav");
-      const navBarToggle = document.getElementById("navbar-toggle");
+      const navBar = document.getElementById("header-navbar-list");
+      const navBarToggle = document.getElementById("header-toggle");
       navBarToggle.addEventListener("click", function() {
-        mainNav.classList.toggle("active");
+        navBar.classList.toggle("header__navbar__list--toggled");
       });
     </script>
   </body>

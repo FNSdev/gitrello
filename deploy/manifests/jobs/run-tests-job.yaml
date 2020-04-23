@@ -10,7 +10,7 @@ spec:
       - name: gitrello-tests
         image: fnsdev/gitrello:latest
         imagePullPolicy: Always
-        command: ["sh", "-c", "pip install -r requirements_test.txt && python manage.py test --noinput"]
+        command: ["sh", "-c", "pip install -r requirements-test.txt && python manage.py test --noinput"]
         env:
         - name: DJANGO_DB_NAME
           value: "gitrello"

@@ -26,11 +26,11 @@ body {
 
 .main {
   flex: auto;
+  height: 100%;
+  width: 100%;
 }
 
 .main__content {
-  height: 100%;
-  width: 100%;
 }
 
 .footer {

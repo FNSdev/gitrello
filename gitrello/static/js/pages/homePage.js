@@ -14,7 +14,7 @@ export class HomePage extends Page {
           </ul>
           <div class="auth-container__tab__content">
             <form class="auth-container__tab__content__signup-form" id="auth-container-tab-content-signup-form">
-              <h1 class="auth-container__tab__content__signup-form__header">Create New Account</h1>
+              <h1 class="auth-container__tab__content__signup-form__header">New Account</h1>
               <input type="text" class="auth-container__tab__content__signup-form__input" placeholder="Your Login">
               <input type="email" class="auth-container__tab__content__signup-form__input" placeholder="Your Email">
               <input type="password" class="auth-container__tab__content__signup-form__input" placeholder="Your Password">  

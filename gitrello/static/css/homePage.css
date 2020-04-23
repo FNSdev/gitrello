@@ -1,7 +1,7 @@
 @import "main.css";
 
 .auth-container {
-  width: 30%;
+  width: 90%;
   margin: 75px auto auto;
   border: 1px solid black;
   border-radius: 25px;
@@ -59,3 +59,16 @@
 .auth-container__tab__content__signup-form__button, .auth-container__tab__content__login-form__button {
   margin: 10px;
 }
+
+@media screen and (min-width: 762px) {
+  .auth-container {
+    width: 70%;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  .auth-container {
+    width: 30%;
+  }
+}
+

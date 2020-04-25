@@ -15,16 +15,20 @@ export class HomePage extends Page {
           <div class="auth-container__tab__content">
             <form class="auth-container__tab__content__signup-form" id="auth-container-tab-content-signup-form">
               <h1 class="auth-container__tab__content__signup-form__header">New Account</h1>
-              <input type="text" class="auth-container__tab__content__signup-form__input" placeholder="Your Login">
-              <input type="email" class="auth-container__tab__content__signup-form__input" placeholder="Your Email">
-              <input type="password" class="auth-container__tab__content__signup-form__input" placeholder="Your Password">  
-              <button type="submit" class="auth-container__tab__content__signup-form__button"/>Get Started</button>
+              <input required type="text" class="auth-container__tab__content__signup-form__input" placeholder="Your Login">
+              <input required type="email" class="auth-container__tab__content__signup-form__input" placeholder="Your Email">
+              <input required type="password" class="auth-container__tab__content__signup-form__input" placeholder="Your Password">  
+              <button type="submit" id="signup-button" class="auth-container__tab__content__signup-form__button btn btn-success"/>
+                Get Started
+              </button>
             </form>
             <form class="auth-container__tab__content__login-form" id="auth-container-tab-content-login-form">
               <h1 class="auth-container__tab__content__login-form__header">Welcome Back!</h1>
-              <input type="text" class="auth-container__tab__content__login-form__input" placeholder="Your Login">
-              <input type="password" class="auth-container__tab__content__login-form__input" placeholder="Your Password">
-              <button type="submit" class="auth-container__tab__content__login-form__button"/>Log In</button>
+              <input required type="text" class="auth-container__tab__content__login-form__input" placeholder="Your Login">
+              <input required type="password" class="auth-container__tab__content__login-form__input" placeholder="Your Password">
+              <button type="submit" id="login-button" class="auth-container__tab__content__login-form__button btn btn-success"/>
+                Log In
+              </button>
             </form>    
           </div>
         </div> 
@@ -53,6 +57,16 @@ export class HomePage extends Page {
         super.afterRender();
 
         document.getElementById('auth-container-tab-list-item-signup').onclick = this.onSignUpSwitchClick;
-        document.getElementById('auth-container-tab-list-item-login').onclick = this.onLoginSwitchClick;
+        document.getElementById('auth-container-tab-list-item-login').onclick = this.onLoginSwitchClick
+        document.getElementById('signup-button').onclick = this.onSignUp;
+        document.getElementById('login-button').onclick = this.onLogIn;
+    }
+
+    onSignUp(event) {
+        event.preventDefault();
+    }
+
+    onLogIn(event) {
+        event.preventDefault();
     }
 }

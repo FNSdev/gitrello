@@ -5,6 +5,14 @@
   --secondary: #ffb74d;
   --secondary-dark: #c88719;
   --secondary-light: #ffe97d;
+  --green: #4CAF50;
+  --red: #FF1A1A;
+  --orange: #E5A42D;
+  --default-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+:invalid {
+  box-shadow: none;
 }
 
 html, body {
@@ -36,4 +44,43 @@ body {
 .footer {
   height: 25px;
   background-image: linear-gradient(260deg, var(--primary-dark) 0%, var(--primary) 100%);
+}
+
+.btn {
+  background-color: var(--primary-dark);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-success {
+  background-color: var(--green);
+}
+
+input[type=text], input[type=email], input[type=password] {
+  width: 100%;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  border: 2px solid var(--primary-dark);
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  outline: none;
+  border-radius: 6px;
+}
+
+input[type=text]:invalid, input[type=email]:invalid, input[type=password]:invalid {
+  border: 2px solid var(--red);
+}
+
+input[type=text]:valid, input[type=email]:valid, input[type=password]:valid {
+  border: 2px solid var(--green);
+}
+
+input[type=text]:placeholder-shown, input[type=email]:placeholder-shown, input[type=password]:placeholder-shown {
+  border: 2px solid var(--primary-dark);
 }

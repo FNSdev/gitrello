@@ -3,8 +3,9 @@
 .auth-container {
   width: 90%;
   margin: 75px auto auto;
-  border: 1px solid black;
+  border: 3px solid var(--primary-dark);
   border-radius: 25px;
+  box-shadow: var(--default-shadow);
 }
 
 .auth-container__tab {
@@ -24,7 +25,7 @@
 .auth-container__tab__list__item {
   margin: 10px;
   padding: 10px;
-  border: 1px solid black;
+  border: 3px solid var(--primary-dark);
   border-radius: 15px;
   font-size: 32px;
   cursor: pointer;

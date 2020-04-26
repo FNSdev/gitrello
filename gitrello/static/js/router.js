@@ -1,3 +1,4 @@
+import {authService, } from "./services/authService.js";
 import {NotFoundPage, } from "./pages/notFoundPage.js";
 
 export class Router {
@@ -6,49 +7,54 @@ export class Router {
         this.renderer = renderer
         this.routes = routes
 
-        window.addEventListener('popstate', event => this.onPopState(event));
-        document.addEventListener("click", event => this.pushState(event));
+        window.addEventListener('popstate', event => this._onPopState(event));
+        document.addEventListener("click", event => this._onPushState(event));
 
-        const href = window.location.pathname;
-        window.history.replaceState({href}, href, href);
-        this.href = window.location.href;
-        this.loadContent(href);
+        const path = window.location.pathname;
+        window.history.replaceState({path}, path, path);
+        this.path = path;
+        this._loadContent(path);
     }
 
-    onPopState(event) {
-        this.href = window.location.href;
-        this.loadContent(window.location.pathname);
+    navigate(path) {
+        if (this.path === path) {
+            return;
+        }
+
+        window.history.pushState({path}, path, path);
+        this.path = path;
+        this._loadContent(path);
     }
 
-    pushState(event) {
+    _onPopState(event) {
+        this.href = window.location.href;
+        this._loadContent(window.location.pathname);
+    }
+
+    _onPushState(event) {
         if (!event.target.classList.contains('route')) {
             return;
         }
 
         event.preventDefault();
-        let href = event.target.href;
 
-        if (this.href === href) {
-            return;
-        }
-
-        window.history.pushState({href}, href, href);
-        this.href = window.location.href;
-        this.loadContent(window.location.pathname);
+        const path = event.target.pathname;
+        this.navigate(path);
     }
 
-    loadContent(href) {
-        console.log(href);
+    _loadContent(path) {
+        console.log(path);
 
-        const page = this._getPage(href);
+        const page = this._getPage(path);
 
         page.beforeRender()
         this.renderer.render(this.frame, page.getTemplate())
         page.afterRender()
     }
 
-    _getPage(href) {
-        const pathNameSplit = href.split('/');
+    // TODO consider allowing search parameters and/or hash. I don`t think I need it
+    _getPage(path) {
+        const pathNameSplit = path.split('/');
         const urlSegments = pathNameSplit.length > 1 ? pathNameSplit.slice(1) : '';
         const routeParams = {};
 
@@ -76,9 +82,9 @@ export class Router {
         });
 
         if (!matchedRoute) {
-            return new NotFoundPage();
+            return new NotFoundPage(authService, this, routeParams);
         }
 
-        return new matchedRoute.page(routeParams);
+        return new matchedRoute.page(authService, this, routeParams);
     }
 }

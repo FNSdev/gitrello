@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
+    logger.exception(exc)
+
     if isinstance(exc, APIRequestValidationException):
         return Response(
             status=400,

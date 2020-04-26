@@ -1,9 +1,8 @@
-import {authService, } from "../services/authService.js";
-
 export class Page {
-    constructor(params = {}) {
+    constructor(authService, router, params = {}) {
         this.params = params;
         this.authService = authService;
+        this.router = router;
     }
 
     beforeRender() {

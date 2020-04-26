@@ -1,18 +1,29 @@
 class AuthService {
     constructor() {
-        this.token = this.getToken();
+        this._token = this.getToken();
+        this._user = null;
     }
 
     getToken() {
         return window.localStorage.getItem('Token');
     }
 
-    setToken(token) {
+    _setToken(token) {
         window.localStorage.setItem('Token', token);
+        this._token = token;
     }
 
     isAuthenticated() {
-        return this.token != null;
+        return this._token != null;
+    }
+
+    getUser() {
+        return this._user;
+    }
+
+    setUser(user) {
+        this._user = user;
+        this._setToken(user.token);
     }
 }
 

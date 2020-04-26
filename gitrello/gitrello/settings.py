@@ -175,6 +175,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'django.server': {
+            'handlers': ['console_debug'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'django': {
             'handlers': ['console_info', 'mail_admins'],
             'level': 'INFO',

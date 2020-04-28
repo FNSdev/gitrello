@@ -1,4 +1,6 @@
-import {HomePage,} from "./pages/homePage.js";
+import {HomePage, } from "./pages/homePage.js";
+import {NotFoundPage, } from "./pages/notFoundPage.js";
+
 
 // TODO
 export const routes = [
@@ -12,10 +14,10 @@ export const routes = [
     },
     {
         path: '/organizations',
-        page: HomePage,
+        page: NotFoundPage,
     },
     {
         path: '/boards',
-        page: HomePage,
+        page: NotFoundPage,
     },
 ];

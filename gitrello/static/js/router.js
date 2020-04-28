@@ -3,7 +3,7 @@ import {NotFoundPage, } from "./pages/notFoundPage.js";
 
 export class Router {
     constructor(renderer, routes) {
-        this.frame = window["main-content"]
+        this.frame = window["main"]
         this.renderer = renderer
         this.routes = routes
 

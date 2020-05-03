@@ -157,7 +157,7 @@ class TestBoardMembershipView(TestCase):
         api_client.force_authenticate(user=organization_membership.user)
 
         with patch.object(BoardMembershipService, 'delete_member') as mocked_delete_member:
-            response = api_client.delete(f'/api/v1/board-membership/{board_membership.id}')
+            response = api_client.delete(f'/api/v1/board-memberships/{board_membership.id}')
 
         self.assertEqual(response.status_code, 204)
         mocked_delete_member.assert_called_with(board_membership_id=board_membership.id)
@@ -166,7 +166,7 @@ class TestBoardMembershipView(TestCase):
         api_client = APIClient()
 
         with patch.object(BoardMembershipService, 'can_delete_member') as mocked_can_delete_member:
-            response = api_client.delete(f'/api/v1/board-membership/1')
+            response = api_client.delete(f'/api/v1/board-memberships/1')
 
         self.assertEqual(response.status_code, 403)
         mocked_can_delete_member.assert_not_called()
@@ -180,7 +180,7 @@ class TestBoardMembershipView(TestCase):
                 BoardMembershipService,
                 'can_delete_member',
                 return_value=False) as mocked_can_delete_member:
-            response = api_client.delete('/api/v1/board-membership/1')
+            response = api_client.delete('/api/v1/board-memberships/1')
 
         self.assertEqual(response.status_code, 403)
         mocked_can_delete_member.assert_called_with(

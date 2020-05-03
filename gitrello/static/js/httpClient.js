@@ -8,7 +8,7 @@ export class HttpClient {
         this.cookieService = cookieService;
     }
 
-    async _makeRequest(url, method, data = {}) {
+    async _makeRequest(url, method, data = null) {
         const headers = {
             'Content-Type': 'application/json',
             'X-CSRFToken': this.cookieService.getCookie('csrftoken'),
@@ -18,12 +18,16 @@ export class HttpClient {
             headers['Authorization'] = `Token ${this.authService.getToken()}`;
         }
 
-        const response = await fetch(url, {
+        const init = {
             method: method,
             headers: headers,
-            body: JSON.stringify(data),
-        })
+        }
 
+        if (data != null) {
+            init['body'] = JSON.stringify(data);
+        }
+
+        const response = await fetch(url, init);
         data = await response.json();
 
         if (response.status === 403) {
@@ -44,6 +48,15 @@ export class HttpClient {
 
     async post(url, data = {}) {
         return await this._makeRequest(url, 'POST', data);
+    }
+
+    async get(url, params = {}) {
+        let paramsQuery = '?'
+        for (let [key, value] of Object.entries(params)) {
+            paramsQuery += `${key}=${encodeURIComponent(value.toString())}&`
+        }
+
+        return await this._makeRequest(url + paramsQuery, 'GET');
     }
 }
 

@@ -3,6 +3,7 @@ import {GITrelloError, RepositoryError, } from "../errors.js";
 import {User, } from "../models/user.js";
 
 class UserRepository {
+    getUserUrl = '/api/v1/users';
     createUserUrl = '/api/v1/users';
 
     constructor(httpClient) {
@@ -27,6 +28,27 @@ class UserRepository {
                 email,
                 firstName,
                 lastName,
+            )
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw new RepositoryError(e.message);
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async getUser(id) {
+        try {
+            const response = await this.httpClient.get(`${this.getUserUrl}/${id}`)
+            return new User(
+                response['id'],
+                response['token'],
+                response['username'],
+                response['email'],
+                response['first_name'],
+                response['last_name'],
             )
         }
         catch (e) {

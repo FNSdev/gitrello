@@ -1,6 +1,6 @@
-import {Renderer, } from "./renderer.js";
-import {Router, } from "./router.js";
-import {routes} from "./routes.js";
+import {router, } from "./router.js";
 
-const renderer = new Renderer();
-const router = new Router(renderer, routes);
+import {ButtonComponent, } from "./components/common/buttonComponent.js";
+import {InputComponent, } from "./components/common/inputComponent.js";
+import {LogInFormComponent, } from "./components/forms/logInFormComponent.js";
+import {SignUpFormComponent, } from "./components/forms/signUpFormComponent.js";

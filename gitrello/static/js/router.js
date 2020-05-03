@@ -1,10 +1,10 @@
 import {authService, } from "./services/authService.js";
 import {NotFoundPage, } from "./pages/notFoundPage.js";
+import {routes, } from "./routes.js";
 
-export class Router {
-    constructor(renderer, routes) {
+class Router {
+    constructor(routes) {
         this.frame = window["main"]
-        this.renderer = renderer
         this.routes = routes
 
         window.addEventListener('popstate', event => this._onPopState(event));
@@ -48,7 +48,7 @@ export class Router {
         const page = this._getPage(path);
 
         page.beforeRender()
-        this.renderer.render(this.frame, page.getTemplate())
+        this.frame.innerHTML = page.getTemplate()
         page.afterRender()
     }
 
@@ -88,3 +88,5 @@ export class Router {
         return new matchedRoute.page(authService, this, routeParams);
     }
 }
+
+export const router = new Router(routes);

@@ -10,7 +10,7 @@ export const routes = [
     },
     {
         path: '/profile',
-        page: HomePage,
+        page: NotFoundPage,
     },
     {
         path: '/organizations',

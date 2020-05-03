@@ -11,13 +11,6 @@ export class GITrelloError extends Error {
 }
 
 
-export class RepositoryError extends GITrelloError {
-    constructor(message) {
-        super(message);
-    }
-}
-
-
 export class HttpClientError extends GITrelloError {
     constructor(message) {
         super(message);
@@ -29,6 +22,13 @@ export class HttpClientBadRequestError extends HttpClientError {
     constructor(message, errors) {
         super(message);
         this.errors = errors;  // TODO I dont want to parse them and show separately for each input :C
+    }
+}
+
+
+export class HttpClientUnauthorizedError extends HttpClientError {
+    constructor(message) {
+        super(message);
     }
 }
 

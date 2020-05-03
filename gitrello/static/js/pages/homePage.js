@@ -1,4 +1,4 @@
-import {Page,} from "./page.js";
+import {Page, } from "./page.js";
 
 export class HomePage extends Page {
     authTemplate = `
@@ -20,11 +20,25 @@ export class HomePage extends Page {
       </div>
     `
 
+    welcomeTemplate = `
+      <div class="welcome-container">
+        <div class="welcome-container__content">
+            <div class="welcome-container__content__text" id="welcome-container-text"></div>
+            <button-component type="danger" class="welcome-container__content__log-out-button" id="log-out-button">
+              Log Out
+            </button-component>          
+        </div>
+      </div>
+    `
+
     constructor(authService, router, params) {
         super(authService, router, params);
     }
 
     getTemplate() {
+        if (this.authService.isAuthenticated()) {
+            return this.welcomeTemplate;
+        }
         return this.authTemplate;
     }
 
@@ -38,10 +52,23 @@ export class HomePage extends Page {
         document.getElementById("log-in-form").style.display = "none";
     }
 
-    afterRender() {
-        super.afterRender();
+    async afterRender() {
+        await super.afterRender();
+        if (this.authService.isAuthenticated()) {
+            document.getElementById('welcome-container-text').innerHTML = `
+              Welcome, ${this.authService.user.username}!
+            `
+            document.getElementById('log-out-button').onclick = () => this.onLogOutClick();
+            return;
+        }
 
         document.getElementById('auth-container-tab-list-item-signup').onclick = this.onSignUpSwitchClick;
         document.getElementById('auth-container-tab-list-item-login').onclick = this.onLoginSwitchClick;
+    }
+
+    async onLogOutClick() {
+        console.log('LOG OUT');
+        this.authService.logOut();
+        await this.router.reload();
     }
 }

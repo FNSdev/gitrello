@@ -1,6 +1,5 @@
-import {authService, } from "../../services/authService.js";
-import {router, } from "../../router.js";
-import {userRepository, } from "../../repositories/userRepository.js";
+import {AuthService, } from "../../services/authService.js";
+import {Router, } from "../../router.js";
 
 const template = document.createElement('template')
 template.innerHTML = `
@@ -77,7 +76,7 @@ export class LogInFormComponent extends HTMLElement {
         );
     }
 
-    onLogin(event) {
+    async onLogin() {
         const errorsList = this.shadowRoot.querySelector('#login-form-errors-list');
         errorsList.innerHTML = '';
 
@@ -90,7 +89,20 @@ export class LogInFormComponent extends HTMLElement {
             return
         }
 
-        // TODO
+        try {
+            const authService = await AuthService.build();
+            const router = await Router.build();
+            await authService.logIn(
+                this.shadowRoot.querySelector('#login-form-username').value,
+                this.shadowRoot.querySelector('#login-form-password').value,
+            )
+            await router.navigate('profile');
+        }
+        catch (e) {
+            errorsList.innerHTML = `
+              <li class="login-form__errors__list__item">${e.message}</li>
+            `;
+        }
     }
 }
 

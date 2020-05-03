@@ -5,12 +5,12 @@ export class Page {
         this.router = router;
     }
 
-    beforeRender() {
+    async beforeRender() {
     }
 
     getTemplate() {
     }
 
-    afterRender() {
+    async afterRender() {
     }
 }

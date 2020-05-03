@@ -40,14 +40,38 @@
   display: none;
 }
 
+.welcome-container {
+  width: 90%;
+  margin: 75px auto auto;
+  border: 3px solid var(--primary-dark);
+  border-radius: 25px;
+  box-shadow: var(--default-shadow);
+}
+
+.welcome-container__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+}
+
+.welcome-container__content__text {
+  text-align: center;
+  font-size: 32px;
+}
+
+.welcome-container__content__log-out-button {
+  margin-top: 30px;
+}
+
 @media screen and (min-width: 762px) {
-  .auth-container {
+  .auth-container, .welcome-container {
     width: 70%;
   }
 }
 
 @media screen and (min-width: 992px) {
-  .auth-container {
+  .auth-container, .welcome-container {
     width: 30%;
   }
 }

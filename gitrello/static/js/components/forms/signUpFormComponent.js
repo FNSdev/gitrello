@@ -1,5 +1,5 @@
-import {authService, } from "../../services/authService.js";
-import {router, } from "../../router.js";
+import {AuthService, } from "../../services/authService.js";
+import {Router, } from "../../router.js";
 import {userRepository, } from "../../repositories/userRepository.js";
 
 const template = document.createElement('template')
@@ -80,7 +80,7 @@ export class SignUpFormComponent extends HTMLElement {
         );
     }
 
-    onSignUp(event) {
+    async onSignUp() {
         const errorsList = this.shadowRoot.querySelector('#signup-form-errors-list');
         errorsList.innerHTML = '';
 
@@ -96,20 +96,25 @@ export class SignUpFormComponent extends HTMLElement {
             return
         }
 
-        userRepository.createUser(
-            this.shadowRoot.querySelector('#signup-form-username').value,
-            this.shadowRoot.querySelector('#signup-form-email').value,
-            this.shadowRoot.querySelector('#signup-form-first-name').value,
-            this.shadowRoot.querySelector('#signup-form-last-name').value,
-            this.shadowRoot.querySelector('#signup-form-password').value,
-        ).then((user) => {
-            authService.setUser(user);
-            router.navigate('/profile');
-        }).catch((e) => {
+        try {
+            const user = await userRepository.createUser(
+                this.shadowRoot.querySelector('#signup-form-username').value,
+                this.shadowRoot.querySelector('#signup-form-email').value,
+                this.shadowRoot.querySelector('#signup-form-first-name').value,
+                this.shadowRoot.querySelector('#signup-form-last-name').value,
+                this.shadowRoot.querySelector('#signup-form-password').value,
+            );
+
+            const authService = await AuthService.build();
+            const router = await Router.build();
+            authService.user = user;
+            await router.navigate('profile');
+        }
+        catch (e) {
             errorsList.innerHTML = `
               <li class="signup-form__errors__list__item">${e.message}</li>
             `;
-        });
+        }
     }
 }
 

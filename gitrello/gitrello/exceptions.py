@@ -16,3 +16,8 @@ class APIRequestValidationException(GITrelloException):
 class PermissionDeniedException(GITrelloException):
     message = 'Permission denied'
     code = 2
+
+
+class AuthenticationFailedException(GITrelloException):
+    message = 'Authentication failed'
+    code = 3

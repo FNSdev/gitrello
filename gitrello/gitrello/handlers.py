@@ -5,15 +5,30 @@ from typing import Callable
 
 from django.db import IntegrityError
 from psycopg2 import errorcodes
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
-from gitrello.exceptions import GITrelloException, APIRequestValidationException, PermissionDeniedException
+from gitrello.exceptions import (
+    GITrelloException, APIRequestValidationException, PermissionDeniedException, AuthenticationFailedException,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
+    logger.exception(exc)
+
+    if isinstance(exc, AuthenticationFailed):
+        return Response(
+            status=401,
+            data={
+                'error_code': AuthenticationFailedException.code,
+                'error_message': AuthenticationFailedException.message,
+                'error_details': {'error': str(exc)}
+            }
+        )
+
     if isinstance(exc, APIRequestValidationException):
         return Response(
             status=400,

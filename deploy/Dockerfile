@@ -6,7 +6,7 @@ RUN apt-get update && \
     pip3 install --upgrade pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-COPY requirements.txt requirements_test.txt /home/gitrello/
+COPY requirements.txt requirements-test.txt /home/gitrello/
 RUN pip3 install --no-cache -r requirements.txt
 COPY gitrello/ /home/gitrello
 CMD uvicorn gitrello.asgi:application --host 0.0.0.0 --port 80 --workers 4

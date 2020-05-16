@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from boards.api.serializers import BoardMembershipSerializer
+from boards.api.serializers import BoardMembershipSerializer, BoardSerializer, NestedOrganizationMembershipSerializer
 from organizations.models import Organization, OrganizationMembership
 
 
@@ -18,7 +18,7 @@ class UpdateOrganizationInviteSerializer(serializers.Serializer):
     accept = serializers.BooleanField()
 
 
-class OrganizationSerializer(serializers.ModelSerializer):
+class NestedOrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ('id', 'added_at', 'name')
@@ -37,5 +37,14 @@ class OrganizationMembershipSerializer(serializers.ModelSerializer):
         )
 
     id = serializers.CharField()
-    organization = OrganizationSerializer(read_only=True)
+    organization = NestedOrganizationSerializer(read_only=True)
     board_memberships = BoardMembershipSerializer(many=True, read_only=True)
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ('id', 'added_at', 'name', 'organization_memberships', 'boards')
+
+    organization_memberships = NestedOrganizationMembershipSerializer(many=True, read_only=True)
+    boards = BoardSerializer(many=True, read_only=True)

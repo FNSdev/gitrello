@@ -1,0 +1,29 @@
+.organization-container {
+  width: 90%;
+  margin: 50px auto;
+}
+
+.organization-container__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+}
+
+.organization-container__content__boards-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+  justify-items: center;
+  align-items: center;
+}
+
+@media screen and (min-width: 762px) {
+  .organization-container__content {
+    grid-template-columns: 1fr 4fr;
+    grid-gap: 10em;
+  }
+
+  .organization-container__content__boards-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

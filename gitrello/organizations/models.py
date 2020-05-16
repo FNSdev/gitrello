@@ -32,8 +32,16 @@ class OrganizationMembership(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    organization = models.ForeignKey(to=Organization, on_delete=models.CASCADE)
-    user = models.ForeignKey(to='authentication.User', on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        to=Organization,
+        on_delete=models.CASCADE,
+        related_name='organization_memberships'
+    )
+    user = models.ForeignKey(
+        to='authentication.User',
+        on_delete=models.CASCADE,
+        related_name='organization_memberships'
+    )
     role = models.CharField(
         max_length=30,
         choices=OrganizationMemberRole.CHOICES,

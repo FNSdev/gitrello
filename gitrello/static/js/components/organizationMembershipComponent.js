@@ -26,6 +26,7 @@ template.innerHTML = `
       
       .container__name {
         font-size: 24px;
+        text-decoration: none;
       }
       
       .container__role {
@@ -94,7 +95,7 @@ template.innerHTML = `
       }
     </style>
     <div class="container">
-      <div id="name" class="container__name"></div>
+      <a id="name" class="container__name route"></a>
       <div id="role" class="container__role"></div>
       <div class="container__boards">
         <ul class="container__boards__list" id="boards-list"></ul>
@@ -121,6 +122,10 @@ export class OrganizationMembershipComponent extends HTMLElement {
 
     connectedCallback() {
         this.shadowRoot.getElementById('name').innerHTML = this.organizationMembership.organization.name;
+        this.shadowRoot.getElementById('name').setAttribute(
+            'href',
+            `/organizations/${this.organizationMembership.organization.id}`,
+        );
         this.shadowRoot.getElementById('role').innerHTML = `Role: ${this.organizationMembership.role}`;
         this.organizationMembership.boardMemberships.forEach(boardMembership => {
             this.shadowRoot.getElementById('boards-list').innerHTML += `

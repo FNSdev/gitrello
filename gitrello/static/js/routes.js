@@ -1,5 +1,6 @@
 import {HomePage, } from "./pages/homePage.js";
 import {NotFoundPage, } from "./pages/notFoundPage.js";
+import {OrganizationPage, } from "./pages/organizationPage.js";
 import {OrganizationsPage, } from "./pages/organizationsPage.js";
 
 
@@ -16,6 +17,10 @@ export const routes = [
     {
         path: '/organizations',
         page: OrganizationsPage,
+    },
+    {
+        path: '/organizations/:organizationId',
+        page: OrganizationPage,
     },
     {
         path: '/boards',

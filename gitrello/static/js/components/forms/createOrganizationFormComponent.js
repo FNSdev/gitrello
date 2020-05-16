@@ -3,13 +3,6 @@ import {organizationRepository, } from "../../repositories/organizationRepositor
 const template = document.createElement('template')
 template.innerHTML = `
     <style>
-      ul,
-      ul li {
-        margin: 0;
-        padding: 0;
-        text-indent: 0;
-        list-style-type: none;
-      }
       .form {
         display: flex;
         flex-direction: column;

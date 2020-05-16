@@ -19,6 +19,7 @@ template.innerHTML = `
             
       .form__header {
         margin: 10px;
+        text-align: center;
       }
       
       .form__search {

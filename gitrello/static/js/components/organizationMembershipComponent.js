@@ -153,7 +153,6 @@ export class OrganizationMembershipComponent extends HTMLElement {
         this.shadowRoot.getElementById('createBoardModal').style.display = "block";
         const modal = this.shadowRoot.getElementById('createBoardModal');
         modal.onclick = (event) => {
-            console.log(event.target);
             if (event.target === modal) {
                 modal.style.display = "none";
             }

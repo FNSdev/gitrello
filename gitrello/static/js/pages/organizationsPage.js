@@ -18,6 +18,9 @@ export class OrganizationsPage extends Page {
     }
 
     getTemplate() {
+        if (!this.authService.isAuthenticated()) {
+            return this.notAuthenticatedTemplate;
+        }
         return this.template;
     }
 
@@ -27,6 +30,10 @@ export class OrganizationsPage extends Page {
 
     async afterRender() {
         await super.afterRender();
+
+        if (!this.authService.isAuthenticated()) {
+            return;
+        }
 
         document.getElementById('create-organization-form').callback = (organization) => {
             this.afterOrganizationCreated(organization);

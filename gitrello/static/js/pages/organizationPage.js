@@ -1,3 +1,5 @@
+import {organizationRepository, } from "../repositories/organizationRepository.js";
+import {HttpClientPermissionDeniedError, } from "../errors.js";
 import {Page, } from "./page.js";
 
 export class OrganizationPage extends Page {
@@ -13,23 +15,42 @@ export class OrganizationPage extends Page {
         super(authService, router, params);
 
         this.organizationId = params['organizationId'];
+        this.hasAccess = true;
     }
 
     getTemplate() {
         if (!this.authService.isAuthenticated()) {
             return this.notAuthenticatedTemplate;
         }
+
+        if (!this.hasAccess) {
+            return this.accessDeniedTemplate;
+        }
+
         return this.template;
     }
 
     async beforeRender() {
         await super.beforeRender();
 
+        // TODO maybe its better to return 403 if member tries to get organization info
         try {
-            // TODO
+            this.organization = await organizationRepository.get(this.organizationId);
+            const membership = this.organization.organizationMemberships.find(organizationMembership => {
+                if (organizationMembership.user.id === this.authService.user.id) {
+                    return organizationMembership;
+                }
+            })
+
+            if (membership.role === 'MEMBER') {
+                this.hasAccess = false;
+            }
         }
         catch (e) {
-            // TODO handle PermissionDenied
+            if (e instanceof HttpClientPermissionDeniedError) {
+                this.hasAccess = false;
+            }
+
             console.log(e);
         }
     }
@@ -37,7 +58,7 @@ export class OrganizationPage extends Page {
     async afterRender() {
         await super.afterRender();
 
-        if (!this.authService.isAuthenticated()) {
+        if (!this.authService.isAuthenticated() || !this.hasAccess) {
             return;
         }
     }

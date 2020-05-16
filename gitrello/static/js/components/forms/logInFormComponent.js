@@ -53,9 +53,7 @@ template.innerHTML = `
       <h1 class="login-form__header">Welcome Back!</h1>
       <input-component required minlength="5" maxlength="150" id="login-form-username" type="text" class="login-form__input" placeholder="Your Username"></input-component>
       <input-component required maxlength="128" id="login-form-password" type="password" class="login-form__input" placeholder="Your Password"></input-component>
-      <div class="login-form__errors">
-        <ul id="login-form-errors-list" class="login-form__errors__list"></ul>          
-      </div>
+      <errors-list-component id="login-form-errors" class="login-form__errors"></errors-list-component>
       <button-component type="success" id="login-button" class="login-form__button btn btn-success"/>
         Log In
       </button-component>
@@ -77,15 +75,13 @@ export class LogInFormComponent extends HTMLElement {
     }
 
     async onLogin() {
-        const errorsList = this.shadowRoot.querySelector('#login-form-errors-list');
-        errorsList.innerHTML = '';
+        const errorsList = this.shadowRoot.getElementById('login-form-errors');
+        errorsList.clear();
 
         if (!this.shadowRoot.querySelector('#login-form-username').checkValidity() ||
             !this.shadowRoot.querySelector('#login-form-password').checkValidity()
         ) {
-            errorsList.innerHTML = `
-              <li class="login-form__errors__list__item">Please, fill out required fields with correct data</li>
-            `;
+            errorsList.addError(errorsList.defaultErrorMessage);
             return
         }
 

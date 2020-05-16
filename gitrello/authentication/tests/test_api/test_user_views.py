@@ -32,7 +32,7 @@ class TestUsersView(TestCase):
             email=payload['email'],
             password=payload['password'],
         )
-        self.assertDictEqual(response.data, {'id': token.user_id, 'token': token.key})
+        self.assertDictEqual(response.data, {'id': str(token.user_id), 'token': token.key})
 
     def test_create_user_request_not_valid(self):
         payload = {

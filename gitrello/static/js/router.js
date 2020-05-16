@@ -53,13 +53,14 @@ export class Router {
     }
 
     async _onPushState(event) {
-        if (!event.target.classList.contains('route')) {
+        const originalTarget = event.composedPath()[0];
+        if (!originalTarget.classList.contains('route')) {
             return;
         }
 
         event.preventDefault();
 
-        const path = event.target.pathname;
+        const path = originalTarget.pathname;
         await this.navigate(path);
     }
 

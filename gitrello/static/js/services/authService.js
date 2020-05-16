@@ -27,14 +27,14 @@ export class AuthService {
 
         try {
             const response = await httpClient.get({url: authService._authTokenOwnerUrl})
-            authService._user = new User(
-                response['id'],
-                tokenService.token,
-                response['username'],
-                response['email'],
-                response['first_name'],
-                response['last_name'],
-            );
+            authService._user = new User({
+                id: response['id'],
+                token: tokenService.token,
+                username: response['username'],
+                email: response['email'],
+                firstName: response['first_name'],
+                lastName: response['last_name'],
+            });
         }
         catch (e) {
             console.log(e);

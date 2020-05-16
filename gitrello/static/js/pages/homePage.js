@@ -5,7 +5,7 @@ export class HomePage extends Page {
       <div class="auth-container">
         <div class="auth-container__tab">
           <ul class="auth-container__tab__list">
-            <li class="auth-container__tab__list__item active" id="auth-container-tab-list-item-signup">
+            <li class="auth-container__tab__list__item" id="auth-container-tab-list-item-signup">
               <a class="auth-container__tab__list__item__link">Sign Up</a>
             </li>
             <li class="auth-container__tab__list__item" id="auth-container-tab-list-item-login">

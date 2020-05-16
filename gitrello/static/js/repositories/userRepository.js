@@ -9,7 +9,7 @@ class UserRepository {
         this.httpClient = httpClient;
     }
 
-    async createUser(userName, email, firstName, lastName, password) {
+    async create(userName, email, firstName, lastName, password) {
         const data = {
             'username': userName,
             'email': email,
@@ -20,14 +20,14 @@ class UserRepository {
 
         try {
             const response = await this.httpClient.post({url: this.createUserUrl, data: data})
-            return new User(
-                response['id'],
-                response['token'],
-                userName,
-                email,
-                firstName,
-                lastName,
-            )
+            return new User({
+                id: response['id'],
+                token: response['token'],
+                username: userName,
+                email: email,
+                firstName: firstName,
+                lastName: lastName,
+            })
         }
         catch (e) {
             console.log(e.message);

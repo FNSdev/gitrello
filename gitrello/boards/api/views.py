@@ -27,7 +27,7 @@ class BoardsView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': board.id,
+                'id': str(board.id),
                 'name': board.name,
             }
         )
@@ -50,7 +50,7 @@ class BoardMembershipsView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': board_membership.id,
+                'id': str(board_membership.id),
             }
         )
 

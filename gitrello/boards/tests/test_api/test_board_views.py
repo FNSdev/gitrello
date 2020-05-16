@@ -32,7 +32,7 @@ class TestBoardsView(TestCase):
             name=payload['name'],
             organization_id=payload['organization_id'],
         )
-        self.assertDictEqual(response.data, {'id': board.id, 'name': board.name})
+        self.assertDictEqual(response.data, {'id': str(board.id), 'name': board.name})
 
     def test_create_board_not_authenticated(self):
         payload = {

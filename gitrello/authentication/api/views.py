@@ -18,7 +18,7 @@ class UsersView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': user.id,
+                'id': str(user.id),
                 'token': token.key,
             }
         )

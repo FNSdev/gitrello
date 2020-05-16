@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
+    OrganizationMembershipSerializer,
 )
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
@@ -23,7 +24,7 @@ class OrganizationsView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': organization.id,
+                'id': str(organization.id),
                 'name': organization.name,
             }
         )
@@ -48,7 +49,7 @@ class OrganizationInvitesView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': invite.id,
+                'id': str(invite.id),
                 'status': invite.get_status_display(),
             }
         )
@@ -74,10 +75,21 @@ class OrganizationInviteView(views.APIView):
         return Response(
             status=200,
             data={
-                'id': invite.id,
+                'id': str(invite.id),
                 'status': invite.get_status_display(),
             }
         )
+
+
+class OrganizationMembershipsView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+
+    def get(self, request, *args, **kwargs):
+        service = OrganizationMembershipService()
+        organization_memberships = service.get_organization_memberships(request.user.id)
+        serializer = OrganizationMembershipSerializer(instance=organization_memberships, many=True)
+        return Response(status=200, data=serializer.data)
 
 
 class OrganizationMembershipView(views.APIView):

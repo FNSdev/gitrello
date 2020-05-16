@@ -28,5 +28,9 @@ class BoardMembership(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    board = models.ForeignKey(to='boards.Board', on_delete=models.CASCADE)
-    organization_membership = models.ForeignKey(to='organizations.OrganizationMembership', on_delete=models.CASCADE)
+    board = models.ForeignKey(to='boards.Board', on_delete=models.CASCADE, related_name='board_memberships')
+    organization_membership = models.ForeignKey(
+        to='organizations.OrganizationMembership',
+        on_delete=models.CASCADE,
+        related_name='board_memberships',
+    )

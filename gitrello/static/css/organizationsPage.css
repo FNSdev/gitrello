@@ -1,0 +1,33 @@
+.organizations-container {
+  width: 90%;
+  margin: 50px auto;
+}
+
+.organizations-container__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+}
+
+.organizations-container__content__organizations-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+  justify-items: center;
+  align-items: center;
+}
+
+@media screen and (min-width: 762px) {
+  .organizations-container {
+    width: 70%;
+  }
+
+  .organizations-container__content {
+    grid-template-columns: 1fr 4fr;
+    grid-gap: 10em;
+  }
+
+  .organizations-container__content__organizations-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -1,5 +1,6 @@
 import {organizationRepository, } from "../repositories/organizationRepository.js";
 import {HttpClientPermissionDeniedError, } from "../errors.js";
+import {BoardComponent, } from "../components/boardComponent.js";
 import {Page, } from "./page.js";
 
 export class OrganizationPage extends Page {
@@ -61,5 +62,11 @@ export class OrganizationPage extends Page {
         if (!this.authService.isAuthenticated() || !this.hasAccess) {
             return;
         }
+
+        this.organization.boards.forEach(board => {
+            board.organization = this.organization;
+            const boardComponent = new BoardComponent(board);
+            document.getElementById('boards-list').appendChild(boardComponent);
+        });
     }
 }

@@ -29,25 +29,6 @@ template.innerHTML = `
       .login-form__button {
         margin: 10px;
       }
-      
-      .login-form__errors {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      
-      .login-form__errors__list {
-        overflow-y: auto;
-        max-height: 300px;
-      }
-      
-      .login-form__errors__list__item {
-        margin: 10px;
-        padding: 10px;
-        border: 3px solid var(--red);
-        border-radius: 15px;
-        font-size: 16px;
-      }
     </style>
     <form class="login-form">
       <h1 class="login-form__header">Welcome Back!</h1>
@@ -95,9 +76,7 @@ export class LogInFormComponent extends HTMLElement {
             await router.navigate('profile');
         }
         catch (e) {
-            errorsList.innerHTML = `
-              <li class="login-form__errors__list__item">${e.message}</li>
-            `;
+            errorsList.addError(e.message);
         }
     }
 }

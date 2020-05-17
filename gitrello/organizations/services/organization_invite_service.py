@@ -7,6 +7,7 @@ from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
 from organizations.exceptions import (
     OrganizationNotFoundException, OrganizationInviteAlreadyExistsException, OrganizationInviteNotFoundException,
+    OrganizationMembershipAlreadyExistsException,
 )
 from organizations.models import Organization, OrganizationInvite, OrganizationMembership
 from organizations.services.organization_membership_service import OrganizationMembershipService
@@ -24,6 +25,10 @@ class OrganizationInviteService:
 
         if OrganizationInvite.objects.filter(organization_id=organization_id, user__email=email).exists():
             raise OrganizationInviteAlreadyExistsException
+
+        # TODO add test
+        if OrganizationMembership.objects.filter(user__email=email, organization_id=organization_id).exists():
+            raise OrganizationMembershipAlreadyExistsException
 
         return OrganizationInvite.objects.create(
             organization_id=Subquery(Organization.objects.filter(id=organization_id).values('id')),

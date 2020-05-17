@@ -48,7 +48,7 @@ export class HttpClient {
             if (response.status === 204) {
                 return;
             }
-            throw GITrelloError;
+            throw new GITrelloError();
         }
 
         if (response.status === 403) {

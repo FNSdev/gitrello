@@ -7,7 +7,8 @@ import {OrganizationMembership, } from "../models/organizationMembership.js";
 
 
 class OrganizationMembershipRepository {
-    getOrganizationMembershipsUrl = '/api/v1/organization-memberships';
+    getOrganizationMembershipsUrl = '/api/v1/organization-memberships'
+    deleteOrganizationMembershipUrl = '/api/v1/organization-memberships'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -41,6 +42,19 @@ class OrganizationMembershipRepository {
             });
 
             return organizationMemberships;
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async delete(organizationMembershipId) {
+        try {
+            await this.httpClient.delete({url: `${this.deleteOrganizationMembershipUrl}/${organizationMembershipId}`})
         }
         catch (e) {
             console.log(e.message);

@@ -1,12 +1,13 @@
 import {organizationRepository, } from "../repositories/organizationRepository.js";
 import {HttpClientPermissionDeniedError, } from "../errors.js";
 import {BoardComponent, } from "../components/boardComponent.js";
+import {OrganizationComponent, } from "../components/organizationComponent.js";
 import {Page, } from "./page.js";
 
 export class OrganizationPage extends Page {
     template = `
       <div class="organization-container">
-        <div class="organization-container__content">
+        <div id="organizations-container-content" class="organization-container__content">
           <div id="boards-list" class="organization-container__content__boards-list"></div>
         </div>
       </div>
@@ -63,7 +64,20 @@ export class OrganizationPage extends Page {
             return;
         }
 
-        this.organization.boards.forEach(board => {
+        const organizationComponent = new OrganizationComponent(this.organization);
+        organizationComponent.stateHasChanged = () => this._stateHasChanged();
+        document.getElementById('organizations-container-content').prepend(organizationComponent);
+
+        this._insertBoards(this.organization.boards);
+    }
+
+    _stateHasChanged() {
+        document.getElementById('boards-list').innerHTML = '';
+        this._insertBoards(this.organization.boards);
+    }
+
+    _insertBoards(boards) {
+        boards.forEach(board => {
             board.organization = this.organization;
             const boardComponent = new BoardComponent(board);
             document.getElementById('boards-list').appendChild(boardComponent);

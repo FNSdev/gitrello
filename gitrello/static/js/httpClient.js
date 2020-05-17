@@ -1,7 +1,8 @@
 import {cookieService, } from "./services/cookieService.js";
 import {tokenService, } from "./services/tokenService.js";
 import {
-    HttpClientError, HttpClientPermissionDeniedError, HttpClientBadRequestError, HttpClientUnauthorizedError,
+    GITrelloError, HttpClientError, HttpClientPermissionDeniedError, HttpClientBadRequestError,
+    HttpClientUnauthorizedError,
 } from "./errors.js";
 
 export class HttpClient {
@@ -38,7 +39,17 @@ export class HttpClient {
         }
 
         const response = await fetch(url, init);
-        const json = await response.json();
+        let json = null;
+
+        try {
+            json = await response.json();
+        }
+        catch (e) {
+            if (response.status === 204) {
+                return;
+            }
+            throw GITrelloError;
+        }
 
         if (response.status === 403) {
             throw new HttpClientPermissionDeniedError(json['error_message']);
@@ -61,6 +72,10 @@ export class HttpClient {
 
     async post({url, data = {}, headers = null}) {
         return await this._makeRequest({url: url, method: 'POST', data: data, headers: headers});
+    }
+
+    async delete({url, headers = null}) {
+        return await this._makeRequest({url: url, method: 'DELETE', headers: headers});
     }
 
     async get({url, params = {}, headers = null}) {

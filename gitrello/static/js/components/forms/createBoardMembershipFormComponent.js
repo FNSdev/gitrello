@@ -48,8 +48,8 @@ template.innerHTML = `
     <form class="form">
       <h1 class="form__header">Click on Member to add</h1>
       <input type="text" class="form__search" id="search" placeholder="Type to search">
-      <ul class="form__members-list" id="members-list"></ul>     
       <errors-list-component id="form-errors" class="form__errors"></errors-list-component>
+      <ul class="form__members-list" id="members-list"></ul>
     </form>
 `
 
@@ -66,7 +66,6 @@ export class CreateBoardMembershipFormComponent extends HTMLElement {
     }
 
     connectedCallback() {
-        this._insertMembers(this._organizationMemberships);
         this.shadowRoot.getElementById('search').addEventListener('input', () => {
             this.onSearchInput();
         })
@@ -74,7 +73,6 @@ export class CreateBoardMembershipFormComponent extends HTMLElement {
 
     onSearchInput() {
         const search = this.shadowRoot.getElementById('search').value;
-        this.shadowRoot.getElementById('members-list').innerHTML = '';
 
         const organizationMemberships = [];
         this._organizationMemberships.forEach(organizationMembership => {
@@ -129,10 +127,12 @@ export class CreateBoardMembershipFormComponent extends HTMLElement {
 
     set organizationMemberships(memberships) {
         this._organizationMemberships = memberships;
+        this._insertMembers(this._organizationMemberships);
     }
 
     _insertMembers(organizationMemberships) {
         const membersList = this.shadowRoot.getElementById('members-list');
+        membersList.innerHTML = '';
 
         organizationMemberships.forEach(organizationMembership => {
             const member = document.createElement('li');

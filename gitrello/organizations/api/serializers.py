@@ -46,5 +46,6 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = ('id', 'added_at', 'name', 'organization_memberships', 'boards')
 
+    id = serializers.CharField()
     organization_memberships = NestedOrganizationMembershipSerializer(many=True, read_only=True)
     boards = BoardSerializer(many=True, read_only=True)

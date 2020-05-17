@@ -10,6 +10,7 @@ import {InputComponent, } from "./components/common/inputComponent.js";
 import {LogInFormComponent, } from "./components/forms/logInFormComponent.js";
 import {OrganizationComponent, } from "./components/organizationComponent.js";
 import {OrganizationMembershipComponent, } from "./components/organizationMembershipComponent.js";
+import {SendInviteFormComponent, } from "./components/forms/sendInviteFormComponent.js";
 import {SignUpFormComponent, } from "./components/forms/signUpFormComponent.js";
 
 (async () => await Router.build())();

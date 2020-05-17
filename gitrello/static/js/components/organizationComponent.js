@@ -1,4 +1,5 @@
 import {organizationMembershipRepository, } from "../repositories/organizationMembershipRepository.js";
+import {SendInviteFormComponent, } from "./forms/sendInviteFormComponent.js";
 
 const template = document.createElement('template')
 template.innerHTML = `
@@ -149,7 +150,28 @@ export class OrganizationComponent extends HTMLElement {
             'click', () => {
                 this.shadowRoot.getElementById('remove-member-modal').style.display = "none";
             }
-        )
+        );
+
+        const sendInviteFormComponent = new SendInviteFormComponent();
+        sendInviteFormComponent.organizationId = this.organization.id;
+        sendInviteFormComponent.callback = () => {
+            this.shadowRoot.getElementById('send-invite-modal').style.display = "none";
+        };
+        this.shadowRoot.getElementById('send-invite-modal-content').appendChild(sendInviteFormComponent);
+
+        this.shadowRoot.getElementById('send-invite-button').addEventListener(
+            'click', () => this.onSendInviteClick()
+        );
+    }
+
+    onSendInviteClick() {
+        this.shadowRoot.getElementById('send-invite-modal').style.display = "block";
+        const modal = this.shadowRoot.getElementById('send-invite-modal');
+        modal.onclick = (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
     }
 
     onRemoveMemberClick(event) {

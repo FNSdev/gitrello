@@ -84,7 +84,7 @@ class OrganizationRepository {
             return new Organization({
                 id: response['id'],
                 name: response['name'],
-                added_at: response['added_at'],
+                addedAt: response['added_at'],
                 organizationMemberships: organizationMemberships,
                 boards: boards,
             })

@@ -35,7 +35,7 @@ class OrganizationMembershipRepository {
                     organization: new Organization({
                         id: organizationMembership['organization']['id'],
                         name: organizationMembership['organization']['name'],
-                        added_at: organizationMembership['organization']['added_at'],
+                        addedAt: organizationMembership['organization']['added_at'],
                     }),
                     boardMemberships: boardMemberships,
                 }))

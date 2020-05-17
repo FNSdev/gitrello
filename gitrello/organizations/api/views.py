@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
-    OrganizationMembershipSerializer, OrganizationSerializer,
+    OrganizationMembershipSerializer, OrganizationSerializer, OrganizationInviteSerializer,
 )
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
@@ -69,6 +69,12 @@ class OrganizationInvitesView(views.APIView):
                 'status': invite.get_status_display(),
             }
         )
+
+    def get(self, request, *args, **kwargs):
+        service = OrganizationInviteService()
+        organization_invites = service.get_pending_invites(request.user.id)
+        serializer = OrganizationInviteSerializer(instance=organization_invites, many=True)
+        return Response(status=200, data=serializer.data)
 
 
 class OrganizationInviteView(views.APIView):

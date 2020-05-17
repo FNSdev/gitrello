@@ -25,6 +25,7 @@ template.innerHTML = `
         border: 3px solid var(--red);
         border-radius: 15px;
         font-size: 16px;
+        text-align: center;
       }
     </style>
     <div class="errors-container">

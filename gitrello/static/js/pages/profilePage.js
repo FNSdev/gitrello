@@ -1,3 +1,5 @@
+import {organizationInviteRepository, } from "../repositories/organizationInviteRepository.js";
+import {OrganizationInviteComponent, } from "../components/organizationInviteComponent.js";
 import {Page, } from "./page.js";
 import {ProfileComponent, } from "../components/profileComponent.js";
 
@@ -31,7 +33,33 @@ export class ProfilePage extends Page {
             return;
         }
 
+        try {
+            this.organizationInvites = await organizationInviteRepository.getAll();
+            this._insertInvites(this.organizationInvites);
+        }
+        catch (e) {
+            console.log(e);
+        }
+
         const organizationComponent = new ProfileComponent(this.authService.user);
         document.getElementById('profile-container-content').prepend(organizationComponent);
+    }
+
+    _insertInvites(organizationInvites) {
+        organizationInvites.forEach(organizationInvite => {
+            const organizationInviteComponent = new OrganizationInviteComponent(organizationInvite);
+            organizationInviteComponent.stateHasChanged = () => this._onStateChanged();
+            document.getElementById('invites-list').appendChild(organizationInviteComponent);
+        })
+    }
+
+    _onStateChanged(organizationInvite) {
+        document.getElementById('invites-list').innerHTML = '';
+        this.organizationInvites = this.organizationInvites.filter(invite => {
+            if (invite.id !== organizationInvite.id) {
+                return invite;
+            }
+        });
+        this._insertInvites(this.organizationInvites);
     }
 }

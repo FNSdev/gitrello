@@ -74,6 +74,10 @@ export class HttpClient {
         return await this._makeRequest({url: url, method: 'POST', data: data, headers: headers});
     }
 
+    async patch({url, data = {}, headers = null}) {
+        return await this._makeRequest({url: url, method: 'PATCH', data: data, headers: headers});
+    }
+
     async delete({url, headers = null}) {
         return await this._makeRequest({url: url, method: 'DELETE', headers: headers});
     }

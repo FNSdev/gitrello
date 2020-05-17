@@ -9,6 +9,7 @@ import {ErrorListComponent, } from "./components/common/errorsListComponent.js";
 import {InputComponent, } from "./components/common/inputComponent.js";
 import {LogInFormComponent, } from "./components/forms/logInFormComponent.js";
 import {OrganizationComponent, } from "./components/organizationComponent.js";
+import {OrganizationInviteComponent, } from "./components/organizationInviteComponent.js";
 import {OrganizationMembershipComponent, } from "./components/organizationMembershipComponent.js";
 import {ProfileComponent, } from "./components/profileComponent.js";
 import {SendInviteFormComponent, } from "./components/forms/sendInviteFormComponent.js";

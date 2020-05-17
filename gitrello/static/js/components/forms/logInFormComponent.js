@@ -73,7 +73,7 @@ export class LogInFormComponent extends HTMLElement {
                 this.shadowRoot.querySelector('#login-form-username').value,
                 this.shadowRoot.querySelector('#login-form-password').value,
             )
-            await router.navigate('profile');
+            await router.navigate('/profile');
         }
         catch (e) {
             errorsList.addError(e.message);

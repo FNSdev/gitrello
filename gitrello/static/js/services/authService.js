@@ -66,14 +66,14 @@ export class AuthService {
             const response = await this.httpClient.get({url: this._authTokenUrl, headers: headers});
 
             this.tokenService.token = response['token'];
-            this._user = new User(
-                response['user']['id'],
-                response['token'],
-                response['user']['username'],
-                response['user']['email'],
-                response['user']['first_name'],
-                response['user']['last_name'],
-            );
+            this._user = new User({
+                id: response['user']['id'],
+                token: response['token'],
+                username: response['user']['username'],
+                email: response['user']['email'],
+                firstName: response['user']['first_name'],
+                lastName: response['user']['last_name'],
+            });
 
             return this._user;
         }

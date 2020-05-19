@@ -85,7 +85,7 @@ export class SignUpFormComponent extends HTMLElement {
             const authService = await AuthService.build();
             const router = await Router.build();
             authService.user = user;
-            await router.navigate('profile');
+            await router.navigate('/profile');
         }
         catch (e) {
             errorsList.addError(e.message);

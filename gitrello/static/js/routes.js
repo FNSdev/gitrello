@@ -1,3 +1,4 @@
+import {BoardPage, } from "./pages/boardPage.js";
 import {HomePage, } from "./pages/homePage.js";
 import {NotFoundPage, } from "./pages/notFoundPage.js";
 import {OrganizationPage, } from "./pages/organizationPage.js";
@@ -26,5 +27,9 @@ export const routes = [
     {
         path: '/boards',
         page: NotFoundPage,
+    },
+    {
+        path: '/boards/:boardId',
+        page: BoardPage,
     },
 ];

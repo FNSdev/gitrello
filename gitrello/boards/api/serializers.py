@@ -1,8 +1,9 @@
+from rest_framework import serializers
+
 from authentication.api.serializers import UserSerializer
 from boards.models import Board, BoardMembership
 from organizations.models import OrganizationMembership
-
-from rest_framework import serializers
+from tickets.api.serializers import CategorySerializer
 
 
 class CreateBoardSerializer(serializers.Serializer):
@@ -62,3 +63,13 @@ class BoardSerializer(serializers.ModelSerializer):
 
     id = serializers.CharField()
     board_memberships = NestedBoardMembershipSerializer(many=True, read_only=True)
+
+
+class BoardWithCategoriesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Board
+        fields = ('id', 'added_at', 'name', 'board_memberships', 'categories')
+
+    id = serializers.CharField()
+    board_memberships = NestedBoardMembershipSerializer(many=True, read_only=True)
+    categories = CategorySerializer(many=True, read_only=True)

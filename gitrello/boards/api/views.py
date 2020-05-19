@@ -3,7 +3,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer
+from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer, BoardWithCategoriesSerializer
 from boards.services import BoardService, BoardMembershipService
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 
@@ -31,6 +31,22 @@ class BoardsView(views.APIView):
                 'name': board.name,
             }
         )
+
+
+class BoardView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def get(self, request, *args, **kwargs):
+        service = BoardService()
+        if not service.can_get_board(
+                user_id=request.user.id,
+                board_id=kwargs['id']):
+            raise PermissionDeniedException
+
+        board = service.get_board(kwargs['id'])
+        serializer = BoardWithCategoriesSerializer(instance=board)
+        return Response(status=200, data=serializer.data)
 
 
 class BoardMembershipsView(views.APIView):

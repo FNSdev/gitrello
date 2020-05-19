@@ -48,7 +48,9 @@ export class ProfilePage extends Page {
     _insertInvites(organizationInvites) {
         organizationInvites.forEach(organizationInvite => {
             const organizationInviteComponent = new OrganizationInviteComponent(organizationInvite);
-            organizationInviteComponent.stateHasChanged = () => this._onStateChanged();
+            organizationInviteComponent.stateHasChanged = (organizationInvite) => {
+                this._onStateChanged(organizationInvite);
+            }
             document.getElementById('invites-list').appendChild(organizationInviteComponent);
         })
     }

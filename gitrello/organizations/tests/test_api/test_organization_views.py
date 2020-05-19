@@ -30,7 +30,7 @@ class TestOrganizationsView(TestCase):
             owner_id=user.id,
             name=payload['name'],
         )
-        self.assertDictEqual(response.data, {'id': organization.id, 'name': organization.name})
+        self.assertDictEqual(response.data, {'id': str(organization.id), 'name': organization.name})
 
     def test_create_organization_not_authenticated(self):
         payload = {

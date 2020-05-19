@@ -1,5 +1,8 @@
 import {HomePage, } from "./pages/homePage.js";
 import {NotFoundPage, } from "./pages/notFoundPage.js";
+import {OrganizationPage, } from "./pages/organizationPage.js";
+import {OrganizationsPage, } from "./pages/organizationsPage.js";
+import {ProfilePage, } from "./pages/profilePage.js";
 
 
 // TODO
@@ -10,11 +13,15 @@ export const routes = [
     },
     {
         path: '/profile',
-        page: NotFoundPage,
+        page: ProfilePage,
     },
     {
         path: '/organizations',
-        page: NotFoundPage,
+        page: OrganizationsPage,
+    },
+    {
+        path: '/organizations/:organizationId',
+        page: OrganizationPage,
     },
     {
         path: '/boards',

@@ -35,9 +35,9 @@ class TestCategoriesView(TestCase):
             name=payload['name'],
         )
         expected_response = {
-            'id': category.id,
+            'id': str(category.id),
             'name': category.name,
-            'board_id': category.board_id,
+            'board_id': str(category.board_id),
         }
         self.assertDictEqual(response.data, expected_response)
 

@@ -48,18 +48,19 @@ export class Router {
     }
 
     async _onPopState(event) {
-        this.href = window.location.href;
-        await this._loadContent(window.location.pathname);
+        this.path = window.location.pathname
+        await this._loadContent(this.path);
     }
 
     async _onPushState(event) {
-        if (!event.target.classList.contains('route')) {
+        const originalTarget = event.composedPath()[0];
+        if (!originalTarget.classList.contains('route')) {
             return;
         }
 
         event.preventDefault();
 
-        const path = event.target.pathname;
+        const path = originalTarget.pathname;
         await this.navigate(path);
     }
 

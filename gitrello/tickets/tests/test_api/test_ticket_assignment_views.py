@@ -41,9 +41,9 @@ class TestTicketAssignmentsView(TestCase):
             board_membership_id=payload['board_membership_id'],
         )
         expected_response = {
-            'id': ticket_assignment.id,
-            'ticket_id': ticket_assignment.ticket_id,
-            'assignee_id': ticket_assignment.assignee_id,
+            'id': str(ticket_assignment.id),
+            'ticket_id': str(ticket_assignment.ticket_id),
+            'assignee_id': str(ticket_assignment.assignee_id),
         }
         self.assertDictEqual(response.data, expected_response)
 

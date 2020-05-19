@@ -1,3 +1,5 @@
+from typing import List
+
 from django.db.transaction import atomic
 
 from gitrello.handlers import retry_on_transaction_serialization_error
@@ -36,7 +38,7 @@ class OrganizationMembershipService:
 
     @retry_on_transaction_serialization_error
     @atomic
-    def can_delete_member(self, user_id: int, organization_membership_id: int):
+    def can_delete_member(self, user_id: int, organization_membership_id: int) -> bool:
         membership_to_delete = OrganizationMembership.objects.filter(id=organization_membership_id).first()
         if not membership_to_delete:
             return False
@@ -62,3 +64,8 @@ class OrganizationMembershipService:
 
         # MEMBER users can be deleted from organization by owner and admins
         return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN
+
+    def get_organization_memberships(self, user_id: int) -> List[OrganizationMembership]:
+        return OrganizationMembership.objects \
+            .filter(user_id=user_id) \
+            .prefetch_related('organization', 'board_memberships', 'board_memberships__board')

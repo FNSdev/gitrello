@@ -1,0 +1,31 @@
+.profile-container {
+  width: 90%;
+  margin: 50px auto;
+}
+
+.profile-container__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+  justify-items: center;
+  align-items: start;
+}
+
+.profile-container__content__invites-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2em;
+  justify-items: center;
+  align-items: center;
+}
+
+@media screen and (min-width: 762px) {
+  .profile-container__content {
+    grid-template-columns: 1fr 4fr;
+    grid-gap: 10em;
+  }
+
+  .profile-container__content__invites-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -45,7 +45,7 @@ class TestOrganizationInvitesView(TestCase):
                 message=payload['message']
             )
             expected_response = {
-                'id': invite.id,
+                'id': str(invite.id),
                 'status': invite.get_status_display(),
             }
             self.assertDictEqual(response.data, expected_response)
@@ -196,7 +196,7 @@ class TestOrganizationInviteView(TestCase):
             organization_invite_id=invite.id,
             accept=payload['accept'],
         )
-        self.assertDictEqual(response.data, {'id': invite.id, 'status': invite.get_status_display()})
+        self.assertDictEqual(response.data, {'id': str(invite.id), 'status': invite.get_status_display()})
 
     def test_update_invite_request_not_valid(self):
         payload = {

@@ -27,8 +27,8 @@ class CategoriesView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': category.id,
-                'board_id': category.board_id,
+                'id': str(category.id),
+                'board_id': str(category.board_id),
                 'name': category.name,
             }
         )
@@ -51,8 +51,8 @@ class TicketsView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': ticket.id,
-                'category_id': ticket.category_id,
+                'id': str(ticket.id),
+                'category_id': str(ticket.category_id),
             }
         )
 
@@ -74,7 +74,7 @@ class TicketView(views.APIView):
         return Response(
             status=200,
             data={
-                'id': ticket.id,
+                'id': str(ticket.id),
                 'title': ticket.title,
                 'body': ticket.body,
                 'due_date': ticket.due_date,
@@ -103,9 +103,9 @@ class TicketAssignmentsView(views.APIView):
         return Response(
             status=201,
             data={
-                'id': ticket_assignment.id,
-                'ticket_id': ticket_assignment.ticket_id,
-                'assignee_id': ticket_assignment.assignee_id,
+                'id': str(ticket_assignment.id),
+                'ticket_id': str(ticket_assignment.ticket_id),
+                'assignee_id': str(ticket_assignment.assignee_id),
             }
         )
 

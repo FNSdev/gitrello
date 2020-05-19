@@ -30,25 +30,6 @@ template.innerHTML = `
       .signup-form__button {
         margin: 10px;
       }
-      
-      .signup-form__errors {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      
-      .signup-form__errors__list {
-        overflow-y: auto;
-        max-height: 300px;
-      }
-      
-      .signup-form__errors__list__item {
-        margin: 10px;
-        padding: 10px;
-        border: 3px solid var(--red);
-        border-radius: 15px;
-        font-size: 16px;
-      }
     </style>
     <form class="signup-form">
       <h1 class="signup-form__header">New Account</h1>
@@ -57,9 +38,7 @@ template.innerHTML = `
       <input-component required maxlength="30" id="signup-form-first-name" type="text" class="signup-form__input" placeholder="Your First Name"></input-component>
       <input-component required maxlength="100" id="signup-form-last-name" type="text" class="signup-form__input" placeholder="Your Last Name"></input-component>
       <input-component required maxlength="128" id="signup-form-password" type="password" class="signup-form__input" placeholder="Your Password"></input-component>
-      <div class="signup-form__errors">
-        <ul id="signup-form-errors-list" class="signup-form__errors__list"></ul>          
-      </div>
+      <errors-list-component id="signup-form-errors" class="signup-form__errors"></errors-list-component>
       <button-component type="success" id="signup-button" class="signup-form__button btn btn-success"/>
         Get Started
       </button-component>
@@ -81,8 +60,8 @@ export class SignUpFormComponent extends HTMLElement {
     }
 
     async onSignUp() {
-        const errorsList = this.shadowRoot.querySelector('#signup-form-errors-list');
-        errorsList.innerHTML = '';
+        const errorsList = this.shadowRoot.getElementById('signup-form-errors');
+        errorsList.clear();
 
         if (!this.shadowRoot.querySelector('#signup-form-username').checkValidity() ||
             !this.shadowRoot.querySelector('#signup-form-email').checkValidity() ||
@@ -90,14 +69,12 @@ export class SignUpFormComponent extends HTMLElement {
             !this.shadowRoot.querySelector('#signup-form-last-name').checkValidity() ||
             !this.shadowRoot.querySelector('#signup-form-password').checkValidity()
         ) {
-            errorsList.innerHTML = `
-              <li class="signup-form__errors__list__item">Please, fill out required fields with correct data</li>
-            `;
-            return
+            errorsList.addError(errorsList.defaultErrorMessage);
+            return;
         }
 
         try {
-            const user = await userRepository.createUser(
+            const user = await userRepository.create(
                 this.shadowRoot.querySelector('#signup-form-username').value,
                 this.shadowRoot.querySelector('#signup-form-email').value,
                 this.shadowRoot.querySelector('#signup-form-first-name').value,
@@ -108,12 +85,10 @@ export class SignUpFormComponent extends HTMLElement {
             const authService = await AuthService.build();
             const router = await Router.build();
             authService.user = user;
-            await router.navigate('profile');
+            await router.navigate('/profile');
         }
         catch (e) {
-            errorsList.innerHTML = `
-              <li class="signup-form__errors__list__item">${e.message}</li>
-            `;
+            errorsList.addError(e.message);
         }
     }
 }

@@ -73,7 +73,7 @@ template.innerHTML = `
         margin: 100px auto;
         border: 3px solid var(--primary-dark);
         border-radius: 10px;
-        width: 70%;
+        width: 90%;
         display: flex;
         flex-direction: column;
         justify-content: center;

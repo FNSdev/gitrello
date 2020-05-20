@@ -15,5 +15,5 @@
 
 .board-container__content__categories-list {
   display: flex;
-  align-items: center;
+  align-items: start;
 }

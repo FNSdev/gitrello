@@ -7,7 +7,9 @@ export class BoardPage extends Page {
     template = `
       <div class="board-container">
         <div id="board-container-content" class="board-container__content">
-          <div id="categories-list" class="board-container__content__categories-list"></div>
+          <div id="categories-list" class="board-container__content__categories-list">
+            <create-category-form-component id="create-category-form"></create-category-form-component>
+          </div>
         </div>
       </div>
     `
@@ -54,13 +56,21 @@ export class BoardPage extends Page {
             return;
         }
 
+        const createCategoryForm = document.getElementById('create-category-form');
+        createCategoryForm.boardId = this.board.id;
+        createCategoryForm.callback = (category) => this._insertCategory(category);
         this._insertCategories(this.board.categories);
     }
 
     _insertCategories(categories) {
-        categories.forEach(category => {
-            const categoryComponent = new CategoryComponent(category);
-            document.getElementById('categories-list').appendChild(categoryComponent);
-        });
+        categories.forEach(category => this._insertCategory(category));
+    }
+
+    _insertCategory(category) {
+        const categoryComponent = new CategoryComponent(category);
+        document.getElementById('categories-list').insertBefore(
+            categoryComponent,
+            document.getElementById('create-category-form'),
+        );
     }
 }

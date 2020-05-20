@@ -12,6 +12,7 @@ template.innerHTML = `
       }
 
       .container {
+        margin-bottom: 20px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -26,20 +27,20 @@ template.innerHTML = `
       }
       
       .container__tickets {
-        margin-top: 10px;
         border: 2px solid var(--primary-dark);
-        border-radius: 10px;
+        border-radius: 6px;
+        box-shadow: var(--default-shadow);
+        width: 90%;
+        height: 90%;
+        overflow-y: auto;
+        scrollbar-color: var(--primary-dark) var(--primary-light);
+      }
+      
+      .container__tickets__list {
         display: flex;
         flex-direction: column;
         justify-content: start;
         align-items: center;
-        width: 90%;
-        height: 90%;
-      }
-      
-      .container__tickets__list {
-        overflow-y: auto;
-        scrollbar-color: var(--primary-dark) var(--primary-light);
       }
       
       .container__tickets__list__item {
@@ -58,7 +59,7 @@ template.innerHTML = `
       }
     </style>
     <div class="container">
-      <h1 id="name" class="container__name">Test Category</h1>
+      <h1 id="name" class="container__name"></h1>
       <div class="container__tickets">
         <ul class="container__tickets__list" id="tickets-list"></ul>
       </div>
@@ -80,12 +81,14 @@ export class CategoryComponent extends HTMLElement {
     }
 
     connectedCallback() {
+        this.shadowRoot.getElementById('name').innerHTML = this.category.name;
         this._insertTickets(this.category.tickets);
     }
 
     _insertTickets(tickets) {
         tickets.forEach(ticket => {
             const ticketComponent = new TicketComponent(ticket);
+            ticketComponent.classList.add('container__tickets__list__item');
             this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
         });
     }

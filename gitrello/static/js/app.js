@@ -5,6 +5,7 @@ import {ButtonComponent, } from "./components/common/buttonComponent.js";
 import {CategoryComponent, } from "./components/categoryComponent.js";
 import {CreateBoardFormComponent, } from "./components/forms/createBoardFormComponent.js";
 import {CreateBoardMembershipFormComponent, } from "./components/forms/createBoardMembershipFormComponent.js";
+import {CreateCategoryFormComponent, } from "./components/forms/createCategoryFormComponent.js";
 import {CreateOrganizationFormComponent, } from "./components/forms/createOrganizationFormComponent.js";
 import {ErrorListComponent, } from "./components/common/errorsListComponent.js";
 import {InputComponent, } from "./components/common/inputComponent.js";

@@ -1,3 +1,4 @@
+import {ticketRepository, } from "../repositories/ticketRepository.js";
 import {TicketComponent, } from "./ticketComponents.js";
 
 const template = document.createElement('template')
@@ -82,15 +83,32 @@ export class CategoryComponent extends HTMLElement {
 
     connectedCallback() {
         this.shadowRoot.getElementById('name').innerHTML = this.category.name;
+        this.shadowRoot.getElementById('add-ticket-button').addEventListener(
+            'click',
+            () => this.onAddTicketClick(),
+        );
         this._insertTickets(this.category.tickets);
     }
 
+    async onAddTicketClick() {
+        try {
+            const ticket = await ticketRepository.create(this.category.id);
+            this._insertTicket(ticket);
+        }
+        catch (e) {
+            console.log(e);
+            // TODO show error in modal?
+        }
+    }
+
     _insertTickets(tickets) {
-        tickets.forEach(ticket => {
-            const ticketComponent = new TicketComponent(ticket);
-            ticketComponent.classList.add('container__tickets__list__item');
-            this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
-        });
+        tickets.forEach(ticket => this._insertTicket(ticket));
+    }
+
+    _insertTicket(ticket) {
+        const ticketComponent = new TicketComponent(ticket);
+        ticketComponent.classList.add('container__tickets__list__item');
+        this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
     }
 }
 

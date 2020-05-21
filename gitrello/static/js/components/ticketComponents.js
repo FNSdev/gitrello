@@ -57,6 +57,7 @@ template.innerHTML = `
         margin-top: 6px;
         margin-bottom: 6px;
         text-align: center;
+        color: var(--primary-dark);
       }
       
       @media screen and (min-width: 992px) {
@@ -91,11 +92,20 @@ export class TicketComponent extends HTMLElement {
     }
 
     _insertTicket(ticket) {
-        this.shadowRoot.getElementById('title').innerHTML = ticket.title;
-        if (ticket.dueDate !== undefined) {
+        if (ticket.title !== null) {
+            this.shadowRoot.getElementById('title').innerHTML = ticket.title;
+        }
+        else {
+            this.shadowRoot.getElementById('title').innerHTML = 'New ticket';
+        }
+        if (ticket.dueDate !== null) {
             this.shadowRoot.getElementById('due-date').innerHTML = `
                 Should be done before <strong>${new Date(this.ticket.dueDate).toDateString()}</strong>
             `;
+        }
+        else {
+            this.shadowRoot.getElementById('due-date').style.marginTop = '10px';
+            this.shadowRoot.getElementById('due-date').innerHTML = 'Ticket has no due date';
         }
         if (ticket.assignees.length === 0){
             this.shadowRoot.getElementById('assignees-list-container').style.display = 'none';

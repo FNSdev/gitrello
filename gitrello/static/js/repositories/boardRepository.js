@@ -5,6 +5,7 @@ import {BoardMembership, } from "../models/boardMembership.js";
 import {Category, } from "../models/category.js";
 import {OrganizationMembership, } from "../models/organizationMembership.js";
 import {Ticket, } from "../models/ticket.js";
+import {TicketAssignment, } from "../models/ticketAssignment.js";
 import {User, } from "../models/user.js";
 
 class BoardRepository {
@@ -65,24 +66,28 @@ class BoardRepository {
             response['categories'].forEach(category => {
                 const tickets = [];
                 category['tickets'].forEach(ticket => {
-                    const assignees = [];
-                    ticket['assignees'].forEach(assignee => {
-                        assignees.push(new BoardMembership({
-                            id: assignee['id'],
-                            addedAt: assignee['added_at'],
-                            organizationMembership: new OrganizationMembership({
-                                id: assignee['organization_membership']['id'],
-                                role: assignee['organization_membership']['role'],
-                                user: new User({
-                                    id: assignee['organization_membership']['user']['id'],
-                                    addedAt: assignee['organization_membership']['user']['added_at'],
-                                    firstName: assignee['organization_membership']['user']['first_name'],
-                                    lastName: assignee['organization_membership']['user']['last_name'],
-                                    email: assignee['organization_membership']['user']['email'],
-                                    username: assignee['organization_membership']['user']['username'],
+                    const assignments = [];
+                    ticket['assignments'].forEach(assignment => {
+                        assignments.push(new TicketAssignment({
+                            id: assignment['id'],
+                            addedAt: assignment['added_at'],
+                            boardMembership: new BoardMembership({
+                                id: assignment['assignee']['id'],
+                                addedAt: assignment['assignee']['added_at'],
+                                organizationMembership: new OrganizationMembership({
+                                    id: assignment['assignee']['organization_membership']['id'],
+                                    role: assignment['assignee']['organization_membership']['role'],
+                                    user: new User({
+                                        id: assignment['assignee']['organization_membership']['user']['id'],
+                                        addedAt: assignment['assignee']['organization_membership']['user']['added_at'],
+                                        firstName: assignment['assignee']['organization_membership']['user']['first_name'],
+                                        lastName: assignment['assignee']['organization_membership']['user']['last_name'],
+                                        email: assignment['assignee']['organization_membership']['user']['email'],
+                                        username: assignment['assignee']['organization_membership']['user']['username'],
+                                    })
                                 })
                             })
-                        }))
+                        }));
                     })
 
                     tickets.push(new Ticket({
@@ -91,7 +96,7 @@ class BoardRepository {
                         title: ticket['title'],
                         body: ticket['body'],
                         dueDate: ticket['due_date'],
-                        assignees: assignees,
+                        assignments: assignments,
                     }))
                 })
 

@@ -43,9 +43,10 @@ class BoardService:
             .prefetch_related(
                 'categories',
                 'categories__tickets',
-                'categories__tickets__assignees',
-                'categories__tickets__assignees__organization_membership',
-                'categories__tickets__assignees__organization_membership__user',
+                'categories__tickets__assignments',
+                'categories__tickets__assignments__assignee',
+                'categories__tickets__assignments__assignee__organization_membership',
+                'categories__tickets__assignments__assignee__organization_membership__user',
             ) \
             .first()
 

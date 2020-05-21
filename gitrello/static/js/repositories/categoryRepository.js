@@ -20,6 +20,7 @@ class CategoryRepository {
             return new Category({
                 id: response['id'],
                 name: response['name'],
+                tickets: [],
             })
         }
         catch (e) {

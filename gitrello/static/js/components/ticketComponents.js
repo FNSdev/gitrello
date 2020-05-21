@@ -1,3 +1,5 @@
+import {UpdateTicketFormComponent, } from "./forms/updateTicketFormComponent.js";
+
 const template = document.createElement('template')
 template.innerHTML = `
     <style>
@@ -17,6 +19,7 @@ template.innerHTML = `
         border: 2px solid var(--primary-dark);
         border-radius: 16px;
         width: 70vw;
+        cursor: pointer;
       }
          
       .container__assignees {
@@ -48,6 +51,7 @@ template.innerHTML = `
       }
       
       .container__due-date {
+        margin-top: 10px;
         font-size: 12px;
         text-align: center;
       }
@@ -60,13 +64,42 @@ template.innerHTML = `
         color: var(--primary-dark);
       }
       
+      .ticket-modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+      
+      .ticket-modal__content {
+        background-color: #fefefe;
+        margin: 100px auto;
+        border: 3px solid var(--primary-dark);
+        border-radius: 10px;
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      
       @media screen and (min-width: 992px) {
         .container {
           width: 16vw;
         }
+        
+        .ticket-modal__content {
+          width: 50%;
+        }
       }
     </style>
-    <div class="container">
+    <div class="container" id="container">
       <div class="container__assignees" id="assignees-list-container">
         <ul class="container__assignees__list" id="assignees-list"></ul>
       </div>
@@ -74,21 +107,51 @@ template.innerHTML = `
       <hr class="container__line">
       <div id="title" class="container__title"></div>
     </div>
+    
+    <div id="ticket-modal" class="ticket-modal">
+      <div class="ticket-modal__content" id="ticket-modal-content"></div>
+    </div>
 `
 
 export class TicketComponent extends HTMLElement {
-    constructor(ticket) {
+    constructor(ticket, boardMemberships) {
         super();
 
         this.attachShadow({mode: 'open'});
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
         this.ticket = ticket;
+        this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
     }
 
     connectedCallback() {
+        this.shadowRoot.getElementById('container').addEventListener(
+            'click',
+            () => this.onClick(),
+        );
         this._insertTicket(this.ticket);
+    }
+
+    onClick() {
+        this.shadowRoot.getElementById('ticket-modal').style.display = "block";
+        const modal = this.shadowRoot.getElementById('ticket-modal');
+        modal.onclick = (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        const updateTicketFormComponent = new UpdateTicketFormComponent(this.ticket, this.boardMemberships);
+        updateTicketFormComponent.callback = (ticket) => this.onTicketUpdated(ticket);
+        this.shadowRoot.getElementById('ticket-modal-content').innerHTML = '';
+        this.shadowRoot.getElementById('ticket-modal-content').appendChild(updateTicketFormComponent);
+    }
+
+    onTicketUpdated(ticket) {
+        this.shadowRoot.getElementById('assignees-list').innerHTML = '';
+        this.shadowRoot.getElementById('assignees-list-container').style.display = 'flex';
+        this._insertTicket(ticket);
     }
 
     _insertTicket(ticket) {
@@ -104,21 +167,23 @@ export class TicketComponent extends HTMLElement {
             `;
         }
         else {
-            this.shadowRoot.getElementById('due-date').style.marginTop = '10px';
             this.shadowRoot.getElementById('due-date').innerHTML = 'Ticket has no due date';
         }
-        if (ticket.assignees.length === 0){
+
+        if (ticket.assignments.length === 0){
             this.shadowRoot.getElementById('assignees-list-container').style.display = 'none';
+            return;
         }
-        ticket.assignees.forEach(assignee => {
+
+        ticket.assignments.forEach(assignment => {
             const assigneeElement = document.createElement('li');
             assigneeElement.classList.add('container__assignees__list__item');
             assigneeElement.innerHTML = `
-                ${assignee.organizationMembership.user.firstName[0]}${assignee.organizationMembership.user.lastName[0]}
+                ${assignment.boardMembership.organizationMembership.user.firstName[0]}${assignment.boardMembership.organizationMembership.user.lastName[0]}
             `;
             assigneeElement.setAttribute(
                 'title',
-                `${assignee.organizationMembership.user.firstName} ${assignee.organizationMembership.user.lastName}`,
+                `${assignment.boardMembership.organizationMembership.user.firstName} ${assignment.boardMembership.organizationMembership.user.lastName}`,
             );
             this.shadowRoot.getElementById('assignees-list').appendChild(assigneeElement);
         });

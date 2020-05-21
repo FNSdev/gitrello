@@ -17,5 +17,6 @@ import {ProfileComponent, } from "./components/profileComponent.js";
 import {SendInviteFormComponent, } from "./components/forms/sendInviteFormComponent.js";
 import {SignUpFormComponent, } from "./components/forms/signUpFormComponent.js";
 import {TicketComponent, } from "./components/ticketComponents.js";
+import {UpdateTicketFormComponent, } from "./components/forms/updateTicketFormComponent.js";
 
 (async () => await Router.build())();

@@ -39,7 +39,7 @@ class OrganizationMembershipSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
 
-class AssigneeSerializer(serializers.ModelSerializer):
+class BoardMembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = BoardMembership
         fields = ('id', 'added_at', 'organization_membership')
@@ -48,13 +48,22 @@ class AssigneeSerializer(serializers.ModelSerializer):
     organization_membership = OrganizationMembershipSerializer(read_only=True)
 
 
+class TicketAssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketAssignment
+        fields = ('id', 'added_at', 'assignee')
+
+    id = serializers.CharField()
+    assignee = BoardMembershipSerializer(read_only=True)
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ('id', 'added_at', 'title', 'body', 'due_date', 'assignees')
+        fields = ('id', 'added_at', 'title', 'body', 'due_date', 'assignments')
 
     id = serializers.CharField()
-    assignees = AssigneeSerializer(many=True, read_only=True)
+    assignments = TicketAssignmentSerializer(many=True, read_only=True)
 
 
 class CategorySerializer(serializers.ModelSerializer):

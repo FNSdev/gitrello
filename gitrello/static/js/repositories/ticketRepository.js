@@ -20,7 +20,7 @@ class TicketRepository {
                 id: response['id'],
                 title: null,
                 dueDate: null,
-                assignees: [],
+                assignments: [],
             })
         }
         catch (e) {

@@ -46,7 +46,6 @@ template.innerHTML = `
       
       .container__tickets__list__item {
         margin: 10px;
-        cursor: pointer;
       }
            
       .container__add-ticket-button {
@@ -71,13 +70,14 @@ template.innerHTML = `
 `
 
 export class CategoryComponent extends HTMLElement {
-    constructor(category) {
+    constructor(category, boardMemberships) {
         super();
 
         this.attachShadow({mode: 'open'});
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
         this.category = category;
+        this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
     }
 
@@ -106,7 +106,7 @@ export class CategoryComponent extends HTMLElement {
     }
 
     _insertTicket(ticket) {
-        const ticketComponent = new TicketComponent(ticket);
+        const ticketComponent = new TicketComponent(ticket, this.boardMemberships);
         ticketComponent.classList.add('container__tickets__list__item');
         this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
     }

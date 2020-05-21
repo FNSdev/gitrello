@@ -38,7 +38,6 @@ export class BoardPage extends Page {
 
         try {
             this.board = await boardRepository.get(this.boardId);
-            console.log(this.board);
         }
         catch (e) {
             if (e instanceof HttpClientPermissionDeniedError) {
@@ -67,7 +66,7 @@ export class BoardPage extends Page {
     }
 
     _insertCategory(category) {
-        const categoryComponent = new CategoryComponent(category);
+        const categoryComponent = new CategoryComponent(category, this.board.boardMemberships);
         document.getElementById('categories-list').insertBefore(
             categoryComponent,
             document.getElementById('create-category-form'),

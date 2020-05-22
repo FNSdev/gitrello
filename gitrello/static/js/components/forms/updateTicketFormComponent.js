@@ -1,4 +1,6 @@
 import {ticketAssignmentRepository, } from "../../repositories/ticketAssignmentRepository.js";
+import {ticketRepository, } from "../../repositories/ticketRepository.js";
+import {InputComponent, } from "../common/inputComponent.js";
 
 const template = document.createElement('template')
 template.innerHTML = `
@@ -25,6 +27,29 @@ template.innerHTML = `
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        width: 90%;
+      }
+      
+       .container__form__inputs {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .container__form__inputs__due-date {
+        margin-bottom: 5px;
+      }
+      
+      .container__form__body, .container__form__title {
+        margin: 5px;
+        border: 2px solid var(--primary-dark);
+        border-radius: 8px;
+        padding: 10px;
+        width: 90%;
+        resize: none;
+        overflow: hidden;
+        min-height: 10px;
       }
       
       .container__form__button {
@@ -49,6 +74,7 @@ template.innerHTML = `
         outline: none;
         border-radius: 6px;
         margin-top: 10px;
+        text-align: center;
       }
       
       .container__assignees__members-list {
@@ -56,7 +82,7 @@ template.innerHTML = `
       }
       
       .container__assignees__members-list__item {
-        border: 2px solid;
+        border: 2px solid var(--primary);
         border-radius: 16px;
         font-size: 16px;
         padding: 15px;
@@ -66,18 +92,20 @@ template.innerHTML = `
       }
       
       .container__assignees__members-list--assigned {
-        border: 2px solid var(--secondary-dark);
+        border: 2px solid var(--green);
       }
           
       @media screen and (min-width: 992px) {
           .container {
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 10em;
+            grid-template-columns: 2fr 1fr;
           }      
       }
     </style>
     <div class="container">
       <form id="form" class="container__form">
+        <div id="inputs" class="container__form__inputs"></div>
+        <textarea maxlength="100" placeholder="New ticket" id="form-title" class="container__form__title"></textarea>
+        <textarea id="form-body" class="container__form__body"></textarea>
         <errors-list-component id="form-errors" class="container__form__errors"></errors-list-component>
         <button-component width="175px" type="success" id="save-changes-button" class="container__form__button"/>
           Save Changes
@@ -112,6 +140,27 @@ export class UpdateTicketFormComponent extends HTMLElement {
             'click',
             () => this.onSaveChangesClick(),
         );
+
+        const dateInput = new InputComponent();
+        dateInput.setAttribute('id', 'form-due-date');
+        dateInput.setAttribute('type', 'date');
+        dateInput.value = this._ticket.dueDate;
+        dateInput.classList.add('container__form__inputs__due-date');
+        this.shadowRoot.getElementById('inputs').appendChild(dateInput);
+
+        const title = this.shadowRoot.getElementById('form-title');
+        title.addEventListener('input', () => {
+            title.style.height = "10px";
+            title.style.height = title.scrollHeight + "px";
+        })
+        title.value = this._ticket.title;
+
+        const body = this.shadowRoot.getElementById('form-body');
+        body.addEventListener('input', () => {
+            body.style.height = "10px";
+            body.style.height = body.scrollHeight + "px";
+        })
+        body.value = this._ticket.body;
         this._insertMembers(this._boardMembershipsWithAssignments);
     }
 
@@ -133,13 +182,35 @@ export class UpdateTicketFormComponent extends HTMLElement {
         const errorsList = this.shadowRoot.getElementById('form-errors');
         errorsList.clear();
 
-        // TODO
-        if (false) {
+        if (!this.shadowRoot.getElementById('form-title').checkValidity() ||
+            !this.shadowRoot.getElementById('form-due-date').checkValidity()
+        ) {
             errorsList.addError(errorsList.defaultErrorMessage);
             return;
         }
 
         try {
+            let title = this.shadowRoot.getElementById('form-title').value.trim();
+            title = title === '' ? null : title;
+
+            let body = this.shadowRoot.getElementById('form-body').value.trim();
+            body = body === '' ? null : body;
+
+            let date = this.shadowRoot.getElementById('form-due-date').value;
+            date = date === '' ? null : date;
+
+            this._ticket = await ticketRepository.update(
+                this._ticket,
+                {
+                    title: title,
+                    body: body,
+                    dueDate: date,
+                },
+            );
+
+            if (this._callback != null) {
+                this._callback(this._ticket);
+            }
         }
         catch (e) {
             errorsList.addError(e.message);

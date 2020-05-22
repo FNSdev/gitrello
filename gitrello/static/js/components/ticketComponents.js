@@ -39,7 +39,7 @@ template.innerHTML = `
       
       .container__assignees__list__item {
         padding: 5px;
-        border: 2px solid var(--primary-dark);
+        border: 2px solid var(--green);
         border-radius: 50%;
         margin: 10px;
         cursor: pointer;
@@ -57,6 +57,8 @@ template.innerHTML = `
       }
      
       .container__title {
+        padding-right: 5px;
+        padding-left: 5px;
         font-size: 24px;
         margin-top: 6px;
         margin-bottom: 6px;

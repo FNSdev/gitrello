@@ -47,6 +47,10 @@ export class ButtonComponent extends HTMLElement {
         else if (this.getAttribute('type') === 'danger') {
             button.classList.add('btn-danger');
         }
+
+        if (this.getAttribute('width') !== undefined) {
+            button.style.width = this.getAttribute('width');
+        }
     }
 }
 

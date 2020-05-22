@@ -2,7 +2,7 @@ from django.db.models import Subquery
 from django.db.transaction import atomic
 
 from boards.exceptions import BoardAlreadyExistsException
-from boards.models import Board
+from boards.models import Board, BoardMembership
 from boards.services import BoardMembershipService
 from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole
@@ -37,6 +37,19 @@ class BoardService:
 
         return board
 
+    def get_board(self, board_id: int) -> Board:
+        return Board.objects \
+            .filter(id=board_id) \
+            .prefetch_related(
+                'categories',
+                'categories__tickets',
+                'categories__tickets__assignments',
+                'categories__tickets__assignments__assignee',
+                'categories__tickets__assignments__assignee__organization_membership',
+                'categories__tickets__assignments__assignee__organization_membership__user',
+            ) \
+            .first()
+
     @retry_on_transaction_serialization_error
     def can_create_board(self, organization_id: int, user_id: int) -> bool:
         return OrganizationMembership.objects.filter(
@@ -44,3 +57,11 @@ class BoardService:
             user_id=user_id,
             role=OrganizationMemberRole.OWNER,
         ).exists()
+
+    def can_get_board(self, board_id: int, user_id: int) -> bool:
+        return BoardMembership.objects \
+            .filter(
+                board_id=board_id,
+                organization_membership__user_id=user_id,
+            ) \
+            .exists()

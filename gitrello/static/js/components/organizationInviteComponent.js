@@ -11,7 +11,7 @@ template.innerHTML = `
         border: 3px solid var(--primary-dark);
         border-radius: 10px;
         box-shadow: var(--default-shadow);
-        width: 400px;
+        width: 90vw;
       }
       
       .container__organization-name {
@@ -27,7 +27,7 @@ template.innerHTML = `
       }
       
       .container__line {
-        width: 350px;
+        width: 90%;
       }
       
       .container__message {
@@ -44,6 +44,12 @@ template.innerHTML = `
       
       .container__actions-wrapper__button {
         margin: 10px;
+      }
+      
+      @media screen and (min-width: 992px) {
+        .container {
+          width: 20vw;
+        }
       }
     </style>
     <div class="container">

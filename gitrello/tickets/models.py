@@ -33,5 +33,5 @@ class TicketAssignment(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    ticket = models.ForeignKey(to='tickets.Ticket', on_delete=models.CASCADE)
-    assignee = models.ForeignKey(to='boards.BoardMembership', on_delete=models.CASCADE)
+    ticket = models.ForeignKey(to='tickets.Ticket', on_delete=models.CASCADE, related_name='assignments')
+    assignee = models.ForeignKey(to='boards.BoardMembership', on_delete=models.CASCADE, related_name='assignments')

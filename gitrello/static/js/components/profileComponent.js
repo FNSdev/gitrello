@@ -6,7 +6,7 @@ template.innerHTML = `
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 400px;
+        width: 90vw;
       }
       
       .container__full-name {
@@ -24,6 +24,12 @@ template.innerHTML = `
         text-align: center;
         margin-top: 10px;
         font-size: 24px;
+      }
+      
+      @media screen and (min-width: 992px) {
+        .container {
+          width: 20vw;
+        }
       }
     </style>
     <div class="container">

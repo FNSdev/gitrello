@@ -4,6 +4,7 @@ const template = document.createElement('template')
 template.innerHTML = `
     <style>
       .form {
+        width: 100vw;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -17,7 +18,13 @@ template.innerHTML = `
             
       .form__button {
         margin: 10px;
-      }      
+      }
+      
+      @media screen and (min-width: 992px) {
+        .form {
+          width: 20vw;
+        }
+      }   
     </style>
     <form class="form">
       <h1 class="form__header">New Category</h1>

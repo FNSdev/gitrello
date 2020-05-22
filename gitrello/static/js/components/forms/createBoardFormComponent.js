@@ -67,6 +67,8 @@ export class CreateBoardFormComponent extends HTMLElement {
             if (this._callback != null) {
                 this._callback(board);
             }
+
+            errorsList.addSuccessMessage('Success');
         }
         catch (e) {
             errorsList.addError(e.message);

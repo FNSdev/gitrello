@@ -211,6 +211,8 @@ export class UpdateTicketFormComponent extends HTMLElement {
             if (this._callback != null) {
                 this._callback(this._ticket);
             }
+
+            errorsList.addSuccessMessage('Success');
         }
         catch (e) {
             errorsList.addError(e.message);

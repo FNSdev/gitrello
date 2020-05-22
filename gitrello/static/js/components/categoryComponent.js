@@ -63,7 +63,7 @@ template.innerHTML = `
       <div class="container__tickets">
         <ul class="container__tickets__list" id="tickets-list"></ul>
       </div>
-      <button-component id="add-ticket-button" class="container__add-ticket-button" type="info">
+      <button-component id="add-ticket-button" class="container__add-ticket-button" type="success">
         Add Ticket
       </button-component>
     </div>

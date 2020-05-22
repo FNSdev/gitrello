@@ -26,6 +26,19 @@ template.innerHTML = `
         border-radius: 15px;
         font-size: 16px;
         text-align: center;
+        min-width: 175px;
+      }
+      
+      .errors-container__list__item--success {
+        border: 3px solid var(--green);
+      }
+      
+      .errors-container__list__item--info {
+        border: 3px solid var(--primary-dark);
+      }
+      
+      .errors-container__list__item--warning {
+        border: 3px solid var(--orange);
       }
     </style>
     <div class="errors-container">
@@ -44,9 +57,27 @@ export class ErrorListComponent extends HTMLElement {
         this.errorsList = this.shadowRoot.getElementById('errors-container-list');
     }
 
-    addError(errorMessage) {
+    addError(message) {
         this.errorsList.innerHTML += `
-          <li class="errors-container__list__item">${errorMessage}</li>
+          <li class="errors-container__list__item">${message}</li>
+        `;
+    }
+
+    addSuccessMessage(message) {
+        this.errorsList.innerHTML += `
+          <li class="errors-container__list__item errors-container__list__item--success">${message}</li>
+        `;
+    }
+
+    addInfoMessage(message) {
+        this.errorsList.innerHTML += `
+          <li class="errors-container__list__item errors-container__list__item--info">${message}</li>
+        `;
+    }
+
+    addWarningMessage(message) {
+        this.errorsList.innerHTML += `
+          <li class="errors-container__list__item errors-container__list__item--warning">${message}</li>
         `;
     }
 

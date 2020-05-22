@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.8.2'
+          python-version: '3.8.3'
           architecture: 'x64'
       - name: install_requirements
         run: pip install requests

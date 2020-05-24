@@ -67,9 +67,21 @@ export class BoardPage extends Page {
 
     _insertCategory(category) {
         const categoryComponent = new CategoryComponent(category, this.board.boardMemberships);
+        categoryComponent.ticketMovedFromAnotherCategory = (ticket, categoryId) => {
+            this._onTicketMovedFromCategory(ticket, categoryId);
+        }
+        categoryComponent.classList.add('board-container__content__categories-list__item');
         document.getElementById('categories-list').insertBefore(
             categoryComponent,
             document.getElementById('create-category-form'),
         );
+    }
+
+    _onTicketMovedFromCategory(ticket, categoryId) {
+        document.querySelectorAll('.board-container__content__categories-list__item').forEach(categoryComponent => {
+            if (categoryComponent.category.id === categoryId) {
+                categoryComponent.removeTicket(ticket);
+            }
+        })
     }
 }

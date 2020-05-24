@@ -101,7 +101,7 @@ template.innerHTML = `
         }
       }
     </style>
-    <div class="container" id="container">
+    <div draggable="true" class="container" id="container">
       <div class="container__assignees" id="assignees-list-container">
         <ul class="container__assignees__list" id="assignees-list"></ul>
       </div>
@@ -116,13 +116,14 @@ template.innerHTML = `
 `
 
 export class TicketComponent extends HTMLElement {
-    constructor(ticket, boardMemberships) {
+    constructor(ticket, categoryId, boardMemberships) {
         super();
 
         this.attachShadow({mode: 'open'});
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
         this.ticket = ticket;
+        this.categoryId = categoryId;
         this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
     }
@@ -131,6 +132,10 @@ export class TicketComponent extends HTMLElement {
         this.shadowRoot.getElementById('container').addEventListener(
             'click',
             () => this.onClick(),
+        );
+        this.shadowRoot.getElementById('container').addEventListener(
+            'dragstart',
+            (event) => this.onDragStart(event),
         );
         this._insertTicket(this.ticket);
     }
@@ -156,12 +161,17 @@ export class TicketComponent extends HTMLElement {
         this._insertTicket(ticket);
     }
 
+    onDragStart(event) {
+        event.dataTransfer.setData("ticket", JSON.stringify(this.ticket));
+        event.dataTransfer.setData('categoryId', this.categoryId);
+    }
+
     _insertTicket(ticket) {
         if (ticket.title !== null) {
-            this.shadowRoot.getElementById('title').innerHTML = ticket.title;
+            this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} ${ticket.title}`;
         }
         else {
-            this.shadowRoot.getElementById('title').innerHTML = 'New ticket';
+            this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} New Ticket`;
         }
         if (ticket.dueDate !== null) {
             this.shadowRoot.getElementById('due-date').innerHTML = `

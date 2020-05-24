@@ -60,7 +60,7 @@ template.innerHTML = `
     </style>
     <div class="container">
       <h1 id="name" class="container__name"></h1>
-      <div class="container__tickets">
+      <div class="container__tickets" id="tickets-list-container">
         <ul class="container__tickets__list" id="tickets-list"></ul>
       </div>
       <button-component id="add-ticket-button" class="container__add-ticket-button" type="success">
@@ -79,6 +79,7 @@ export class CategoryComponent extends HTMLElement {
         this.category = category;
         this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
+        this.ticketMovedFromAnotherCategory = null;
     }
 
     connectedCallback() {
@@ -87,6 +88,12 @@ export class CategoryComponent extends HTMLElement {
             'click',
             () => this.onAddTicketClick(),
         );
+        this.shadowRoot.getElementById('tickets-list-container').addEventListener(
+            'dragover', (event) => this.onDragOver(event),
+        )
+        this.shadowRoot.getElementById('tickets-list-container').addEventListener(
+            'drop', (event) => this.onDrop(event),
+        )
         this._insertTickets(this.category.tickets);
     }
 
@@ -101,14 +108,144 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
-    _insertTickets(tickets) {
-        tickets.forEach(ticket => this._insertTicket(ticket));
+    removeTicket(ticketToRemove) {
+        this.category.tickets = this.category.tickets.filter(ticket => {
+            if (ticket.priority > ticketToRemove.priority) {
+                ticket.priority -= 1;
+            }
+
+            if (ticket.id !== ticketToRemove.id) {
+                return ticket;
+            }
+        })
+
+        console.log(this.category.tickets);
+
+        // TODO It is a bit lazy, but much easier
+        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
+        this._insertTickets(this.category.tickets);
+    }
+
+    onDragOver(event) {
+        if (event.target.id === 'tickets-list-container' || event.target.id === 'tickets-list') {
+            event.preventDefault();
+        }
+    }
+
+    onDrop(event) {
+        event.preventDefault();
+
+        const ticket = JSON.parse(event.dataTransfer.getData("ticket"));
+        const categoryId = event.dataTransfer.getData('categoryId');
+
+        // Find ticket that draggedTicket should be insert after
+        let ticketComponentBefore = null;
+        this.shadowRoot.querySelectorAll('.container__tickets__list__item').forEach(ticket => {
+            if (ticket.getBoundingClientRect().top < event.clientY) {
+                ticketComponentBefore = ticket;
+            }
+        })
+
+        if (categoryId !== this.category.id) {
+            if (this.ticketMovedFromAnotherCategory != null ) {
+                this.ticketMovedFromAnotherCategory(ticket, categoryId);
+            }
+            this._moveTicketFromAnotherCategory(ticket, categoryId, ticketComponentBefore);
+            return;
+        }
+
+        this._moveTicket(ticket, ticketComponentBefore);
+    }
+
+    _moveTicket(ticketToDrag, ticketComponentBefore) {
+        if (
+            (ticketComponentBefore == null && ticketToDrag.priority === 0) ||
+            (ticketComponentBefore != null && ticketToDrag.id === ticketComponentBefore.ticket.id)
+        ) {
+            // We don`t need to do anything if user tries to drag ticket exactly before itself
+            return;
+        }
+
+        // Find new priority for draggedTicket
+        let newPriority = 0;
+        if (ticketComponentBefore != null) {
+            if (ticketToDrag.priority > ticketComponentBefore.ticket.priority) {
+                newPriority = ticketComponentBefore.ticket.priority + 1;
+            }
+            else {
+                newPriority = ticketComponentBefore.ticket.priority;
+            }
+        }
+
+        if (newPriority === ticketToDrag.priority) {
+            // We don`t need to do anything if user tries to drag ticket exactly after itself
+            return;
+        }
+
+        // Update other ticket's priority
+        if (ticketToDrag.priority < newPriority) {
+            // Ticket is being dragged down (its priority will be lowered)
+            this.category.tickets.forEach(ticket => {
+                if (ticket.priority > ticketToDrag.priority && ticket.priority <= newPriority) {
+                    ticket.priority -= 1;
+                }
+            });
+        }
+        else {
+            // Ticket is being dragged up (its priority will be increased)
+            this.category.tickets.forEach(ticket => {
+                if (ticket.priority < ticketToDrag.priority && ticket.priority >= newPriority) {
+                    ticket.priority += 1;
+                }
+            });
+        }
+
+        // Set new priority value for draggedTicket
+        ticketToDrag.priority = newPriority;
+
+        // Remove draggedTicket from old index
+        this.category.tickets = this.category.tickets.filter(ticket => {
+            if (ticket.id !== ticketToDrag.id) {
+                return ticket;
+            }
+        });
+
+        // Insert draggedTicket at new index
+        this.category.tickets.splice(newPriority, 0, ticketToDrag);
+
+        // TODO It is a bit lazy, but much easier
+        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
+        this._insertTickets(this.category.tickets);
+    }
+
+    _moveTicketFromAnotherCategory(ticketToDrag, categoryId, ticketComponentBefore) {
+        let newPriority = 0;
+        if (ticketComponentBefore != null) {
+            newPriority = ticketComponentBefore.ticket.priority + 1;
+        }
+
+        this.category.tickets.forEach(ticket => {
+            if (ticket.priority >= newPriority) {
+                ticket.priority += 1;
+            }
+        })
+
+        ticketToDrag.priority = newPriority;
+        this.category.tickets.splice(newPriority, 0, ticketToDrag);
+
+        // TODO It is a bit lazy, but much easier
+        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
+        this._insertTickets(this.category.tickets);
     }
 
     _insertTicket(ticket) {
-        const ticketComponent = new TicketComponent(ticket, this.boardMemberships);
+        const ticketComponent = new TicketComponent(ticket, this.category.id, this.boardMemberships);
         ticketComponent.classList.add('container__tickets__list__item');
         this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
+    }
+
+    _insertTickets(tickets) {
+        tickets.forEach(ticket => this._insertTicket(ticket));
     }
 }
 

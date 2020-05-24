@@ -13,6 +13,7 @@ class Ticket(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    priority = models.IntegerField()
     title = models.CharField(max_length=100, null=True, blank=True)
     body = models.TextField(null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)

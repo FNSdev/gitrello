@@ -14,8 +14,11 @@ class TicketService:
         if not Category.objects.filter(id=category_id).exists():
             raise CategoryNotFoundException
 
+        ticket = Ticket.objects.filter(category_id=category_id).order_by('-priority').only('priority').first()
+
         return Ticket.objects.create(
             category_id=Subquery(Category.objects.filter(id=category_id).values('id')),
+            priority=ticket.priority + 1 if ticket else 0,
         )
 
     @retry_on_transaction_serialization_error

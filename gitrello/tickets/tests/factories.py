@@ -18,6 +18,7 @@ class TicketFactory(factory.DjangoModelFactory):
     class Meta:
         model = Ticket
 
+    priority = factory.sequence(lambda i: i)
     title = factory.sequence(lambda i: f'ticket_{i}')
     body = factory.sequence(lambda i: f'ticket_body_{i}')
     due_date = factory.sequence(lambda i: datetime(2000 + i, 1, 1))

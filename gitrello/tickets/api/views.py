@@ -53,6 +53,7 @@ class TicketsView(views.APIView):
             data={
                 'id': str(ticket.id),
                 'category_id': str(ticket.category_id),
+                'priority': ticket.priority,
             }
         )
 

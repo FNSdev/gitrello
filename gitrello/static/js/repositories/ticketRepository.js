@@ -19,6 +19,7 @@ class TicketRepository {
             const response = await this.httpClient.post({url: this.createTicketUrl, data: data})
             return new Ticket({
                 id: response['id'],
+                priority: response['priority'],
                 title: null,
                 body: null,
                 dueDate: null,

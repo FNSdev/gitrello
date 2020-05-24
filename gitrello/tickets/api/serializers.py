@@ -60,7 +60,7 @@ class TicketAssignmentSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ('id', 'added_at', 'title', 'body', 'due_date', 'assignments')
+        fields = ('id', 'added_at', 'priority', 'title', 'body', 'due_date', 'assignments')
 
     id = serializers.CharField()
     assignments = TicketAssignmentSerializer(many=True, read_only=True)

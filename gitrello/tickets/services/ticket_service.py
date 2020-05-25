@@ -1,4 +1,4 @@
-from django.db.models import Subquery
+from django.db.models import Case, F, Subquery, When, Value
 from django.db.transaction import atomic
 
 from boards.models import BoardMembership
@@ -28,8 +28,39 @@ class TicketService:
         if not ticket:
             raise TicketNotFoundException
 
-        for k, v in validated_data.items():
-            setattr(ticket, k, v)
+        if (new_category_id := validated_data.get('category_id')) is not None:
+            new_priority = validated_data.get('priority')
+            if ticket.category_id == new_category_id:
+                if ticket.priority < new_priority:
+                    Ticket.objects \
+                        .filter(
+                            category_id=ticket.category_id,
+                            priority__gt=ticket.priority,
+                            priority__lte=new_priority,
+                        ) \
+                        .update(priority=F('priority') - 1)
+                else:
+                    Ticket.objects \
+                        .filter(
+                            category_id=ticket.category_id,
+                            priority__lt=ticket.priority,
+                            priority__gte=new_priority,
+                        ) \
+                        .update(priority=F('priority') + 1)
+            else:
+                Ticket.objects \
+                    .update(priority=Case(
+                        When(category_id=new_category_id, priority__gte=new_priority, then=F('priority') + 1),
+                        When(category_id=ticket.category_id, priority__gt=ticket.priority, then=F('priority') - 1),
+                        default=F('priority'),
+                    ))
+
+            ticket.category_id = validated_data['category_id']
+            ticket.priority = validated_data['priority']
+
+        ticket.title = validated_data['title']
+        ticket.due_date = validated_data['due_date']
+        ticket.body = validated_data['body']
 
         ticket.save()
         return ticket

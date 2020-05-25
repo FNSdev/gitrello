@@ -35,7 +35,7 @@ class TicketRepository {
         }
     }
 
-    async update(ticket, {title= null, body = null, dueDate = null}) {
+    async update(ticket, {title= null, body = null, dueDate = null, priority = null, categoryId = null}) {
         try {
             const response = await this.httpClient.patch({
                 url: `${this.updateTicketUrl}/${ticket.id}`,
@@ -43,12 +43,15 @@ class TicketRepository {
                     'title': title,
                     'body': body,
                     'due_date': dueDate,
+                    'priority': priority,
+                    'category_id': categoryId,
                 }
             });
 
             ticket.title = response['title'];
             ticket.body = response['body'];
             ticket.dueDate = response['due_date'];
+            ticket.priority = response['priority'];
 
             return ticket;
         }

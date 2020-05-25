@@ -100,6 +100,7 @@ export class CategoryComponent extends HTMLElement {
     async onAddTicketClick() {
         try {
             const ticket = await ticketRepository.create(this.category.id);
+            this.category.tickets.push(ticket);
             this._insertTicket(ticket);
         }
         catch (e) {
@@ -108,9 +109,9 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
-    removeTicket(ticketToRemove) {
+    removeTicket(ticketToRemove, oldPriority) {
         this.category.tickets = this.category.tickets.filter(ticket => {
-            if (ticket.priority > ticketToRemove.priority) {
+            if (ticket.priority > oldPriority) {
                 ticket.priority -= 1;
             }
 
@@ -118,8 +119,6 @@ export class CategoryComponent extends HTMLElement {
                 return ticket;
             }
         })
-
-        console.log(this.category.tickets);
 
         // TODO It is a bit lazy, but much easier
         this.shadowRoot.getElementById('tickets-list').innerHTML = '';
@@ -132,7 +131,7 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
-    onDrop(event) {
+    async onDrop(event) {
         event.preventDefault();
 
         const ticket = JSON.parse(event.dataTransfer.getData("ticket"));
@@ -147,17 +146,18 @@ export class CategoryComponent extends HTMLElement {
         })
 
         if (categoryId !== this.category.id) {
+            const oldPriority = ticket.priority;
+            await this._moveTicketFromAnotherCategory(ticket, this.category.id, ticketComponentBefore);
             if (this.ticketMovedFromAnotherCategory != null ) {
-                this.ticketMovedFromAnotherCategory(ticket, categoryId);
+                this.ticketMovedFromAnotherCategory(ticket, oldPriority, categoryId);
             }
-            this._moveTicketFromAnotherCategory(ticket, categoryId, ticketComponentBefore);
             return;
         }
 
-        this._moveTicket(ticket, ticketComponentBefore);
+        await this._moveTicket(ticket, ticketComponentBefore);
     }
 
-    _moveTicket(ticketToDrag, ticketComponentBefore) {
+    async _moveTicket(ticketToDrag, ticketComponentBefore) {
         if (
             (ticketComponentBefore == null && ticketToDrag.priority === 0) ||
             (ticketComponentBefore != null && ticketToDrag.id === ticketComponentBefore.ticket.id)
@@ -182,60 +182,93 @@ export class CategoryComponent extends HTMLElement {
             return;
         }
 
-        // Update other ticket's priority
-        if (ticketToDrag.priority < newPriority) {
-            // Ticket is being dragged down (its priority will be lowered)
-            this.category.tickets.forEach(ticket => {
-                if (ticket.priority > ticketToDrag.priority && ticket.priority <= newPriority) {
-                    ticket.priority -= 1;
-                }
-            });
-        }
-        else {
-            // Ticket is being dragged up (its priority will be increased)
-            this.category.tickets.forEach(ticket => {
-                if (ticket.priority < ticketToDrag.priority && ticket.priority >= newPriority) {
-                    ticket.priority += 1;
-                }
-            });
-        }
+        console.log(newPriority);
 
-        // Set new priority value for draggedTicket
-        ticketToDrag.priority = newPriority;
+        try {
+            const oldPriority = ticketToDrag.priority;
+            await ticketRepository.update(
+                ticketToDrag,
+                {
+                    title: ticketToDrag.title,
+                    dueDate: ticketToDrag.dueDate,
+                    body: ticketToDrag.body,
+                    priority: newPriority,
+                    categoryId: this.category.id,
+                }
+            )
 
-        // Remove draggedTicket from old index
-        this.category.tickets = this.category.tickets.filter(ticket => {
-            if (ticket.id !== ticketToDrag.id) {
-                return ticket;
+            // Update other ticket's priority
+            if (oldPriority < newPriority) {
+                // Ticket is being dragged down (its priority will be lowered)
+                this.category.tickets.forEach(ticket => {
+                    if (ticket.priority > oldPriority && ticket.priority <= newPriority) {
+                        ticket.priority -= 1;
+                    }
+                });
             }
-        });
+            else {
+                // Ticket is being dragged up (its priority will be increased)
+                this.category.tickets.forEach(ticket => {
+                    if (ticket.priority < oldPriority && ticket.priority >= newPriority) {
+                        ticket.priority += 1;
+                    }
+                });
+            }
 
-        // Insert draggedTicket at new index
-        this.category.tickets.splice(newPriority, 0, ticketToDrag);
+            // Remove draggedTicket from old index
+            this.category.tickets = this.category.tickets.filter(ticket => {
+                if (ticket.id !== ticketToDrag.id) {
+                    return ticket;
+                }
+            });
 
-        // TODO It is a bit lazy, but much easier
-        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
-        this._insertTickets(this.category.tickets);
+            // Insert draggedTicket at new index
+            this.category.tickets.splice(newPriority, 0, ticketToDrag);
+
+            // TODO It is a bit lazy, but much easier
+            this.shadowRoot.getElementById('tickets-list').innerHTML = '';
+            this._insertTickets(this.category.tickets);
+        }
+        catch (e) {
+            // TODO show alert or smth
+            console.log(e);
+        }
     }
 
-    _moveTicketFromAnotherCategory(ticketToDrag, categoryId, ticketComponentBefore) {
+    async _moveTicketFromAnotherCategory(ticketToDrag, categoryId, ticketComponentBefore) {
         let newPriority = 0;
         if (ticketComponentBefore != null) {
             newPriority = ticketComponentBefore.ticket.priority + 1;
         }
 
-        this.category.tickets.forEach(ticket => {
-            if (ticket.priority >= newPriority) {
-                ticket.priority += 1;
-            }
-        })
+        try {
+            await ticketRepository.update(
+                ticketToDrag,
+                {
+                    title: ticketToDrag.title,
+                    dueDate: ticketToDrag.dueDate,
+                    body: ticketToDrag.body,
+                    priority: newPriority,
+                    categoryId: categoryId,
+                }
+            )
 
-        ticketToDrag.priority = newPriority;
-        this.category.tickets.splice(newPriority, 0, ticketToDrag);
+            this.category.tickets.forEach(ticket => {
+                if (ticket.priority >= newPriority) {
+                    ticket.priority += 1;
+                }
+            })
 
-        // TODO It is a bit lazy, but much easier
-        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
-        this._insertTickets(this.category.tickets);
+            this.category.tickets.splice(newPriority, 0, ticketToDrag);
+
+            // TODO It is a bit lazy, but much easier
+            this.shadowRoot.getElementById('tickets-list').innerHTML = '';
+            this._insertTickets(this.category.tickets);
+        }
+        catch (e) {
+            // TODO show alert or smth
+            console.log(e);
+        }
     }
 
     _insertTicket(ticket) {

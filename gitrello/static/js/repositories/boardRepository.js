@@ -97,6 +97,7 @@ class BoardRepository {
                         body: ticket['body'],
                         dueDate: ticket['due_date'],
                         assignments: assignments,
+                        priority: ticket['priority'],
                     }))
                 })
 

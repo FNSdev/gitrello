@@ -36,6 +36,7 @@ class TestTicketsView(TestCase):
         expected_response = {
             'id': str(ticket.id),
             'category_id': str(ticket.category_id),
+            'priority': ticket.priority,
         }
         self.assertDictEqual(response.data, expected_response)
 
@@ -154,6 +155,8 @@ class TestTicketView(TestCase):
             'title': ticket.title,
             'body': ticket.body,
             'due_date': ticket.due_date,
+            'priority': ticket.priority,
+            'category_id': str(ticket.category_id),
         }
         self.assertDictEqual(response.data, expected_response)
 

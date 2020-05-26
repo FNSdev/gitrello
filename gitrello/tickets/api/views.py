@@ -53,6 +53,7 @@ class TicketsView(views.APIView):
             data={
                 'id': str(ticket.id),
                 'category_id': str(ticket.category_id),
+                'priority': ticket.priority,
             }
         )
 
@@ -78,6 +79,8 @@ class TicketView(views.APIView):
                 'title': ticket.title,
                 'body': ticket.body,
                 'due_date': ticket.due_date,
+                'priority': ticket.priority,
+                'category_id': str(ticket.category_id),
             }
         )
 

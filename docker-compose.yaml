@@ -2,7 +2,7 @@ version: "3.7"
 services:
   roach_1:
     container_name: roach_1
-    image: cockroachdb/cockroach:v19.2.4
+    image: cockroachdb/cockroach:v20.1.2
     volumes:
       - ./.data/roach_1:/cockroach/cockroach-data
     command: start --insecure --join=roach_1,roach_2,roach_3
@@ -15,7 +15,7 @@ services:
           - roach_1
   roach_2:
     container_name: roach_2
-    image: cockroachdb/cockroach:v19.2.4
+    image: cockroachdb/cockroach:v20.1.2
     volumes:
        - ./.data/roach_2:/cockroach/cockroach-data
     command: start --insecure --join=roach_1,roach_2,roach_3
@@ -25,7 +25,7 @@ services:
           - roach_2
   roach_3:
     container_name: roach_3
-    image: cockroachdb/cockroach:v19.2.4
+    image: cockroachdb/cockroach:v20.1.2
     volumes:
       - ./.data/roach_3:/cockroach/cockroach-data
     command: start --insecure --join=roach_1,roach_2,roach_3
@@ -33,14 +33,6 @@ services:
       roachnet:
         aliases:
           - roach_3
-  database:
-    image: postgres:11.4-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: gitrello
-      POSTGRES_USER: gitrello
-      POSTGRES_PASSWORD: admin
 networks:
   roachnet:
     driver: bridge

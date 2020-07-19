@@ -68,8 +68,3 @@ class OrganizationInviteService:
             id=organization_invite_id,
             user_id=user_id,
         ).exists()
-
-    def get_pending_invites(self, user_id):
-        return OrganizationInvite.objects \
-            .filter(user_id=user_id, status=OrganizationInviteStatus.PENDING) \
-            .select_related('organization')

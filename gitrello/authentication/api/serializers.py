@@ -26,18 +26,3 @@ class CreateUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail=e.messages)
 
         return attrs
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'added_at',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-        )
-
-    id = serializers.CharField()

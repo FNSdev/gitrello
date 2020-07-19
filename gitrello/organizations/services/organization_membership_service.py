@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db.transaction import atomic
 
 from gitrello.handlers import retry_on_transaction_serialization_error
@@ -64,8 +62,3 @@ class OrganizationMembershipService:
 
         # MEMBER users can be deleted from organization by owner and admins
         return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN
-
-    def get_organization_memberships(self, user_id: int) -> List[OrganizationMembership]:
-        return OrganizationMembership.objects \
-            .filter(user_id=user_id) \
-            .prefetch_related('organization', 'board_memberships', 'board_memberships__board')

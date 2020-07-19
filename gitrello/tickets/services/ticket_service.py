@@ -1,4 +1,6 @@
-from django.db.models import Case, F, Subquery, When, Value
+from typing import Optional
+
+from django.db.models import Case, F, Subquery, When
 from django.db.transaction import atomic
 
 from boards.models import BoardMembership
@@ -29,34 +31,7 @@ class TicketService:
             raise TicketNotFoundException
 
         if (new_category_id := validated_data.get('category_id')) is not None:
-            new_priority = validated_data.get('priority')
-            if ticket.category_id == new_category_id:
-                if ticket.priority < new_priority:
-                    Ticket.objects \
-                        .filter(
-                            category_id=ticket.category_id,
-                            priority__gt=ticket.priority,
-                            priority__lte=new_priority,
-                        ) \
-                        .update(priority=F('priority') - 1)
-                else:
-                    Ticket.objects \
-                        .filter(
-                            category_id=ticket.category_id,
-                            priority__lt=ticket.priority,
-                            priority__gte=new_priority,
-                        ) \
-                        .update(priority=F('priority') + 1)
-            else:
-                Ticket.objects \
-                    .update(priority=Case(
-                        When(category_id=new_category_id, priority__gte=new_priority, then=F('priority') + 1),
-                        When(category_id=ticket.category_id, priority__gt=ticket.priority, then=F('priority') - 1),
-                        default=F('priority'),
-                    ))
-
-            ticket.category_id = validated_data['category_id']
-            ticket.priority = validated_data['priority']
+            self._move_ticket(ticket, validated_data.get('previous_ticket_id'), new_category_id)
 
         ticket.title = validated_data['title']
         ticket.due_date = validated_data['due_date']
@@ -88,3 +63,52 @@ class TicketService:
             organization_membership__user_id=user_id,
             board_id=ticket['category__board_id'],
         ).exists()
+
+    def _move_ticket(self, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
+        if not previous_ticket_id:
+            new_priority = 0
+        else:
+            previous_ticket = Ticket.objects.filter(id=previous_ticket_id).first()
+            if not previous_ticket:
+                raise TicketNotFoundException
+
+            if ticket.category_id == new_category_id:
+                if ticket.priority > previous_ticket.priority:
+                    new_priority = previous_ticket.priority + 1
+                else:
+                    new_priority = previous_ticket.priority
+            else:
+                new_priority = previous_ticket.priority + 1
+
+        if ticket.category_id == new_category_id:
+            if ticket.priority < new_priority:
+                Ticket.objects \
+                    .filter(
+                        category_id=ticket.category_id,
+                        priority__gt=ticket.priority,
+                        priority__lte=new_priority,
+                    ) \
+                    .update(priority=F('priority') - 1)
+            else:
+                Ticket.objects \
+                    .filter(
+                        category_id=ticket.category_id,
+                        priority__lt=ticket.priority,
+                        priority__gte=new_priority,
+                    ) \
+                    .update(priority=F('priority') + 1)
+        else:
+            Ticket.objects \
+                .update(
+                    priority=Case(
+                        When(category_id=new_category_id, priority__gte=new_priority, then=F('priority') + 1),
+                        When(category_id=ticket.category_id, priority__gt=ticket.priority, then=F('priority') - 1),
+                        default=F('priority'),
+                    )
+                )
+
+        ticket.category_id = new_category_id
+        ticket.priority = new_priority
+
+        if save:
+            ticket.save(update_fields=('priority', 'category_id'))

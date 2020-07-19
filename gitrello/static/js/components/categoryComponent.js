@@ -79,7 +79,7 @@ export class CategoryComponent extends HTMLElement {
         this.category = category;
         this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
-        this.ticketMovedFromAnotherCategory = null;
+        this._ticketMoved = null;
     }
 
     connectedCallback() {
@@ -109,22 +109,6 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
-    removeTicket(ticketToRemove, oldPriority) {
-        this.category.tickets = this.category.tickets.filter(ticket => {
-            if (ticket.priority > oldPriority) {
-                ticket.priority -= 1;
-            }
-
-            if (ticket.id !== ticketToRemove.id) {
-                return ticket;
-            }
-        })
-
-        // TODO It is a bit lazy, but much easier
-        this.shadowRoot.getElementById('tickets-list').innerHTML = '';
-        this._insertTickets(this.category.tickets);
-    }
-
     onDragOver(event) {
         if (event.target.id === 'tickets-list-container' || event.target.id === 'tickets-list') {
             event.preventDefault();
@@ -137,138 +121,44 @@ export class CategoryComponent extends HTMLElement {
         const ticket = JSON.parse(event.dataTransfer.getData("ticket"));
         const categoryId = event.dataTransfer.getData('categoryId');
 
-        // Find ticket that draggedTicket should be insert after
+        // Find ticket that dragged ticket should be inserted after
         let ticketComponentBefore = null;
-        this.shadowRoot.querySelectorAll('.container__tickets__list__item').forEach(ticket => {
-            if (ticket.getBoundingClientRect().top < event.clientY) {
-                ticketComponentBefore = ticket;
+        let previousTicketId = null;
+        this.shadowRoot.querySelectorAll('.container__tickets__list__item').forEach(ticketComponent => {
+            if (ticketComponent.getBoundingClientRect().top < event.clientY) {
+                ticketComponentBefore = ticketComponent;
+                previousTicketId = ticketComponent.ticket.id;
             }
         })
 
-        if (categoryId !== this.category.id) {
-            const oldPriority = ticket.priority;
-            await this._moveTicketFromAnotherCategory(ticket, this.category.id, ticketComponentBefore);
-            if (this.ticketMovedFromAnotherCategory != null ) {
-                this.ticketMovedFromAnotherCategory(ticket, oldPriority, categoryId);
-            }
-            return;
-        }
-
-        await this._moveTicket(ticket, ticketComponentBefore);
-    }
-
-    async _moveTicket(ticketToDrag, ticketComponentBefore) {
         if (
-            (ticketComponentBefore == null && ticketToDrag.priority === 0) ||
-            (ticketComponentBefore != null && ticketToDrag.id === ticketComponentBefore.ticket.id)
+            (ticketComponentBefore == null && ticket.priority === 0 && categoryId === this.category.id) ||
+            (ticketComponentBefore != null && ticket.priority === ticketComponentBefore.ticket.priority + 1
+                && categoryId === this.category.id) ||
+            (ticketComponentBefore != null && ticket.id === ticketComponentBefore.ticket.id)
         ) {
-            // We don`t need to do anything if user tries to drag ticket exactly before itself
+            // We don`t need to do anything if user tries to drag ticket exactly before/after itself
             return;
         }
 
-        // Find new priority for draggedTicket
-        let newPriority = 0;
-        if (ticketComponentBefore != null) {
-            if (ticketToDrag.priority > ticketComponentBefore.ticket.priority) {
-                newPriority = ticketComponentBefore.ticket.priority + 1;
+        await ticketRepository.update(
+            ticket,
+            {
+                title: ticket.title,
+                dueDate: ticket.dueDate,
+                body: ticket.body,
+                previousTicketId: previousTicketId,
+                categoryId: this.category.id,
             }
-            else {
-                newPriority = ticketComponentBefore.ticket.priority;
-            }
-        }
+        )
 
-        if (newPriority === ticketToDrag.priority) {
-            // We don`t need to do anything if user tries to drag ticket exactly after itself
-            return;
-        }
-
-        console.log(newPriority);
-
-        try {
-            const oldPriority = ticketToDrag.priority;
-            await ticketRepository.update(
-                ticketToDrag,
-                {
-                    title: ticketToDrag.title,
-                    dueDate: ticketToDrag.dueDate,
-                    body: ticketToDrag.body,
-                    priority: newPriority,
-                    categoryId: this.category.id,
-                }
-            )
-
-            // Update other ticket's priority
-            if (oldPriority < newPriority) {
-                // Ticket is being dragged down (its priority will be lowered)
-                this.category.tickets.forEach(ticket => {
-                    if (ticket.priority > oldPriority && ticket.priority <= newPriority) {
-                        ticket.priority -= 1;
-                    }
-                });
-            }
-            else {
-                // Ticket is being dragged up (its priority will be increased)
-                this.category.tickets.forEach(ticket => {
-                    if (ticket.priority < oldPriority && ticket.priority >= newPriority) {
-                        ticket.priority += 1;
-                    }
-                });
-            }
-
-            // Remove draggedTicket from old index
-            this.category.tickets = this.category.tickets.filter(ticket => {
-                if (ticket.id !== ticketToDrag.id) {
-                    return ticket;
-                }
-            });
-
-            // Insert draggedTicket at new index
-            this.category.tickets.splice(newPriority, 0, ticketToDrag);
-
-            // TODO It is a bit lazy, but much easier
-            this.shadowRoot.getElementById('tickets-list').innerHTML = '';
-            this._insertTickets(this.category.tickets);
-        }
-        catch (e) {
-            // TODO show alert or smth
-            console.log(e);
+        if (this._ticketMoved != null) {
+            await this._ticketMoved();
         }
     }
 
-    async _moveTicketFromAnotherCategory(ticketToDrag, categoryId, ticketComponentBefore) {
-        let newPriority = 0;
-        if (ticketComponentBefore != null) {
-            newPriority = ticketComponentBefore.ticket.priority + 1;
-        }
-
-        try {
-            await ticketRepository.update(
-                ticketToDrag,
-                {
-                    title: ticketToDrag.title,
-                    dueDate: ticketToDrag.dueDate,
-                    body: ticketToDrag.body,
-                    priority: newPriority,
-                    categoryId: categoryId,
-                }
-            )
-
-            this.category.tickets.forEach(ticket => {
-                if (ticket.priority >= newPriority) {
-                    ticket.priority += 1;
-                }
-            })
-
-            this.category.tickets.splice(newPriority, 0, ticketToDrag);
-
-            // TODO It is a bit lazy, but much easier
-            this.shadowRoot.getElementById('tickets-list').innerHTML = '';
-            this._insertTickets(this.category.tickets);
-        }
-        catch (e) {
-            // TODO show alert or smth
-            console.log(e);
-        }
+    set ticketMoved(callback) {
+        this._ticketMoved = callback;
     }
 
     _insertTicket(ticket) {

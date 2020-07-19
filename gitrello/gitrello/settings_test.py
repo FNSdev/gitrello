@@ -2,14 +2,13 @@ from gitrello.settings import *
 
 SECRET_KEY = 'TEST_SECRET_KEY'
 
-# TODO host will be different in kubernetes cluster
 DATABASES = {
     'default': {
         'ENGINE': 'django_cockroachdb',
-        'NAME': 'gitrello',
-        'USER': 'gitrello',
-        'PASSWORD': None,
-        'HOST': '127.0.0.1',
-        'PORT': '26257',
+        'NAME': os.getenv('DJANGO_DB_NAME') or 'gitrello',
+        'USER': os.getenv('DJANGO_DB_USER') or 'gitrello',
+        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD'),
+        'HOST': os.getenv('DJANGO_DB_HOST') or '127.0.0.1',
+        'PORT': os.getenv('DJANGO_DB_PORT') or '26257',
     }
 }

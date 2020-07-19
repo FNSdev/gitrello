@@ -1,3 +1,11 @@
+export class ErrorCode {
+    static UNKNOWN = 0;
+    static REQUEST_VALIDATION_FAILED = 1;
+    static PERMISSION_DENIED = 2;
+    static AUTHENTICATION_FAILED = 3;
+}
+
+
 export class GITrelloError extends Error {
     static defaultMessage = 'Oops. Something went wrong on our side. Please, try again.';
 

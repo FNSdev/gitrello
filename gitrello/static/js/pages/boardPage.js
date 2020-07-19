@@ -67,22 +67,13 @@ export class BoardPage extends Page {
 
     _insertCategory(category) {
         const categoryComponent = new CategoryComponent(category, this.board.boardMemberships);
-        categoryComponent.ticketMovedFromAnotherCategory = (ticket, oldPriority, categoryId) => {
-            this._onTicketMovedFromCategory(ticket, oldPriority, categoryId);
+        categoryComponent.ticketMoved = async () => {
+            await this.router.reload();
         }
         categoryComponent.classList.add('board-container__content__categories-list__item');
         document.getElementById('categories-list').insertBefore(
             categoryComponent,
             document.getElementById('create-category-form'),
         );
-    }
-
-    // TODO fix order
-    _onTicketMovedFromCategory(ticket, oldPriority, categoryId) {
-        document.querySelectorAll('.board-container__content__categories-list__item').forEach(categoryComponent => {
-            if (categoryComponent.category.id === categoryId) {
-                categoryComponent.removeTicket(ticket, oldPriority);
-            }
-        })
     }
 }

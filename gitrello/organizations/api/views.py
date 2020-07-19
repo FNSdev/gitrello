@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
-    OrganizationMembershipSerializer, OrganizationSerializer, OrganizationInviteSerializer,
 )
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
@@ -28,22 +27,6 @@ class OrganizationsView(views.APIView):
                 'name': organization.name,
             }
         )
-
-
-class OrganizationView(views.APIView):
-    permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
-
-    def get(self, request, *args, **kwargs):
-        service = OrganizationService()
-        if not service.can_get_organization(
-                user_id=request.user.id,
-                organization_id=kwargs['id']):
-            raise PermissionDeniedException
-
-        organization = service.get_organization(kwargs['id'])
-        serializer = OrganizationSerializer(instance=organization)
-        return Response(status=200, data=serializer.data)
 
 
 class OrganizationInvitesView(views.APIView):
@@ -70,12 +53,6 @@ class OrganizationInvitesView(views.APIView):
             }
         )
 
-    def get(self, request, *args, **kwargs):
-        service = OrganizationInviteService()
-        organization_invites = service.get_pending_invites(request.user.id)
-        serializer = OrganizationInviteSerializer(instance=organization_invites, many=True)
-        return Response(status=200, data=serializer.data)
-
 
 class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
@@ -101,17 +78,6 @@ class OrganizationInviteView(views.APIView):
                 'status': invite.get_status_display(),
             }
         )
-
-
-class OrganizationMembershipsView(views.APIView):
-    permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
-
-    def get(self, request, *args, **kwargs):
-        service = OrganizationMembershipService()
-        organization_memberships = service.get_organization_memberships(request.user.id)
-        serializer = OrganizationMembershipSerializer(instance=organization_memberships, many=True)
-        return Response(status=200, data=serializer.data)
 
 
 class OrganizationMembershipView(views.APIView):

@@ -16,11 +16,40 @@ class OrganizationMembershipRepository {
 
     async getAll() {
         try {
-            const response = await this.httpClient.get({url: this.getOrganizationMembershipsUrl})
+            const query = `
+              query {
+                organizationMemberships {
+                  edges {
+                    node {
+                      id,
+                      role,
+                      organization {
+                        id,
+                        name,
+                      },
+                      boardMemberships {
+                        edges {
+                          node {
+                            id,
+                            board {
+                              id,
+                              name,
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `
+            const response = await this.httpClient.query({query: query})
             const organizationMemberships = [];
-            response.forEach(organizationMembership => {
+            response['data']['organizationMemberships']['edges'].forEach(organizationMembership => {
                 const boardMemberships = [];
-                organizationMembership['board_memberships'].forEach(boardMembership => {
+                organizationMembership = organizationMembership['node'];
+                organizationMembership['boardMemberships']['edges'].forEach(boardMembership => {
+                    boardMembership = boardMembership['node'];
                     boardMemberships.push(new BoardMembership({
                         id: boardMembership['id'],
                         board: new Board({
@@ -35,7 +64,6 @@ class OrganizationMembershipRepository {
                     organization: new Organization({
                         id: organizationMembership['organization']['id'],
                         name: organizationMembership['organization']['name'],
-                        addedAt: organizationMembership['organization']['added_at'],
                     }),
                     boardMemberships: boardMemberships,
                 }))

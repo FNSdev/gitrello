@@ -17,9 +17,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: build_image
-        run: docker build -t $DOCKER_LOGIN/gitrello:latest -f deploy/Dockerfile .
+        run: docker build -t $DOCKER_LOGIN/gitrello:test -f deploy/Dockerfile --target=test .
       - name: push_image_to_docker.io
-        run: docker push $DOCKER_LOGIN/gitrello:latest
+        run: docker push $DOCKER_LOGIN/gitrello:test
   run_tests:
     needs: [build_and_publish]
     runs-on: [ubuntu-latest]

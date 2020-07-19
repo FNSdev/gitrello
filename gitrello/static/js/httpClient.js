@@ -2,10 +2,12 @@ import {cookieService, } from "./services/cookieService.js";
 import {tokenService, } from "./services/tokenService.js";
 import {
     GITrelloError, HttpClientError, HttpClientPermissionDeniedError, HttpClientBadRequestError,
-    HttpClientUnauthorizedError,
+    HttpClientUnauthorizedError, ErrorCode,
 } from "./errors.js";
 
 export class HttpClient {
+    graphqlUrl = '/api/v1/graphql';
+
     constructor(tokenService, cookieService) {
         this.tokenService = tokenService;
         this.cookieService = cookieService;
@@ -70,6 +72,49 @@ export class HttpClient {
         return json;
     }
 
+    async _makeGraphQLRequest({data, headers = null}) {
+        if (headers == null) {
+            headers = this._getHeaders();
+        }
+
+        const init = {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(data),
+        }
+
+        const response = await fetch(this.graphqlUrl, init);
+        if (response.status === 400) {
+            throw new GITrelloError();
+        }
+
+        let json = null;
+        try {
+            json = await response.json();
+        }
+        catch (e) {
+            throw new GITrelloError();
+        }
+
+        // TODO review it
+        if (json['errors'] != null) {
+            const errorCode = json['errors'][0]['error_code'];
+            if (errorCode === ErrorCode.REQUEST_VALIDATION_FAILED) {
+                throw new HttpClientBadRequestError(json['errors'][0]['message']);
+            }
+            else if (errorCode === ErrorCode.PERMISSION_DENIED) {
+                throw new HttpClientPermissionDeniedError(json['errors'][0]['message']);
+            }
+            else if (errorCode === ErrorCode.AUTHENTICATION_FAILED) {
+                throw new HttpClientUnauthorizedError(json['errors'][0]['message']);
+            }
+
+            throw new HttpClientError(json['errors'][0]['message']);
+        }
+
+        return json;
+    }
+
     async post({url, data = {}, headers = null}) {
         return await this._makeRequest({url: url, method: 'POST', data: data, headers: headers});
     }
@@ -89,6 +134,14 @@ export class HttpClient {
         }
 
         return await this._makeRequest({url: url + paramsQuery, method: 'GET', headers: headers});
+    }
+
+    async query({query, variables = {}, headers = null}) {
+        const data = {
+            query: query,
+            variables: variables,
+        }
+        return await this._makeGraphQLRequest({data: data, headers: headers});
     }
 }
 

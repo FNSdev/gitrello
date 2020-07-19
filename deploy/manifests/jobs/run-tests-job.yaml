@@ -37,4 +37,4 @@ spec:
                 key: django_db_port
       restartPolicy: Never
   backoffLimit: 1
-  activeDeadlineSeconds: 180
+  activeDeadlineSeconds: 120

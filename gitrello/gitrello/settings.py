@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
+    'graphene_django',
 ]
 
 MIDDLEWARE = [
@@ -39,6 +40,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'rest_framework.authentication.TokenAuthentication',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'gitrello.urls'
@@ -191,4 +197,10 @@ LOGGING = {
             'propagate': False,
         }
     }
+}
+
+# GraphQL
+
+GRAPHENE = {
+    'SCHEMA': 'gitrello.schema.schema',
 }

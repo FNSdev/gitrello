@@ -5,7 +5,6 @@ import {OrganizationInvite, } from "../models/organizationInvite.js";
 
 class OrganizationInviteRepository {
     createOrganizationInviteUrl = '/api/v1/organization-invites'
-    getOrganizationInvitesUrl = '/api/v1/organization-invites'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -36,19 +35,31 @@ class OrganizationInviteRepository {
 
     async getAll() {
         try {
-            const response = await this.httpClient.get({url: this.getOrganizationInvitesUrl})
-
+            const query = `
+              query {
+                organizationInvites {
+                  edges {
+                    node {
+                      id,
+                      addedAt,
+                      message,
+                      organizationName,
+                    }
+                  }
+                }
+              }
+            `
+            const response = await this.httpClient.query({query: query})
             const organizationInvites = [];
-            response.forEach(organizationInvite => {
+            response['data']['organizationInvites']['edges'].forEach(organizationInvite => {
+                organizationInvite = organizationInvite['node'];
                 organizationInvites.push(new OrganizationInvite({
                     id: organizationInvite['id'],
                     status: organizationInvite['status'],
                     message: organizationInvite['message'],
-                    addedAt: organizationInvite['added_at'],
+                    addedAt: organizationInvite['addedAt'],
                     organization: new Organization({
-                        id: organizationInvite['organization']['id'],
-                        addedAt: organizationInvite['organization']['added_at'],
-                        name: organizationInvite['organization']['name'],
+                        name: organizationInvite['organizationName'],
                     }),
                 }));
             })

@@ -24,10 +24,6 @@ export class OrganizationsPage extends Page {
         return this.template;
     }
 
-    async beforeRender() {
-        await super.beforeRender();
-    }
-
     async afterRender() {
         await super.afterRender();
 

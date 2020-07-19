@@ -8,7 +8,6 @@ import {User, } from "../models/user.js";
 
 class OrganizationRepository {
     createOrganizationUrl = '/api/v1/organizations'
-    getOrganizationUrl = '/api/v1/organizations'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -35,45 +34,93 @@ class OrganizationRepository {
         }
     }
 
-    async get(id) {
+    async get(organizationId) {
         try {
-            const response = await this.httpClient.get({url: `${this.getOrganizationUrl}/${id}`})
-
+            const query = `
+              query {
+                organization (id: "${organizationId}") {
+                  id,
+                  name,
+                  organizationMemberships {
+                    edges {
+                      node {
+                        id,
+                        role,
+                        user {
+                          id,
+                          firstName,
+                          lastName,
+                          username,
+                          email,
+                        }
+                      }
+                    }
+                  },
+                  boards {
+                    edges {
+                      node {
+                        id,
+                        name,
+                        boardMemberships {
+                          edges {
+                            node {
+                              id,
+                              organizationMembership {
+                                id,
+                                role,
+                                user {
+                                  id,
+                                  firstName,
+                                  lastName,
+                                  email,
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }      
+            `
+            const response = await this.httpClient.query({query: query})
             const organizationMemberships = [];
-            response['organization_memberships'].forEach(organizationMembership => {
-                 organizationMemberships.push(new OrganizationMembership({
+            response['data']['organization']['organizationMemberships']['edges'].forEach(organizationMembership => {
+                organizationMembership = organizationMembership['node'];
+                organizationMemberships.push(new OrganizationMembership({
                      id: organizationMembership['id'],
                      role: organizationMembership['role'],
                      user: new User({
                          id: organizationMembership['user']['id'],
                          username: organizationMembership['user']['username'],
                          email: organizationMembership['user']['email'],
-                         firstName: organizationMembership['user']['first_name'],
-                         lastName: organizationMembership['user']['last_name'],
+                         firstName: organizationMembership['user']['firstName'],
+                         lastName: organizationMembership['user']['lastName'],
                      }),
                  }));
             });
-
             const boards = [];
-            response['boards'].forEach(board => {
-                const boardMemberships = []
-                board['board_memberships'].forEach(boardMembership => {
+            response['data']['organization']['boards']['edges'].forEach(board => {
+                const boardMemberships = [];
+                board = board['node'];
+                board['boardMemberships']['edges'].forEach(boardMembership => {
+                    boardMembership = boardMembership['node'];
                     boardMemberships.push(new BoardMembership({
                         id: boardMembership['id'],
                         organizationMembership: new OrganizationMembership({
-                             id: boardMembership['organization_membership']['id'],
-                             role: boardMembership['organization_membership']['role'],
+                             id: boardMembership['organizationMembership']['id'],
+                             role: boardMembership['organizationMembership']['role'],
                              user: new User({
-                                 id: boardMembership['organization_membership']['user']['id'],
-                                 username: boardMembership['organization_membership']['user']['username'],
-                                 email: boardMembership['organization_membership']['user']['email'],
-                                 firstName: boardMembership['organization_membership']['user']['first_name'],
-                                 lastName: boardMembership['organization_membership']['user']['last_name'],
+                                 id: boardMembership['organizationMembership']['user']['id'],
+                                 username: boardMembership['organizationMembership']['user']['username'],
+                                 email: boardMembership['organizationMembership']['user']['email'],
+                                 firstName: boardMembership['organizationMembership']['user']['firstName'],
+                                 lastName: boardMembership['organizationMembership']['user']['lastName'],
                              }),
                         })
                     }));
                 })
-
                 boards.push(new Board({
                     id: board['id'],
                     name: board['name'],
@@ -82,9 +129,8 @@ class OrganizationRepository {
             });
 
             return new Organization({
-                id: response['id'],
-                name: response['name'],
-                addedAt: response['added_at'],
+                id: response['data']['organization']['id'],
+                name: response['data']['organization']['name'],
                 organizationMemberships: organizationMemberships,
                 boards: boards,
             })

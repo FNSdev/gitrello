@@ -9,8 +9,7 @@ import {TicketAssignment, } from "../models/ticketAssignment.js";
 import {User, } from "../models/user.js";
 
 class BoardRepository {
-    createBoardUrl = '/api/v1/boards'
-    getBoardUrl = '/api/v1/boards'
+    createBoardUrl = '/api/v1/boards';
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -40,82 +39,140 @@ class BoardRepository {
 
     async get(boardId) {
         try {
-            const response = await this.httpClient.get({url: `${this.getBoardUrl}/${boardId}`})
-
+            const query = `
+            query {
+              board (id: "${boardId}") {
+                id,
+                name,
+                boardMemberships {
+                  edges {
+                    node {
+                      id,
+                      organizationMembership {
+                        id,
+                        role,
+                        user {
+                          id,
+                          firstName,
+                          lastName,
+                          username,
+                          email,
+                        }
+                      }
+                    }
+                  }
+                },
+                categories {
+                  edges {
+                    node {
+                      id,
+                      name,
+                      tickets {
+                        edges {
+                          node {
+                            id,
+                            addedAt,
+                            title,
+                            body,
+                            dueDate,
+                            priority,
+                            assignments {
+                              edges {
+                                node {
+                                  id,
+                                  assignee {
+                                    id,
+                                    organizationMembership {
+                                      id,
+                                      user {
+                                        id,
+                                        firstName,
+                                        lastName,
+                                        username,
+                                        email,
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }          
+            }
+            `
+            const response = await this.httpClient.query({query: query})
             const boardMemberships = [];
-            response['board_memberships'].forEach(boardMembership => {
+            response['data']['board']['boardMemberships']['edges'].forEach(boardMembership => {
+                boardMembership = boardMembership['node'];
                 boardMemberships.push(new BoardMembership({
                     id: boardMembership['id'],
-                    addedAt: boardMembership['added_at'],
                     organizationMembership: new OrganizationMembership({
-                        id: boardMembership['organization_membership']['id'],
-                        role: boardMembership['organization_membership']['role'],
+                        id: boardMembership['organizationMembership']['id'],
+                        role: boardMembership['organizationMembership']['role'],
                         user: new User({
-                            id: boardMembership['organization_membership']['user']['id'],
-                            addedAt: boardMembership['organization_membership']['user']['added_at'],
-                            firstName: boardMembership['organization_membership']['user']['first_name'],
-                            lastName: boardMembership['organization_membership']['user']['last_name'],
-                            email: boardMembership['organization_membership']['user']['email'],
-                            username: boardMembership['organization_membership']['user']['username'],
+                            id: boardMembership['organizationMembership']['user']['id'],
+                            firstName: boardMembership['organizationMembership']['user']['firstName'],
+                            lastName: boardMembership['organizationMembership']['user']['lastName'],
+                            email: boardMembership['organizationMembership']['user']['email'],
+                            username: boardMembership['organizationMembership']['user']['username'],
                         })
                     })
                 }))
             });
-
             const categories = [];
-            response['categories'].forEach(category => {
+            response['data']['board']['categories']['edges'].forEach(category => {
                 const tickets = [];
-                category['tickets'].forEach(ticket => {
+                category = category['node'];
+                category['tickets']['edges'].forEach(ticket => {
                     const assignments = [];
-                    ticket['assignments'].forEach(assignment => {
+                    ticket = ticket['node'];
+                    ticket['assignments']['edges'].forEach(assignment => {
+                        assignment = assignment['node'];
                         assignments.push(new TicketAssignment({
                             id: assignment['id'],
-                            addedAt: assignment['added_at'],
                             boardMembership: new BoardMembership({
                                 id: assignment['assignee']['id'],
-                                addedAt: assignment['assignee']['added_at'],
                                 organizationMembership: new OrganizationMembership({
-                                    id: assignment['assignee']['organization_membership']['id'],
-                                    role: assignment['assignee']['organization_membership']['role'],
+                                    id: assignment['assignee']['organizationMembership']['id'],
                                     user: new User({
-                                        id: assignment['assignee']['organization_membership']['user']['id'],
-                                        addedAt: assignment['assignee']['organization_membership']['user']['added_at'],
-                                        firstName: assignment['assignee']['organization_membership']['user']['first_name'],
-                                        lastName: assignment['assignee']['organization_membership']['user']['last_name'],
-                                        email: assignment['assignee']['organization_membership']['user']['email'],
-                                        username: assignment['assignee']['organization_membership']['user']['username'],
+                                        id: assignment['assignee']['organizationMembership']['user']['id'],
+                                        firstName: assignment['assignee']['organizationMembership']['user']['firstName'],
+                                        lastName: assignment['assignee']['organizationMembership']['user']['lastName'],
+                                        email: assignment['assignee']['organizationMembership']['user']['email'],
+                                        username: assignment['assignee']['organizationMembership']['user']['username'],
                                     })
                                 })
                             })
                         }));
                     })
-
                     tickets.push(new Ticket({
                         id: ticket['id'],
-                        addedAt: ticket['added_at'],
+                        addedAt: ticket['addedAt'],
                         title: ticket['title'],
                         body: ticket['body'],
-                        dueDate: ticket['due_date'],
+                        dueDate: ticket['dueDate'],
                         assignments: assignments,
                         priority: ticket['priority'],
                     }))
                 })
-
                 categories.push(new Category({
                     id: category['id'],
-                    addedAt: category['added_at'],
                     name: category['name'],
                     tickets: tickets,
                 }))
             });
 
             return new Board({
-                id: response['id'],
-                name: response['name'],
-                addedAt: response['added_at'],
+                id: response['data']['board']['id'],
+                name: response['data']['board']['name'],
                 categories: categories,
                 boardMemberships: boardMemberships,
-            })
+            });
         }
         catch (e) {
             console.log(e.message);

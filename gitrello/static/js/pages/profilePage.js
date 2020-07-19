@@ -14,8 +14,6 @@ export class ProfilePage extends Page {
 
     constructor(authService, router, params) {
         super(authService, router, params);
-
-        this.organizationId = params['organizationId'];
     }
 
     getTemplate() {
@@ -41,8 +39,8 @@ export class ProfilePage extends Page {
             console.log(e);
         }
 
-        const organizationComponent = new ProfileComponent(this.authService.user);
-        document.getElementById('profile-container-content').prepend(organizationComponent);
+        const profileComponent = new ProfileComponent(this.authService.user);
+        document.getElementById('profile-container-content').prepend(profileComponent);
     }
 
     _insertInvites(organizationInvites) {

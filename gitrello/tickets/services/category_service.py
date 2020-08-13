@@ -22,12 +22,16 @@ class CategoryService:
 
     @retry_on_transaction_serialization_error
     def can_create_category(self, user_id: int, board_id: int):
-        return BoardMembership.objects.filter(
-            board_id=board_id,
-            organization_membership_id=Subquery(
-                OrganizationMembership.objects.filter(
-                    user_id=user_id,
-                    boards=board_id,
-                ).values('id'),
-            ),
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                board_id=board_id,
+                organization_membership_id=Subquery(
+                    OrganizationMembership.objects
+                        .filter(
+                            user_id=user_id,
+                            boards=board_id,
+                        )
+                        .values('id'),
+                ),
+            ) \
+            .exists()

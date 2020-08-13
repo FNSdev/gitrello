@@ -29,7 +29,7 @@ class BoardsView(views.APIView):
             data={
                 'id': str(board.id),
                 'name': board.name,
-            }
+            },
         )
 
 
@@ -51,7 +51,7 @@ class BoardMembershipsView(views.APIView):
             status=201,
             data={
                 'id': str(board_membership.id),
-            }
+            },
         )
 
 

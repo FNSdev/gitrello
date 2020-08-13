@@ -10,6 +10,8 @@ from organizations.models import OrganizationMembership
 
 
 class OrganizationMembershipService:
+    @retry_on_transaction_serialization_error
+    @atomic
     def add_member(
         self,
         organization_id: int,
@@ -27,6 +29,7 @@ class OrganizationMembershipService:
 
     # TODO delete/update invite?
     @retry_on_transaction_serialization_error
+    @atomic
     def delete_member(self, organization_membership_id):
         membership = OrganizationMembership.objects.filter(id=organization_membership_id).first()
         if not membership:
@@ -48,10 +51,13 @@ class OrganizationMembershipService:
         if membership_to_delete.user_id == user_id:
             return True
 
-        membership = OrganizationMembership.objects.filter(
-            organization_id=membership_to_delete.organization_id,
-            user_id=user_id,
-        ).values('role').first()
+        membership = OrganizationMembership.objects \
+            .filter(
+                organization_id=membership_to_delete.organization_id,
+                user_id=user_id,
+            ) \
+            .values('role') \
+            .first()
 
         if not membership:
             return False

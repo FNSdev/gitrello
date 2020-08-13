@@ -34,24 +34,29 @@ class BoardMembershipService:
 
     @retry_on_transaction_serialization_error
     def can_add_member(self, board_id: int, user_id: int, organization_membership_id: int) -> bool:
-        return BoardMembership.objects.filter(
-            Q(board_id=board_id),
-            Q(organization_membership__user_id=user_id),
-            Q(organization_membership__role=OrganizationMemberRole.OWNER) |
-            Q(organization_membership__role=OrganizationMemberRole.ADMIN),
-            Q(
-                board__organization_id=Subquery(
-                    OrganizationMembership.objects.filter(id=organization_membership_id).values('organization_id')
-                )
-            )
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                Q(board_id=board_id),
+                Q(organization_membership__user_id=user_id),
+                Q(organization_membership__role=OrganizationMemberRole.OWNER) |
+                Q(organization_membership__role=OrganizationMemberRole.ADMIN),
+                Q(
+                    board__organization_id=Subquery(
+                        OrganizationMembership.objects.filter(id=organization_membership_id).values('organization_id'),
+                    )
+                ),
+            ) \
+            .exists()
 
     @retry_on_transaction_serialization_error
     @atomic
     def can_delete_member(self, user_id: int, board_membership_id: int) -> bool:
-        membership_to_delete = BoardMembership.objects.filter(
-            id=board_membership_id,
-        ).prefetch_related('organization_membership').first()
+        membership_to_delete = BoardMembership.objects \
+            .filter(
+                id=board_membership_id,
+            ) \
+            .prefetch_related('organization_membership') \
+            .first()
         if not membership_to_delete:
             return False
 
@@ -62,10 +67,13 @@ class BoardMembershipService:
         if membership_to_delete.organization_membership.user_id == user_id:
             return True
 
-        membership = BoardMembership.objects.filter(
-            organization_membership__organization_id=membership_to_delete.organization_membership.organization_id,
-            organization_membership__user_id=user_id,
-        ).values('organization_membership__role').first()
+        membership = BoardMembership.objects \
+            .filter(
+                organization_membership__organization_id=membership_to_delete.organization_membership.organization_id,
+                organization_membership__user_id=user_id,
+            ) \
+            .values('organization_membership__role') \
+            .first()
 
         if not membership:
             return False
@@ -93,6 +101,6 @@ class BoardMembershipService:
         return BoardMembership.objects.create(
             board_id=Subquery(Board.objects.filter(id=board_id).values('id')),
             organization_membership_id=Subquery(
-                OrganizationMembership.objects.filter(id=organization_membership_id).values('id')
+                OrganizationMembership.objects.filter(id=organization_membership_id).values('id'),
             ),
         )

@@ -18,6 +18,6 @@ class OrganizationService:
         OrganizationMembershipService().add_member(
             organization_id=organization.id,
             user_id=owner_id,
-            role=OrganizationMemberRole.OWNER
+            role=OrganizationMemberRole.OWNER,
         )
         return organization

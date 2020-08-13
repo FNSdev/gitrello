@@ -25,7 +25,7 @@ class OrganizationsView(views.APIView):
             data={
                 'id': str(organization.id),
                 'name': organization.name,
-            }
+            },
         )
 
 
@@ -50,7 +50,7 @@ class OrganizationInvitesView(views.APIView):
             data={
                 'id': str(invite.id),
                 'status': invite.get_status_display(),
-            }
+            },
         )
 
 
@@ -76,7 +76,7 @@ class OrganizationInviteView(views.APIView):
             data={
                 'id': str(invite.id),
                 'status': invite.get_status_display(),
-            }
+            },
         )
 
 

@@ -30,7 +30,7 @@ class CategoriesView(views.APIView):
                 'id': str(category.id),
                 'board_id': str(category.board_id),
                 'name': category.name,
-            }
+            },
         )
 
 
@@ -54,7 +54,7 @@ class TicketsView(views.APIView):
                 'id': str(ticket.id),
                 'category_id': str(ticket.category_id),
                 'priority': ticket.priority,
-            }
+            },
         )
 
 
@@ -81,7 +81,7 @@ class TicketView(views.APIView):
                 'due_date': ticket.due_date,
                 'priority': ticket.priority,
                 'category_id': str(ticket.category_id),
-            }
+            },
         )
 
 
@@ -109,7 +109,7 @@ class TicketAssignmentsView(views.APIView):
                 'id': str(ticket_assignment.id),
                 'ticket_id': str(ticket_assignment.ticket_id),
                 'assignee_id': str(ticket_assignment.assignee_id),
-            }
+            },
         )
 
 

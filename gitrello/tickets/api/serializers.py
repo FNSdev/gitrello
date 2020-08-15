@@ -28,3 +28,8 @@ class UpdateTicketSerializer(serializers.Serializer):
 class CreateTicketAssignmentSerializer(serializers.Serializer):
     ticket_id = serializers.IntegerField()
     board_membership_id = serializers.IntegerField()
+
+
+class CreateCommentSerializer(serializers.Serializer):
+    ticket_id = serializers.IntegerField()
+    message = serializers.CharField()

@@ -3,7 +3,7 @@ from datetime import datetime
 import factory
 
 from boards.tests.factories import BoardFactory, BoardMembershipFactory
-from tickets.models import Category, Ticket, TicketAssignment
+from tickets.models import Category, Comment, Ticket, TicketAssignment
 
 
 class CategoryFactory(factory.DjangoModelFactory):
@@ -34,3 +34,15 @@ class TicketAssignmentFactory(factory.DjangoModelFactory):
         BoardMembershipFactory,
         board_id=factory.SelfAttribute('..ticket.category.board_id'),
     )
+
+
+class CommentFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = Comment
+
+    ticket = factory.SubFactory(TicketFactory)
+    author = factory.SubFactory(
+        BoardMembershipFactory,
+        board_id=factory.SelfAttribute('..ticket.category.board_id'),
+    )
+    message = factory.sequence(lambda i: f'message_{i}')

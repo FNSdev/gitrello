@@ -6,8 +6,9 @@ from rest_framework.response import Response
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, UpdateTicketSerializer, CreateTicketAssignmentSerializer,
+    CreateCommentSerializer,
 )
-from tickets.services import CategoryService, TicketAssignmentService, TicketService
+from tickets.services import CategoryService, CommentService, TicketAssignmentService, TicketService
 
 
 class CategoriesView(views.APIView):
@@ -124,3 +125,28 @@ class TicketAssignmentView(views.APIView):
 
         service.unassign_member(ticket_assignment_id=kwargs['id'])
         return Response(status=204)
+
+
+class CommentsView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+
+    def post(self, request, *args, **kwargs):
+        serializer = CreateCommentSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise APIRequestValidationException(serializer_errors=serializer.errors)
+
+        service = CommentService()
+        if not service.can_create_comment(user_id=request.user.id, ticket_id=serializer.validated_data['ticket_id']):
+            raise PermissionDeniedException
+
+        comment = service.create_comment(user_id=request.user.id, **serializer.validated_data)
+        return Response(
+            status=201,
+            data={
+                'id': str(comment.id),
+                'ticket_id': str(comment.ticket_id),
+                'author_id': str(comment.author_id),
+                'message': comment.message,
+            },
+        )

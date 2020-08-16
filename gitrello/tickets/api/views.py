@@ -148,5 +148,6 @@ class CommentsView(views.APIView):
                 'ticket_id': str(comment.ticket_id),
                 'author_id': str(comment.author_id),
                 'message': comment.message,
+                'added_at': comment.added_at,
             },
         )

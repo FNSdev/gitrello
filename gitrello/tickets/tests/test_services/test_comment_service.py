@@ -21,7 +21,7 @@ class TestCommentService(TestCase):
             message='test_message',
         )
 
-        self.assertIsNotNone(ticket)
+        self.assertIsNotNone(comment)
         self.assertEqual(comment.message, 'test_message')
         self.assertEqual(comment.ticket_id, ticket.id)
         self.assertEqual(comment.author_id, board_membership.id)

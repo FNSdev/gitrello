@@ -46,5 +46,5 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     ticket = models.ForeignKey(to='tickets.Ticket', related_name='comments', on_delete=models.CASCADE)
-    author = models.OneToOneField(to='boards.BoardMembership', related_name='comments', on_delete=models.CASCADE)
+    author = models.ForeignKey(to='boards.BoardMembership', related_name='comments', on_delete=models.CASCADE)
     message = models.TextField()

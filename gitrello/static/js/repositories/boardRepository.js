@@ -73,7 +73,6 @@ class BoardRepository {
                             id,
                             addedAt,
                             title,
-                            body,
                             dueDate,
                             priority,
                             assignments {
@@ -154,7 +153,6 @@ class BoardRepository {
                         id: ticket['id'],
                         addedAt: ticket['addedAt'],
                         title: ticket['title'],
-                        body: ticket['body'],
                         dueDate: ticket['dueDate'],
                         assignments: assignments,
                         priority: ticket['priority'],

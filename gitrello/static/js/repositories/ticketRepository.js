@@ -1,4 +1,5 @@
 import {httpClient, } from "../httpClient.js";
+import {Comment, } from "../models/comment.js";
 import {Ticket, } from "../models/ticket.js";
 import {GITrelloError, } from "../errors.js";
 
@@ -24,6 +25,61 @@ class TicketRepository {
                 body: null,
                 dueDate: null,
                 assignments: [],
+            })
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async getTicketDetails(ticketId) {
+        try {
+            const query = `
+            query {
+              ticket (id: "${ticketId}") {
+                body,
+                comments {
+                  edges {
+                    node {
+                      id,
+                      addedAt,
+                      message,
+                      author {
+                        organizationMembership {
+                          user {
+                            firstName,
+                            lastName,
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            `
+
+            const response = await this.httpClient.query({query: query});
+            const comments = [];
+
+            response['data']['ticket']['comments']['edges'].forEach(comment => {
+               comment = comment['node'];
+               comments.push(new Comment({
+                   id: comment['id'],
+                   addedAt: comment['addedAt'],
+                   message: comment['message'],
+                   authorFirstName: comment['author']['organizationMembership']['user']['firstName'],
+                   authorLastName: comment['author']['organizationMembership']['user']['lastName'],
+               }));
+            });
+
+            return new Ticket({
+                body: response['data']['ticket']['body'],
+                comments: comments,
             })
         }
         catch (e) {

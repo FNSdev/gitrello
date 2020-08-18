@@ -178,7 +178,7 @@ export class TicketDetailsComponent extends HTMLElement {
         this._boardMembershipsWithAssignments = this._getBoardMembershipsAndAssignments(boardMemberships);
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         this.shadowRoot.getElementById('search').addEventListener('input', () => this.onSearchInput());
         this.shadowRoot.getElementById('save-changes-button').addEventListener(
             'click',
@@ -203,13 +203,19 @@ export class TicketDetailsComponent extends HTMLElement {
         })
         title.value = this._ticket.title;
 
+        const ticketDetails = await ticketRepository.getTicketDetails(this._ticket.id);
+        this._ticket.body = ticketDetails.body;
+        this._ticket.comments = ticketDetails.comments;
+
         const body = this.shadowRoot.getElementById('form-body');
         body.addEventListener('input', () => {
             body.style.height = "10px";
             body.style.height = body.scrollHeight + "px";
         })
         body.value = this._ticket.body;
+
         this._insertMembers(this._boardMembershipsWithAssignments);
+        this._insertComments(this._ticket.comments);
     }
 
     onSearchInput() {
@@ -319,9 +325,8 @@ export class TicketDetailsComponent extends HTMLElement {
             comment.authorFirstName = authService.user.firstName;
             comment.authorLastName = authService.user.lastName;
 
-            const commentComponent = new CommentComponent(comment);
-            commentComponent.classList.add('container__comments-list__item');
-            this.shadowRoot.getElementById('comments-list').appendChild(commentComponent);
+            this._ticket.comments.push(comment);
+            this._insertComment(comment);
         }
         catch (e) {
             errorsList.addError(e.message);
@@ -330,6 +335,20 @@ export class TicketDetailsComponent extends HTMLElement {
 
     set callback(callback) {
         this._callback = callback;
+    }
+
+    _insertComment(comment) {
+        const commentsList = this.shadowRoot.getElementById('comments-list');
+
+        const commentComponent = new CommentComponent(comment);
+        commentComponent.classList.add('container__comments-list__item');
+        commentsList.prepend(commentComponent);
+    }
+
+    _insertComments(comments) {
+        comments.forEach(comment => {
+            this._insertComment(comment);
+        })
     }
 
     _insertMembers(boardMembershipsWithAssignments) {

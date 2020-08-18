@@ -41,7 +41,7 @@ template.innerHTML = `
         font-size: 18px;
         margin-top: 6px;
         margin-bottom: 6px;
-        text-align: center;
+        text-align: start;
         color: var(--primary-dark);
         border: none;
         overflow: hidden;
@@ -51,13 +51,13 @@ template.innerHTML = `
       
       @media screen and (min-width: 992px) {
         .container {
-          width: 400px;
+          width: 500px;
         }
       }
     </style>
     <div class="container" id="container">
       <div class="container__author"><strong id="author"></strong></div>
-      <div class="container__date"><strong id="date"></strong></div>
+      <div class="container__date" id="date"></div>
       <hr class="container__line">
       <textarea readonly id="message" class="container__message"></textarea>
     </div>

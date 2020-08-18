@@ -37,13 +37,9 @@ class CommentService:
     @retry_on_transaction_serialization_error
     @atomic
     def can_create_comment(self, ticket_id: int, user_id: int) -> bool:
-        ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
-        if not ticket:
-            return False
-
-        return BoardMembership.objects \
+        return Ticket.objects \
             .filter(
-                organization_membership__user_id=user_id,
-                board_id=ticket['category__board_id'],
+                id=ticket_id,
+                category__board__members__user_id=user_id,
             ) \
             .exists()

@@ -326,7 +326,7 @@ export class TicketDetailsComponent extends HTMLElement {
             comment.authorLastName = authService.user.lastName;
 
             this._ticket.comments.push(comment);
-            this._insertComment(comment);
+            this._insertComment(comment, true);
         }
         catch (e) {
             errorsList.addError(e.message);
@@ -337,12 +337,18 @@ export class TicketDetailsComponent extends HTMLElement {
         this._callback = callback;
     }
 
-    _insertComment(comment) {
+    _insertComment(comment, prepend=false) {
         const commentsList = this.shadowRoot.getElementById('comments-list');
 
         const commentComponent = new CommentComponent(comment);
         commentComponent.classList.add('container__comments-list__item');
-        commentsList.prepend(commentComponent);
+
+        if (prepend) {
+            commentsList.prepend(commentComponent);
+        }
+        else {
+            commentsList.appendChild(commentComponent);
+        }
     }
 
     _insertComments(comments) {

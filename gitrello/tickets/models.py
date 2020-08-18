@@ -42,6 +42,9 @@ class TicketAssignment(models.Model):
 
 
 class Comment(models.Model):
+    class Meta:
+        ordering = ('-added_at', )
+
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

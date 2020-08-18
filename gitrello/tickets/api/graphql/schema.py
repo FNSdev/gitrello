@@ -1,14 +1,19 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from tickets.api.graphql.connections import CategoryConnection, TicketConnection, TicketAssignmentConnection
-from tickets.api.graphql.nodes import CategoryNode, TicketNode, TicketAssignmentNode
-from tickets.models import Category, Ticket, TicketAssignment
+from tickets.api.graphql.connections import (
+    CategoryConnection, CommentConnection, TicketConnection, TicketAssignmentConnection,
+)
+from tickets.api.graphql.nodes import CategoryNode, CommentNode, TicketNode, TicketAssignmentNode
+from tickets.models import Category, Comment, Ticket, TicketAssignment
 
 
 class Query(graphene.ObjectType):
     categories = graphene.ConnectionField(CategoryConnection)
     category = graphene.Field(CategoryNode, id=graphene.String())
+
+    comments = graphene.ConnectionField(CommentConnection)
+    comment = graphene.Field(CommentNode, id=graphene.String())
 
     tickets = graphene.ConnectionField(TicketConnection)
     ticket = graphene.Field(TicketNode, id=graphene.String())
@@ -27,6 +32,21 @@ class Query(graphene.ObjectType):
         return gql_optimizer \
             .query(
                 Category.objects.filter(id=kwargs.get('id'), board__members__user=info.context.user),
+                info,
+            ) \
+            .first()
+
+    def resolve_comments(self, info, **kwargs):
+        return gql_optimizer \
+            .query(
+                Comment.objects.filter(ticket__category__board__members__user=info.context.user),
+                info,
+            )
+
+    def resolve_comment(self, info, **kwargs):
+        return gql_optimizer \
+            .query(
+                Comment.objects.filter(id=kwargs.get('id'), ticket__category__board__members__user=info.context.user),
                 info,
             ) \
             .first()

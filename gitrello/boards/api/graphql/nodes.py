@@ -25,5 +25,6 @@ class BoardMembershipNode(DjangoObjectType):
             'id',
             'board',
             'organization_membership',
+            'comments',
         )
         interfaces = (GITrelloNode, )

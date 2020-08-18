@@ -1,11 +1,10 @@
-import graphene_django_optimizer as gql_optimizer
 from graphene_django.types import DjangoObjectType
 
 from gitrello.utils.graphql import GITrelloNode
-from tickets.models import Category, Ticket, TicketAssignment
+from tickets.models import Category, Comment, Ticket, TicketAssignment
 
 
-class CategoryNode(gql_optimizer.OptimizedDjangoObjectType):
+class CategoryNode(DjangoObjectType):
     class Meta:
         model = Category
         fields = (
@@ -13,6 +12,19 @@ class CategoryNode(gql_optimizer.OptimizedDjangoObjectType):
             'name',
             'board',
             'tickets',
+        )
+        interfaces = (GITrelloNode, )
+
+
+class CommentNode(DjangoObjectType):
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'added_at',
+            'ticket',
+            'author',
+            'message',
         )
         interfaces = (GITrelloNode, )
 
@@ -29,6 +41,7 @@ class TicketNode(DjangoObjectType):
             'due_date',
             'category',
             'assignments',
+            'comments',
         )
         interfaces = (GITrelloNode, )
 

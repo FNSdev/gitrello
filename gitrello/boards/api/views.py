@@ -10,7 +10,7 @@ from gitrello.exceptions import APIRequestValidationException, PermissionDeniedE
 
 class BoardsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardSerializer(data=request.data)
@@ -35,7 +35,7 @@ class BoardsView(views.APIView):
 
 class BoardMembershipsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardMembershipSerializer(data=request.data)
@@ -57,7 +57,7 @@ class BoardMembershipsView(views.APIView):
 
 class BoardMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = BoardMembershipService()

@@ -13,7 +13,7 @@ from tickets.services import CategoryService, CommentService, TicketAssignmentSe
 
 class CategoriesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateCategorySerializer(data=request.data)
@@ -37,7 +37,7 @@ class CategoriesView(views.APIView):
 
 class TicketsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketSerializer(data=request.data)
@@ -61,7 +61,7 @@ class TicketsView(views.APIView):
 
 class TicketView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
@@ -88,7 +88,7 @@ class TicketView(views.APIView):
 
 class TicketAssignmentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketAssignmentSerializer(data=request.data)
@@ -116,7 +116,7 @@ class TicketAssignmentsView(views.APIView):
 
 class TicketAssignmentView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = TicketAssignmentService()
@@ -129,7 +129,7 @@ class TicketAssignmentView(views.APIView):
 
 class CommentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateCommentSerializer(data=request.data)

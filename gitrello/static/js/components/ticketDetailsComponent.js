@@ -1,6 +1,9 @@
-import {ticketAssignmentRepository, } from "../../repositories/ticketAssignmentRepository.js";
-import {ticketRepository, } from "../../repositories/ticketRepository.js";
-import {InputComponent, } from "../common/inputComponent.js";
+import {AuthService, } from "../services/authService.js";
+import {CommentComponent, } from "./commentComponent.js";
+import {commentRepository, } from "../repositories/commentRepository.js";
+import {ticketAssignmentRepository, } from "../repositories/ticketAssignmentRepository.js";
+import {ticketRepository, } from "../repositories/ticketRepository.js";
+import {InputComponent, } from "./common/inputComponent.js";
 
 const template = document.createElement('template')
 template.innerHTML = `
@@ -19,26 +22,18 @@ template.innerHTML = `
         grid-template-columns: 1fr;
         grid-gap: 2em;
         justify-items: center;
-        align-items: center;
+        align-items: start;
       }
       
-      .container__form {
+      .container__form, .container__comment-form {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         width: 90%;
       }
-      
-       .container__form__inputs {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
-      
-      .container__form__inputs__due-date {
-        margin-bottom: 5px;
+           
+      .container__form__due-date {
       }
       
       .container__form__body, .container__form__title {
@@ -52,7 +47,22 @@ template.innerHTML = `
         min-height: 10px;
       }
       
-      .container__form__button {
+      .container__form__body {
+        overflow: auto;
+        height: 200px;
+      }
+      
+      .container__comment-form__message {
+        overflow: auto;
+        height: 200px;
+        border: 2px solid var(--primary-dark);
+        border-radius: 8px;
+        width: 90%;
+        resize: none;
+        padding: 10px;
+      }
+      
+      .container__form__button, .container__comment-form__button {
         margin-top: 10px;
       }
       
@@ -77,8 +87,20 @@ template.innerHTML = `
         text-align: center;
       }
       
-      .container__assignees__members-list {
+      .container__assignees {
         margin-top: 10px;
+        height: 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+      }
+      
+      .container__assignees__members-list {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        scrollbar-color: var(--primary-dark) var(--primary-light);
       }
       
       .container__assignees__members-list__item {
@@ -90,11 +112,22 @@ template.innerHTML = `
         text-align: center;
         cursor: pointer;
       }
-      
+     
       .container__assignees__members-list--assigned {
         border: 2px solid var(--green);
       }
           
+      .container__comments-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+      }
+      
+      .container__comments-list__item {
+        margin-bottom: 10px;
+      }
+
       @media screen and (min-width: 992px) {
           .container {
             grid-template-columns: 2fr 1fr;
@@ -103,7 +136,6 @@ template.innerHTML = `
     </style>
     <div class="container">
       <form id="form" class="container__form">
-        <div id="inputs" class="container__form__inputs"></div>
         <textarea maxlength="100" placeholder="New ticket" id="form-title" class="container__form__title"></textarea>
         <textarea id="form-body" class="container__form__body"></textarea>
         <errors-list-component id="form-errors" class="container__form__errors"></errors-list-component>
@@ -112,15 +144,27 @@ template.innerHTML = `
         </button-component>
       </form>
       <div class="container__members">
-          <h1 class="container__members__header">Click on Member to add or remove</h1>
+          <div class="container__members__header"><strong>Click on Member to add or remove</strong></div>
           <input type="text" class="container__members__search" id="search" placeholder="Type to search">
           <errors-list-component id="members-errors" class="container__members__errors"></errors-list-component>
-          <ul class="container__assignees__members-list" id="members-list"></ul>
+          <div class="container__assignees">
+            <ul class="container__assignees__members-list" id="members-list"></ul>
+          </div>
       </div>
+      <div class="container__comments">
+        <ul class="container__comments-list" id="comments-list"></ul>
+      </div>
+      <form id="comment-form" class="container__comment-form">
+        <textarea id="comment-form-message" class="container__comment-form__message"></textarea>
+        <errors-list-component id="comment-form-errors" class="container__comment-form__errors"></errors-list-component>
+        <button-component width="175px" type="success" id="new-comment-button" class="container__comment-form__button"/>
+          New Comment
+        </button-component>
+      </form>
     </div>
 `
 
-export class UpdateTicketFormComponent extends HTMLElement {
+export class TicketDetailsComponent extends HTMLElement {
     constructor(ticket, boardMemberships) {
         super();
 
@@ -140,13 +184,17 @@ export class UpdateTicketFormComponent extends HTMLElement {
             'click',
             () => this.onSaveChangesClick(),
         );
+        this.shadowRoot.getElementById('new-comment-button').addEventListener(
+            'click',
+            () => this.onNewCommentClick(),
+        )
 
         const dateInput = new InputComponent();
         dateInput.setAttribute('id', 'form-due-date');
         dateInput.setAttribute('type', 'date');
         dateInput.value = this._ticket.dueDate;
-        dateInput.classList.add('container__form__inputs__due-date');
-        this.shadowRoot.getElementById('inputs').appendChild(dateInput);
+        dateInput.classList.add('container__form__due-date');
+        this.shadowRoot.getElementById('form').prepend(dateInput);
 
         const title = this.shadowRoot.getElementById('form-title');
         title.addEventListener('input', () => {
@@ -258,6 +306,28 @@ export class UpdateTicketFormComponent extends HTMLElement {
         }
     }
 
+    async onNewCommentClick() {
+        const errorsList = this.shadowRoot.getElementById('comment-form-errors');
+        errorsList.clear();
+
+        try {
+            let message = this.shadowRoot.getElementById('comment-form-message').value.trim();
+            message = message === '' ? null : message;
+
+            const comment = await commentRepository.create(this._ticket, message);
+            const authService = await AuthService.build();
+            comment.authorFirstName = authService.user.firstName;
+            comment.authorLastName = authService.user.lastName;
+
+            const commentComponent = new CommentComponent(comment);
+            commentComponent.classList.add('container__comments-list__item');
+            this.shadowRoot.getElementById('comments-list').appendChild(commentComponent);
+        }
+        catch (e) {
+            errorsList.addError(e.message);
+        }
+    }
+
     set callback(callback) {
         this._callback = callback;
     }
@@ -307,4 +377,4 @@ export class UpdateTicketFormComponent extends HTMLElement {
     }
 }
 
-window.customElements.define('update-ticket-form-component', UpdateTicketFormComponent);
+window.customElements.define('update-ticket-form-component', TicketDetailsComponent);

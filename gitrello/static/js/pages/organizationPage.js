@@ -3,6 +3,7 @@ import {HttpClientPermissionDeniedError, } from "../errors.js";
 import {BoardComponent, } from "../components/boardComponent.js";
 import {OrganizationComponent, } from "../components/organizationComponent.js";
 import {Page, } from "./page.js";
+import {CreateBoardFormComponent} from "../components/forms/createBoardFormComponent.js";
 
 export class OrganizationPage extends Page {
     template = `
@@ -76,11 +77,30 @@ export class OrganizationPage extends Page {
         this._insertBoards(this.organization.boards);
     }
 
+    _newBoardCallback(board) {
+        this._insertBoard(board, true);
+    }
+
+    _insertBoard(board, prepend=false) {
+        board.organization = this.organization;
+        const boardComponent = new BoardComponent(board);
+
+        if (prepend) {
+            document.getElementById('boards-list').prepend(boardComponent);
+        }
+        else {
+            document.getElementById('boards-list').appendChild(boardComponent);
+        }
+    }
+
     _insertBoards(boards) {
         boards.forEach(board => {
-            board.organization = this.organization;
-            const boardComponent = new BoardComponent(board);
-            document.getElementById('boards-list').appendChild(boardComponent);
+            this._insertBoard(board);
         });
+
+        const createBoardFormComponent = new CreateBoardFormComponent();
+        createBoardFormComponent.organizationId = this.organizationId;
+        createBoardFormComponent.callback = (board) => this._newBoardCallback(board);
+        document.getElementById('boards-list').appendChild(createBoardFormComponent);
     }
 }

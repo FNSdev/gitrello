@@ -26,6 +26,7 @@ class BoardRepository {
             return new Board({
                 id: response['id'],
                 name: response['name'],
+                boardMemberships: await this.getBoardMemberships(response['id']),
             })
         }
         catch (e) {
@@ -171,6 +172,63 @@ class BoardRepository {
                 categories: categories,
                 boardMemberships: boardMemberships,
             });
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async getBoardMemberships(boardId) {
+        try {
+            const query = `
+            query {
+              board (id: "${boardId}") {
+                boardMemberships {
+                  edges {
+                    node {
+                      id,
+                      organizationMembership {
+                        id,
+                        role,
+                        user {
+                          id,
+                          firstName,
+                          lastName,
+                          username,
+                          email
+                        }
+                      }
+                    }
+                  }
+                }
+              }          
+            }
+            `
+            const response = await this.httpClient.query({query: query})
+            const boardMemberships = [];
+            response['data']['board']['boardMemberships']['edges'].forEach(boardMembership => {
+                boardMembership = boardMembership['node'];
+                boardMemberships.push(new BoardMembership({
+                    id: boardMembership['id'],
+                    organizationMembership: new OrganizationMembership({
+                        id: boardMembership['organizationMembership']['id'],
+                        role: boardMembership['organizationMembership']['role'],
+                        user: new User({
+                            id: boardMembership['organizationMembership']['user']['id'],
+                            firstName: boardMembership['organizationMembership']['user']['firstName'],
+                            lastName: boardMembership['organizationMembership']['user']['lastName'],
+                            email: boardMembership['organizationMembership']['user']['email'],
+                            username: boardMembership['organizationMembership']['user']['username'],
+                        })
+                    })
+                }))
+            });
+
+            return boardMemberships;
         }
         catch (e) {
             console.log(e.message);

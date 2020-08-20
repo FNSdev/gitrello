@@ -82,7 +82,7 @@ class TestCategoriesView(TestCase):
         with patch.object(CommentService, 'can_create_comment') as mocked_can_create_comment:
             response = api_client.post(reverse('tickets:comments'), data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_create_comment.assert_not_called()
 
     def test_create_comment_permission_denied(self):

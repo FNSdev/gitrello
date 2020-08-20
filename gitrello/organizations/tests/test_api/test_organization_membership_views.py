@@ -27,7 +27,7 @@ class TestOrganizationMembershipView(TestCase):
         with patch.object(OrganizationMembershipService, 'can_delete_member') as mocked_can_delete_member:
             response = client.delete('/api/v1/organization-memberships/1')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_delete_member.assert_not_called()
 
     def test_delete_membership_permission_denied(self):

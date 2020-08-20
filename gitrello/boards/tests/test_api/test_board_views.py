@@ -45,7 +45,7 @@ class TestBoardsView(TestCase):
         with patch.object(BoardService, 'can_create_board') as mocked_can_create_board:
             response = api_client.post('/api/v1/boards', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_create_board.assert_not_called()
 
     def test_create_board_request_not_valid(self):

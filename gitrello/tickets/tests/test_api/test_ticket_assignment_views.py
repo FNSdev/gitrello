@@ -83,7 +83,7 @@ class TestTicketAssignmentsView(TestCase):
         with patch.object(TicketAssignmentService, 'can_assign_member') as mocked_can_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_assign_member.assert_not_called()
 
     def test_create_ticket_assignment_permission_denied(self):
@@ -218,7 +218,7 @@ class TestTicketAssignmentView(TestCase):
         with patch.object(TicketAssignmentService, 'can_unassign_member') as mocked_can_unassign_member:
             response = api_client.delete('/api/v1/ticket-assignments/1')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_unassign_member.assert_not_called()
 
     def test_delete_ticket_assignment_permission_denied(self):

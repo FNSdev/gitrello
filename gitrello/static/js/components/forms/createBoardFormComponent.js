@@ -8,6 +8,10 @@ template.innerHTML = `
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        border: 3px solid var(--primary-dark);
+        border-radius: 10px;
+        width: 300px;
+        padding: 10px;
       }
             
       .form__header {

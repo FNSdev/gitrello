@@ -20,7 +20,7 @@ class UsersView(views.APIView):
             data={
                 'id': str(user.id),
                 'token': token.key,
-            }
+            },
         )
 
 
@@ -40,7 +40,7 @@ class AuthTokenView(views.APIView):
                     'first_name': request.user.first_name,
                     'last_name': request.user.last_name,
                 },
-            }
+            },
         )
 
 
@@ -57,5 +57,5 @@ class AuthTokenOwnerView(views.APIView):
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'username': request.user.username,
-            }
+            },
         )

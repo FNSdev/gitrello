@@ -3,6 +3,7 @@ from django.db import models
 
 class Board(models.Model):
     class Meta:
+        ordering = ('-added_at', )
         unique_together = (
             ('name', 'organization'),
         )

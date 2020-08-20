@@ -56,15 +56,19 @@ class OrganizationInviteService:
 
     @retry_on_transaction_serialization_error
     def can_send_invite(self, user_id: int, organization_id: int):
-        return OrganizationMembership.objects.filter(
-            Q(organization_id=organization_id),
-            Q(user_id=user_id),
-            Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
-        ).exists()
+        return OrganizationMembership.objects \
+            .filter(
+                Q(organization_id=organization_id),
+                Q(user_id=user_id),
+                Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
+            ) \
+            .exists()
 
     @retry_on_transaction_serialization_error
     def can_update_invite(self, user_id: int, organization_invite_id: int):
-        return OrganizationInvite.objects.filter(
-            id=organization_invite_id,
-            user_id=user_id,
-        ).exists()
+        return OrganizationInvite.objects \
+            .filter(
+                id=organization_invite_id,
+                user_id=user_id,
+            ) \
+            .exists()

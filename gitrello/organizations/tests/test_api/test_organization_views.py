@@ -40,7 +40,7 @@ class TestOrganizationsView(TestCase):
         api_client = APIClient()
         response = api_client.post('/api/v1/organizations', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
     def test_create_organization_request_not_valid(self):
         payload = {

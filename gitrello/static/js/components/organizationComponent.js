@@ -229,8 +229,8 @@ export class OrganizationComponent extends HTMLElement {
                 member.classList.add('container__organization-memberships__list__item--owner');
             }
 
-            member.onclick = async (event) => {
-                await this.onRemoveMemberClick(event);
+            member.onclick = (event) => {
+                this.onRemoveMemberClick(event);
             }
 
             membersList.appendChild(member);

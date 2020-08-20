@@ -1,4 +1,4 @@
-import {UpdateTicketFormComponent, } from "./forms/updateTicketFormComponent.js";
+import {TicketDetailsComponent, } from "./ticketDetailsComponent.js";
 
 const template = document.createElement('template')
 template.innerHTML = `
@@ -149,10 +149,10 @@ export class TicketComponent extends HTMLElement {
             }
         };
 
-        const updateTicketFormComponent = new UpdateTicketFormComponent(this.ticket, this.boardMemberships);
-        updateTicketFormComponent.callback = (ticket) => this.onTicketUpdated(ticket);
+        const ticketDetailsComponent = new TicketDetailsComponent(this.ticket, this.boardMemberships);
+        ticketDetailsComponent.callback = (ticket) => this.onTicketUpdated(ticket);
         this.shadowRoot.getElementById('ticket-modal-content').innerHTML = '';
-        this.shadowRoot.getElementById('ticket-modal-content').appendChild(updateTicketFormComponent);
+        this.shadowRoot.getElementById('ticket-modal-content').appendChild(ticketDetailsComponent);
     }
 
     onTicketUpdated(ticket) {

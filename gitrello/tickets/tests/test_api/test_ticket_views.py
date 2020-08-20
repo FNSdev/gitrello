@@ -72,7 +72,7 @@ class TestTicketsView(TestCase):
         with patch.object(TicketService, 'can_create_ticket') as mocked_can_create_ticket:
             response = api_client.post('/api/v1/tickets', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_create_ticket.assert_not_called()
 
     def test_create_ticket_permission_denied(self):
@@ -194,7 +194,7 @@ class TestTicketView(TestCase):
         with patch.object(TicketService, 'can_update_ticket') as mocked_can_update_ticket:
             response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_update_ticket.assert_not_called()
 
     def test_update_ticket_permission_denied(self):

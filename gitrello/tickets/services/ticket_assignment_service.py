@@ -47,24 +47,29 @@ class TicketAssignmentService:
             return False
 
         # Check if user belongs to the same board as ticket & board_membership
-        return BoardMembership.objects.filter(
-            board_id=ticket['category__board_id'],
-            organization_membership__user_id=user_id,
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                board_id=ticket['category__board_id'],
+                organization_membership__user_id=user_id,
+            ) \
+            .exists()
 
     @retry_on_transaction_serialization_error
     @atomic
     def can_unassign_member(self, user_id, ticket_assignment_id):
-        ticket_assignment = TicketAssignment.objects.filter(
-            id=ticket_assignment_id,
-        ).values(
-            'ticket__category__board_id',
-        ).first()
+        ticket_assignment = TicketAssignment.objects \
+            .filter(
+                id=ticket_assignment_id,
+            ) \
+            .values('ticket__category__board_id') \
+            .first()
 
         if not ticket_assignment:
             return False
 
-        return BoardMembership.objects.filter(
-            board_id=ticket_assignment['ticket__category__board_id'],
-            organization_membership__user_id=user_id,
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                board_id=ticket_assignment['ticket__category__board_id'],
+                organization_membership__user_id=user_id,
+            ) \
+            .exists()

@@ -90,7 +90,7 @@ class TestOrganizationInvitesView(TestCase):
         with patch.object(OrganizationInviteService, 'send_invite') as mocked_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_send_invite.assert_not_called()
 
     def test_create_invite_permission_denied(self):
@@ -230,7 +230,7 @@ class TestOrganizationInviteView(TestCase):
         with patch.object(OrganizationInviteService, 'update_invite') as mocked_update_invite:
             response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_update_invite.assert_not_called()
 
     def test_update_invite_permission_denied(self):

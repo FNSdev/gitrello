@@ -25,10 +25,13 @@ class BoardService:
             organization_id=Subquery(Organization.objects.filter(id=organization_id).values('id')),
         )
 
-        owner_organization_membership = OrganizationMembership.objects.filter(
-            organization_id=organization_id,
-            role=OrganizationMemberRole.OWNER,
-        ).values('id').first()
+        owner_organization_membership = OrganizationMembership.objects \
+            .filter(
+                organization_id=organization_id,
+                role=OrganizationMemberRole.OWNER,
+            ) \
+            .values('id') \
+            .first()
 
         BoardMembershipService().add_member_inside_transaction(
             board_id=board.id,
@@ -39,8 +42,10 @@ class BoardService:
 
     @retry_on_transaction_serialization_error
     def can_create_board(self, organization_id: int, user_id: int) -> bool:
-        return OrganizationMembership.objects.filter(
-            organization_id=organization_id,
-            user_id=user_id,
-            role=OrganizationMemberRole.OWNER,
-        ).exists()
+        return OrganizationMembership.objects \
+            .filter(
+                organization_id=organization_id,
+                user_id=user_id,
+                role=OrganizationMemberRole.OWNER,
+            ) \
+            .exists()

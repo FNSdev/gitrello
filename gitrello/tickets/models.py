@@ -39,3 +39,15 @@ class TicketAssignment(models.Model):
 
     ticket = models.ForeignKey(to='tickets.Ticket', on_delete=models.CASCADE, related_name='assignments')
     assignee = models.ForeignKey(to='boards.BoardMembership', on_delete=models.CASCADE, related_name='assignments')
+
+
+class Comment(models.Model):
+    class Meta:
+        ordering = ('-added_at', )
+
+    added_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    ticket = models.ForeignKey(to='tickets.Ticket', related_name='comments', on_delete=models.CASCADE)
+    author = models.ForeignKey(to='boards.BoardMembership', related_name='comments', on_delete=models.CASCADE)
+    message = models.TextField()

@@ -52,7 +52,7 @@ class TestBoardMembershipsView(TestCase):
         with patch.object(BoardMembershipService, 'can_add_member') as mocked_can_add_member:
             response = api_client.post('/api/v1/board-memberships', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_add_member.assert_not_called()
 
     def test_create_board_membership_request_not_valid(self):
@@ -168,7 +168,7 @@ class TestBoardMembershipView(TestCase):
         with patch.object(BoardMembershipService, 'can_delete_member') as mocked_can_delete_member:
             response = api_client.delete(f'/api/v1/board-memberships/1')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_delete_member.assert_not_called()
 
     def test_create_board_membership_permission_denied(self):

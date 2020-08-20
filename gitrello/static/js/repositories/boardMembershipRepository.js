@@ -35,7 +35,7 @@ class BoardMembershipRepository {
 
     async delete(boardMembershipId) {
         try {
-            await this.httpClient.delete({url: `${this.createBoardMembershipUrl}/${boardMembershipId}`})
+            await this.httpClient.delete({url: `${this.deleteBoardMembershipUrl}/${boardMembershipId}`})
         }
         catch (e) {
             console.log(e.message);

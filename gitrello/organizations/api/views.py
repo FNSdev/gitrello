@@ -12,7 +12,7 @@ from organizations.services import OrganizationService, OrganizationInviteServic
 
 class OrganizationsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
@@ -25,13 +25,13 @@ class OrganizationsView(views.APIView):
             data={
                 'id': str(organization.id),
                 'name': organization.name,
-            }
+            },
         )
 
 
 class OrganizationInvitesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationInviteSerializer(data=request.data)
@@ -50,13 +50,13 @@ class OrganizationInvitesView(views.APIView):
             data={
                 'id': str(invite.id),
                 'status': invite.get_status_display(),
-            }
+            },
         )
 
 
 class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
@@ -76,13 +76,13 @@ class OrganizationInviteView(views.APIView):
             data={
                 'id': str(invite.id),
                 'status': invite.get_status_display(),
-            }
+            },
         )
 
 
 class OrganizationMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = OrganizationMembershipService()

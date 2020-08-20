@@ -77,7 +77,7 @@ class TestCategoriesView(TestCase):
         with patch.object(CategoryService, 'can_create_category') as mocked_can_create_category:
             response = api_client.post('/api/v1/categories', data=payload, format='json')
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         mocked_can_create_category.assert_not_called()
 
     def test_create_category_permission_denied(self):

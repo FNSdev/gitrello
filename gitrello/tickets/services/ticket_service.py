@@ -16,11 +16,15 @@ class TicketService:
         if not Category.objects.filter(id=category_id).exists():
             raise CategoryNotFoundException
 
-        ticket = Ticket.objects.filter(category_id=category_id).order_by('-priority').only('priority').first()
+        last_ticket = Ticket.objects \
+            .filter(category_id=category_id) \
+            .order_by('-priority') \
+            .only('priority') \
+            .first()
 
         return Ticket.objects.create(
             category_id=Subquery(Category.objects.filter(id=category_id).values('id')),
-            priority=ticket.priority + 1 if ticket else 0,
+            priority=last_ticket.priority + 1 if last_ticket else 0,
         )
 
     @retry_on_transaction_serialization_error
@@ -47,10 +51,12 @@ class TicketService:
         if not category:
             return False  # TODO add tests
 
-        return BoardMembership.objects.filter(
-            organization_membership__user_id=user_id,
-            board_id=category['board_id'],
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                organization_membership__user_id=user_id,
+                board_id=category['board_id'],
+            ) \
+            .exists()
 
     @retry_on_transaction_serialization_error
     @atomic
@@ -59,10 +65,12 @@ class TicketService:
         if not ticket:
             return False
 
-        return BoardMembership.objects.filter(
-            organization_membership__user_id=user_id,
-            board_id=ticket['category__board_id'],
-        ).exists()
+        return BoardMembership.objects \
+            .filter(
+                organization_membership__user_id=user_id,
+                board_id=ticket['category__board_id'],
+            ) \
+            .exists()
 
     def _move_ticket(self, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
         if not previous_ticket_id:

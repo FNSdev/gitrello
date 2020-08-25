@@ -52,6 +52,11 @@
       navBarToggle.addEventListener("click", function() {
         navBar.classList.toggle("header__navbar__list--toggled");
       });
+
+      window.GITHUB_CLIENT_ID = "{{ GITHUB_CLIENT_ID }}";
+      window.GITHUB_REDIRECT_URL = "{{ GITHUB_REDIRECT_URL }}";
+      window.GITHUB_DEFAULT_SCOPES = "{{ GITHUB_DEFAULT_SCOPES }}";
+      window.GITHUB_INTEGRATION_SERVICE_URL = "{{ GITHUB_INTEGRATION_SERVICE_URL }}";
     </script>
   </body>
 </html>

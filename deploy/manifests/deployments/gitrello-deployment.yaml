@@ -75,6 +75,16 @@ spec:
             secretKeyRef:
               name: environment
               key: gs_project_id
+        - name: URL
+          valueFrom:
+            secretKeyRef:
+              name: environment
+              key: url
+        - name: GITHUB_INTEGRATION_SERVICE_URL
+        valueFrom:
+         secretKeyRef:
+           name: environment
+           key: github_integration_service_url
         ports:
         - containerPort: 80
           name: gitrello

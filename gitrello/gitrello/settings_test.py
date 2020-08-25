@@ -2,6 +2,9 @@ from gitrello.settings import *
 
 SECRET_KEY = 'TEST_SECRET_KEY'
 
+URL = 'http://127.0.0.1:8000'
+GITHUB_INTEGRATION_SERVICE_URL = 'http://127.0.0.1:8001'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django_cockroachdb',

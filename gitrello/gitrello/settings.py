@@ -8,6 +8,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+URL = os.getenv('URL')
+GITHUB_INTEGRATION_SERVICE_URL = os.getenv('GITHUB_INTEGRATION_SERVICE_URL')
+
 ADMINS = [
     ('Uladzislau Stasheuski', 'fnsdevelopment@gmail.com'),
 ]
@@ -204,3 +207,9 @@ LOGGING = {
 GRAPHENE = {
     'SCHEMA': 'gitrello.schema.schema',
 }
+
+# Github
+# TODO
+GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID', '2cf54deb6587057ef360')
+GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', 'cae0a9c8eaea5b878ec634a6ce84b02778069b7f')
+GITHUB_DEFAULT_SCOPES = ('read:user', 'repo')

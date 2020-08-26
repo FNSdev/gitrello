@@ -2,7 +2,7 @@ import {cookieService, } from "./services/cookieService.js";
 import {tokenService, } from "./services/tokenService.js";
 import {
     GITrelloError, HttpClientError, HttpClientPermissionDeniedError, HttpClientBadRequestError,
-    HttpClientUnauthorizedError, ErrorCode,
+    HttpClientUnauthorizedError, HttpClientNotFoundError, ErrorCode,
 } from "./errors.js";
 
 export class HttpClient {
@@ -53,6 +53,9 @@ export class HttpClient {
             throw new GITrelloError();
         }
 
+        if (response.status === 404) {
+            throw new HttpClientNotFoundError(json["error_message"]);
+        }
         if (response.status === 403) {
             throw new HttpClientPermissionDeniedError(json['error_message']);
         }

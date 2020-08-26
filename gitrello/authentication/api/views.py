@@ -20,12 +20,14 @@ class UsersView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        user, token = UserService().create_user(**serializer.validated_data)
+        service = UserService()
+        user, token = service.create_user(**serializer.validated_data)
         return Response(
             status=201,
             data={
                 'id': str(user.id),
                 'token': token.key,
+                'jwt_token': service.get_jwt_token(user.id),
             },
         )
 
@@ -39,6 +41,7 @@ class AuthTokenView(views.APIView):
             status=200,
             data={
                 'token': request.user.auth_token.key,
+                'jwt_token': UserService().get_jwt_token(request.user.id),
                 'user': {
                     'id': str(request.user.id),
                     'username': request.user.username,

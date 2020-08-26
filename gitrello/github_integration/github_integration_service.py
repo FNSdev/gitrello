@@ -1,7 +1,7 @@
-import jwt
 import requests
 from django.conf import settings
 
+from authentication.services import UserService
 from gitrello.exceptions import HttpRequestException
 from gitrello.handlers import safe_http_request
 
@@ -9,17 +9,12 @@ from gitrello.handlers import safe_http_request
 class GithubIntegrationServiceAPIClient:
     CREATE_GITHUB_PROFILE_URL = '/api/v1/github-profiles'
 
-    def __init__(self, user_id):
-        token = jwt.encode(
-            payload={
-                'user_id': user_id,
-            },
-            key=settings.SECRET_KEY,
-            algorithm='HS256',
-        )
+    # Error codes
+    ALREADY_EXISTS = 106
 
+    def __init__(self, user_id):
         self.headers = {
-            'Authorization': f'Bearer {token.decode("utf")}',
+            'Authorization': f'Bearer {UserService().get_jwt_token(user_id)}',
         }
 
     @safe_http_request

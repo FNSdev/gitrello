@@ -1,7 +1,9 @@
 from typing import Tuple
 
+import jwt
 from django.db.models import Q
 from django.db.transaction import atomic
+from django.conf import settings
 from django.views.decorators.debug import sensitive_variables
 
 from rest_framework.authtoken.models import Token
@@ -37,3 +39,14 @@ class UserService:
 
         token = Token.objects.create(user=user)
         return user, token
+
+    def get_jwt_token(self, user_id: int) -> str:
+        token = jwt.encode(
+            payload={
+                'user_id': user_id,
+            },
+            key=settings.SECRET_KEY,
+            algorithm='HS256',
+        )
+
+        return token.decode('utf-8')

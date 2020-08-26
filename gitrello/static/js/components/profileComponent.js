@@ -1,5 +1,3 @@
-import {oauthStateRepository, } from "../repositories/oauthStateRepository.js";
-
 const template = document.createElement('template')
 template.innerHTML = `
     <style>
@@ -32,23 +30,25 @@ template.innerHTML = `
         margin-top: 10px;
       }
       
+      .container__github-connection {
+        margin-top: 10px;
+      }
+      
       @media screen and (min-width: 992px) {
         .container {
           width: 20vw;
         }
       }
     </style>
-    <div class="container">
+    <div id="container" class="container">
       <div id="full-name" class="container__full-name"></div>
       <div id="email" class="container__email"></div>
       <div id="username" class="container__username"></div>
-      <button-component id="github-button" class="container__github-button" width="200px">Connect to GitHub</button-component>
+      <github-connection-component class="container__github-connection"></github-connection-component>
     </div>
 `
 
 export class ProfileComponent extends HTMLElement {
-    GITHUB_OAUTH_URL = 'https://github.com/login/oauth/authorize';
-
     constructor(user) {
         super();
 
@@ -59,38 +59,11 @@ export class ProfileComponent extends HTMLElement {
         this.stateHasChanged = null;
     }
 
-    // TODO check if user is already connected to GitHub
-    connectedCallback() {
+    async connectedCallback() {
         this.shadowRoot.getElementById('full-name').innerHTML = `${this.user.firstName} ${this.user.lastName}`;
         this.shadowRoot.getElementById('email').innerHTML = this.user.email;
         this.shadowRoot.getElementById('username').innerHTML = this.user.username;
-        this.shadowRoot.getElementById('github-button').onclick = async () => await this.onGithubButtonClick();
-    }
 
-    async onGithubButtonClick() {
-        let state = null;
-        try {
-            const oauthState = await oauthStateRepository.create(oauthStateRepository.GITHUB_PROVIDER);
-            state = oauthState.state;
-        }
-        catch (e) {
-            // TODO
-            console.log(e);
-            return
-        }
-
-        const params = {
-            'client_id': window.GITHUB_CLIENT_ID,
-            'redirect_uri': window.GITHUB_REDIRECT_URL,
-            'state': state,
-        }
-
-        let paramsQuery = '?'
-        for (let [key, value] of Object.entries(params)) {
-            paramsQuery += `${key}=${encodeURIComponent(value.toString())}&`
-        }
-
-        location.href = `${this.GITHUB_OAUTH_URL}${paramsQuery}&scope=${window.GITHUB_DEFAULT_SCOPES}`;
     }
 }
 

@@ -35,9 +35,11 @@ export class ButtonComponent extends HTMLElement {
 
         this.attachShadow({mode: 'open'});
         this.shadowRoot.appendChild(template.content.cloneNode(true));
+    }
 
+    connectedCallback() {
         const button = this.shadowRoot.querySelector('#button');
-        button.innerHTML = this.innerHTML;
+
         if (this.getAttribute('type') === 'success') {
             button.classList.add('btn-success');
         }
@@ -50,6 +52,12 @@ export class ButtonComponent extends HTMLElement {
 
         if (this.getAttribute('width') !== undefined) {
             button.style.width = this.getAttribute('width');
+        }
+        if (this.getAttribute('text') != null) {
+            button.innerHTML = this.getAttribute('text');
+        }
+        else {
+            button.innerHTML = this.innerHTML;
         }
     }
 }

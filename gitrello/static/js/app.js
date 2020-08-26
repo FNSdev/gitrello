@@ -9,6 +9,7 @@ import {CreateBoardMembershipFormComponent, } from "./components/forms/createBoa
 import {CreateCategoryFormComponent, } from "./components/forms/createCategoryFormComponent.js";
 import {CreateOrganizationFormComponent, } from "./components/forms/createOrganizationFormComponent.js";
 import {ErrorListComponent, } from "./components/common/errorsListComponent.js";
+import {GithubConnectionComponent, } from "./components/githubConnectionComponent.js";
 import {InputComponent, } from "./components/common/inputComponent.js";
 import {LogInFormComponent, } from "./components/forms/logInFormComponent.js";
 import {OrganizationComponent, } from "./components/organizationComponent.js";

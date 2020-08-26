@@ -15,3 +15,6 @@ DATABASES = {
         'PORT': os.getenv('DJANGO_DB_PORT') or '26257',
     }
 }
+
+GITHUB_CLIENT_ID = 'test_github_client_id'
+GITHUB_CLIENT_SECRET = 'test_github_client_secret'

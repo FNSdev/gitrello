@@ -3,7 +3,8 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer
+from authentication.services import PermissionsService
+from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer, GetBoardPermissionsSerializer
 from boards.services import BoardService, BoardMembershipService
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 
@@ -66,3 +67,13 @@ class BoardMembershipView(views.APIView):
 
         service.delete_member(board_membership_id=kwargs['id'])
         return Response(status=204)
+
+
+class BoardPermissionsView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        serializer = GetBoardPermissionsSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise APIRequestValidationException(serializer_errors=serializer.errors)
+
+        permissions = PermissionsService.get_board_permissions(**serializer.validated_data)
+        return Response(status=200, data=permissions)

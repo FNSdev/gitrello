@@ -15,7 +15,7 @@ export class HttpClient {
 
     _getHeaders() {
         const headers = {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json;charset=utf-8',
             'X-CSRFToken': this.cookieService.getCookie('csrftoken'),
         }
 
@@ -124,6 +124,10 @@ export class HttpClient {
 
     async patch({url, data = {}, headers = null}) {
         return await this._makeRequest({url: url, method: 'PATCH', data: data, headers: headers});
+    }
+
+    async put({url, data = {}, headers = null}) {
+        return await this._makeRequest({url: url, method: 'PUT', data: data, headers: headers});
     }
 
     async delete({url, headers = null}) {

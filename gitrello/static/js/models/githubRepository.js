@@ -1,6 +1,6 @@
 export class GithubRepository {
-    constructor({id, name}) {
-        this.id = id;
+    constructor({name, owner}) {
         this.name = name;
+        this.owner = owner;
     }
 }

@@ -21,8 +21,8 @@ class GithubRepositoryRepository {
             response.forEach(githubRepository => {
                 githubRepositories.push(
                     new GithubRepository({
-                        id: githubRepository['id'],
                         name: githubRepository['name'],
+                        owner: githubRepository['owner'],
                     }),
                 );
             })

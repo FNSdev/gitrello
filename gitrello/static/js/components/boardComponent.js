@@ -298,10 +298,14 @@ export class BoardComponent extends HTMLElement {
         this._insertMembers([member, ]);
     }
 
-    async onGithubRepositoryClick(repositoryId) {
+    async onGithubRepositoryClick(repositoryName, repositoryOwner) {
         try {
             const githubRepositories = await githubRepositoryRepository.getAll();
-            const boardRepository = await boardRepositoryRepository.createOrUpdate(this.board.id, repositoryId);
+            const boardRepository = await boardRepositoryRepository.createOrUpdate(
+                this.board.id,
+                repositoryName,
+                repositoryOwner,
+            );
             this._insertGithubRepositories(githubRepositories, boardRepository);
         }
         catch (e) {
@@ -340,23 +344,26 @@ export class BoardComponent extends HTMLElement {
 
         githubRepositories.forEach(repository => {
             const li = document.createElement('li');
-            li.innerHTML = `${repository.name}`;
+            li.innerHTML = `${repository.owner}/${repository.name}`;
 
             li.classList.add("settings-modal__content__repositories__list__element");
-            if (boardRepository != null && repository.id === boardRepository.repositoryId) {
+            if (boardRepository != null
+                    && repository.name === boardRepository.repositoryName
+                    && repository.owner === boardRepository.repositoryOwner) {
                 li.classList.add("settings-modal__content__repositories__list__element--selected");
                 wrongRepositorySelected = false;
             }
 
-            li.onclick = async () => await this.onGithubRepositoryClick(repository.id);
+            li.onclick = async () => await this.onGithubRepositoryClick(repository.name, repository.owner);
 
             repositoriesList.appendChild(li);
         });
 
         if (wrongRepositorySelected) {
             errors.addWarningMessage(
-                `Repository ${boardRepository.repositoryId} is selected for this board,
-                 but it is not present in your repositories. Perhaps it was deleted?`
+                `Repository <strong>${boardRepository.repositoryOwner}/${boardRepository.repositoryName}</strong>
+                 is selected for this board, but it is not present in your repositories. 
+                 Perhaps it was renamed or deleted?`
             );
         }
     }

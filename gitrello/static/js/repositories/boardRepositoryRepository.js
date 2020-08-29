@@ -25,7 +25,8 @@ class BoardRepositoryRepository {
             return new BoardRepository({
                 id: response['id'],
                 boardId: response['board_id'],
-                repositoryId: response['repository_id'],
+                repositoryName: response['repository_name'],
+                repositoryOwner: response['repository_owner'],
             });
         }
         catch (e) {
@@ -40,10 +41,11 @@ class BoardRepositoryRepository {
         }
     }
 
-    async createOrUpdate(boardId, repositoryId) {
+    async createOrUpdate(boardId, repositoryName, repositoryOwner) {
         const data = {
             'board_id': boardId,
-            'repository_id': repositoryId,
+            'repository_name': repositoryName,
+            'repository_owner': repositoryOwner,
         }
         const headers = {
             'Authorization': `Bearer ${this.httpClient.tokenService.jwtToken}`,
@@ -56,7 +58,8 @@ class BoardRepositoryRepository {
             return new BoardRepository({
                 id: response['id'],
                 boardId: response['board_id'],
-                repositoryId: response['repository_id'],
+                repositoryName: response['repository_name'],
+                repositoryOwner: response['repository_owner'],
             });
         }
         catch (e) {

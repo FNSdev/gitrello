@@ -1,7 +1,7 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: gitrello-service-ingress
+  name: gitrello-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
@@ -15,13 +15,19 @@ spec:
       http:
         paths:
         - path: /
+          pathType: Prefix
           backend:
-            serviceName: gitrello
-            servicePort: 80
+            service:
+              name: gitrello
+              port:
+                number: 80
     - host: www.gitrello.me
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: gitrello
-              servicePort: 80
+              service:
+                name: gitrello
+                port:
+                  number: 80

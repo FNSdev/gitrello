@@ -1,0 +1,23 @@
+master:
+  serviceType: LoadBalancer
+  servicePort: 8081
+  serviceAnnotations:
+    metallb.universe.tf/allow-shared-ip: gitrello
+  installPlugins:
+    - kubernetes:1.27.0
+    - workflow-aggregator:2.6
+    - workflow-job:2.39
+    - git:4.4.1
+  # https://github.com/helm/charts/issues/15453
+  customInitContainers:
+    - name: "volume-mount-permission"
+      image: "busybox"
+      command: ["/bin/chown", "-R", "1000", "/var/jenkins_home"]
+      volumeMounts:
+        - name: "jenkins-home"
+          mountPath: "/var/jenkins_home"
+      securityContext:
+        runAsUser: 0
+persistence:
+  storageClass: jenkins
+  size: "4Gi"

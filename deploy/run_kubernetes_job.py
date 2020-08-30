@@ -19,7 +19,7 @@ class KubernetesJob:
     FAILED = 'failed'
 
     def __init__(self, name, file_name, k8s_url, k8s_token):
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'manifests', 'jobs', file_name))
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'manifests', 'gitrello', file_name))
 
         with open(path, 'r') as file:
             self.manifest = file.read()

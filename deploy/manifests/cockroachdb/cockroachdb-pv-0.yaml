@@ -5,7 +5,7 @@ metadata:
   labels:
     app: cockroachdb
 spec:
-  storageClassName: manual
+  storageClassName: cockroachdb
   capacity:
     storage: 2Gi
   accessModes:

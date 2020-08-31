@@ -1,8 +1,6 @@
 master:
-  serviceType: LoadBalancer
+  serviceType: ClusterIP
   servicePort: 8081
-  serviceAnnotations:
-    metallb.universe.tf/allow-shared-ip: gitrello
   installPlugins:
     - kubernetes:1.27.0
     - workflow-aggregator:2.6
@@ -18,6 +16,7 @@ master:
           mountPath: "/var/jenkins_home"
       securityContext:
         runAsUser: 0
+  jenkinsUriPrefix: "/jenkins"
 persistence:
   storageClass: jenkins
   size: "4Gi"

@@ -2,10 +2,10 @@ statefulset:
   resources:
     limits:
       cpu: "0.4"
-      memory: "0.8Gi"
+      memory: "800Mi"
     requests:
       cpu: "0.4"
-      memory: "0.8Gi"
+      memory: "800Mi"
 storage:
   persistentVolume:
     storageClass: "cockroachdb"
@@ -16,7 +16,7 @@ service:
     annotations:
       metallb.universe.tf/allow-shared-ip: gitrello
 conf:
-  cache: "0.2Gi"
-  max-sql-memory: "0.2Gi"
+  cache: "200Mi"
+  max-sql-memory: "200Mi"
 tls:
   enabled: true

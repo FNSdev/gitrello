@@ -6,6 +6,7 @@ master:
     - workflow-aggregator:2.6
     - workflow-job:2.39
     - git:4.4.1
+    - configuration-as-code:1.41
   # https://github.com/helm/charts/issues/15453
   customInitContainers:
     - name: "volume-mount-permission"

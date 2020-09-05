@@ -2,6 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Required for liveness & readiness probes
+host: example.com
+
 labels:
   app: gitrello
 

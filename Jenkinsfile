@@ -95,7 +95,7 @@ pipeline {
             }
             steps {
                 container('python') {
-                    sh "cd gitrello & python manage.py collectstatic --settings=gitrello.settings_prod"
+                    sh "python manage.py collectstatic --settings=gitrello.settings_prod"
                 }
             }
         }
@@ -109,7 +109,7 @@ pipeline {
             }
             steps {
                 container('python') {
-                    sh "cd gitrello & python manage.py migrate"
+                    sh "python manage.py migrate"
                 }
             }
         }
@@ -117,7 +117,7 @@ pipeline {
             steps {
                 container('helm') {
                     withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
-                        sh "helm upgrade test --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
+                        sh "helm upgrade gitrello --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
                     }
                 }
             }

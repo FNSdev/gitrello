@@ -3,22 +3,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gitrello
+  name: tmp
   labels:
-    app: gitrello
+    app: tmp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gitrello
+      app: tmp
   template:
     metadata:
       labels:
-        app: gitrello
+        app: tmp
     spec:
       containers:
-      - image: fnsdev/gitrello:latest
-        name: gitrello
+      - image: fnsdev/tmp:latest
+        name: tmp
         env:
         - name: DJANGO_SECRET_KEY
           valueFrom:
@@ -97,4 +97,4 @@ spec:
              key: github_client_secret
         ports:
         - containerPort: 80
-          name: gitrello
+          name: tmp

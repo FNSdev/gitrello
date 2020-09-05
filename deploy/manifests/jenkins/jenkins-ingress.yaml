@@ -7,11 +7,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - gitrello.me
-        - www.gitrello.me
+        - tmp.me
+        - www.tmp.me
       secretName: tls
   rules:
-    - host: gitrello.me
+    - host: tmp.me
       http:
         paths:
         - path: /jenkins
@@ -21,7 +21,7 @@ spec:
               name: jenkins
               port:
                 number: 8081
-    - host: www.gitrello.me
+    - host: www.tmp.me
       http:
         paths:
           - path: /jenkins

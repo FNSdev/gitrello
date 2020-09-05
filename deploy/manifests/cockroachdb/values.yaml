@@ -14,7 +14,7 @@ service:
   public:
     type: LoadBalancer
     annotations:
-      metallb.universe.tf/allow-shared-ip: gitrello
+      metallb.universe.tf/allow-shared-ip: tmp
 conf:
   cache: "200Mi"
   max-sql-memory: "200Mi"

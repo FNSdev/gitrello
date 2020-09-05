@@ -1,33 +1,33 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: gitrello-ingress
+  name: tmp-ingress
   annotations:
     kubernetes.io/ingress.class: "nginx"
 spec:
   tls:
     - hosts:
-        - gitrello.me
-        - www.gitrello.me
+        - tmp.me
+        - www.tmp.me
       secretName: tls
   rules:
-    - host: gitrello.me
+    - host: tmp.me
       http:
         paths:
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: gitrello
+              name: tmp
               port:
                 number: 80
-    - host: www.gitrello.me
+    - host: www.tmp.me
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: gitrello
+                name: tmp
                 port:
                   number: 80

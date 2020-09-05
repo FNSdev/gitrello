@@ -6,10 +6,10 @@ spec:
   template:
     spec:
       containers:
-      - name: gitrello-collect-static
-        image: fnsdev/gitrello:current
+      - name: tmp-collect-static
+        image: fnsdev/tmp:current
         imagePullPolicy: Always
-        command: ["sh", "-c", "python manage.py collectstatic --noinput --settings=gitrello.settings_prod"]
+        command: ["sh", "-c", "python manage.py collectstatic --noinput --settings=tmp.settings_prod"]
         env:
         - name: DJANGO_SECRET_KEY
           valueFrom:

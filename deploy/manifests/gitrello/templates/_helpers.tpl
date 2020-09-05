@@ -34,7 +34,7 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "gitrello.labels" -}}
-helm.sh/chart: {{ include "test.chart" . }}
+helm.sh/chart: {{ include "gitrello.chart" . }}
 {{ include "gitrello.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}

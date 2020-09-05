@@ -87,18 +87,6 @@ pipeline {
                 }
             }
         }
-        stage('Collect static') {
-            environment {
-                GS_BUCKET_NAME = credentials('gs-bucket-name')
-                GS_PROJECT_ID = credentials('gs-project-id')
-                GS_CREDENTIALS = credentials('gs-credentials')
-            }
-            steps {
-                container('python') {
-                    sh "python manage.py collectstatic --settings=gitrello.settings_prod"
-                }
-            }
-        }
         stage('Migrate database') {
             environment {
                 DJANGO_DB_NAME = credentials('db-name')
@@ -109,7 +97,19 @@ pipeline {
             }
             steps {
                 container('python') {
-                    sh "python manage.py migrate"
+                    sh "cd gitrello && python manage.py migrate"
+                }
+            }
+        }
+        stage('Collect static') {
+            environment {
+                GS_BUCKET_NAME = credentials('gs-bucket-name')
+                GS_PROJECT_ID = credentials('gs-project-id')
+                GS_CREDENTIALS = credentials('gs-credentials')
+            }
+            steps {
+                container('python') {
+                    sh "cd gitrello && python manage.py collectstatic --settings=gitrello.settings_prod"
                 }
             }
         }

@@ -1,4 +1,4 @@
-FROM python:3.8.3-slim-buster AS base
+FROM python:3.8.5-slim-buster AS base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \

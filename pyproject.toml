@@ -5,7 +5,7 @@ description = "Trello clone with GitHub integration"
 authors = ["Uladzislau Stasheuski <fnsdevelopment@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "3.8.3"
+python = "3.8.5"
 django = "^3.0.8"
 django-cockroachdb = "^3.0.1"
 django-filter = "^2.3.0"

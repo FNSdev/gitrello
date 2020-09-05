@@ -92,15 +92,15 @@ ingress:
   hosts:
     - host: chart-example.local
       paths: []
-    # paths:
-    #   - host: gitrello.me
-    #     paths:
-    #       - path: /
-    #         type: Prefix
-    #   - host: www.gitrello.me
-    #     paths:
-    #       - path: /
-    #         type: Prefix
+      # paths:
+      #   - host: gitrello.me
+      #     paths:
+      #       - path: /
+      #         type: Prefix
+      #   - host: www.gitrello.me
+      #     paths:
+      #       - path: /
+      #         type: Prefix
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:

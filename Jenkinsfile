@@ -44,11 +44,11 @@ pipeline {
     stages {
         stage ('Run tests') {
             environment {
-                DJANGO_DB_NAME = credentials('django-db-name')
-                DJANGO_DB_USER = credentials('django-db-user')
-                DJANGO_DB_HOST = credentials('django-db-host')
-                DJANGO_DB_PORT = credentials('django-db-port')
-                DJANGO_DB_PASSWORD = credentials('django-db-password')
+                DJANGO_DB_NAME = credentials('test-db-name')
+                DJANGO_DB_USER = credentials('test-db-user')
+                DJANGO_DB_HOST = credentials('test-db-host')
+                DJANGO_DB_PORT = credentials('test-db-port')
+                DJANGO_DB_PASSWORD = credentials('test-db-password')
             }
             steps {
                 container('python') {
@@ -87,14 +87,40 @@ pipeline {
                 }
             }
         }
-//         stage('Deploy chart') {
-//             steps {
-//                 container('helm') {
-//                     withCredentials([file(credentialsId: 'overrides', variable: 'OVERRIDES')]) {
-//                         sh "helm upgrade test --install ./helm/test -f ${OVERRIDES} --set deployment.image.tag=${tag}"
-//                     }
-//                 }
-//             }
-//         }
+        stage('Collect static') {
+            environment {
+                GS_BUCKET_NAME = credentials('gs-bucket-name')
+                GS_PROJECT_ID = credentials('gs-project-id')
+                GS_CREDENTIALS = credentials('gs-credentials')
+            }
+            steps {
+                container('python') {
+                    sh "cd gitrello & python manage.py collectstatic --settings=gitrello.settings_prod"
+                }
+            }
+        }
+        stage('Migrate database') {
+            environment {
+                DJANGO_DB_NAME = credentials('db-name')
+                DJANGO_DB_USER = credentials('db-user')
+                DJANGO_DB_HOST = credentials('db-host')
+                DJANGO_DB_PORT = credentials('db-port')
+                DJANGO_DB_PASSWORD = credentials('db-password')
+            }
+            steps {
+                container('python') {
+                    sh "cd gitrello & python manage.py migrate"
+                }
+            }
+        }
+        stage('Deploy chart') {
+            steps {
+                container('helm') {
+                    withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
+                        sh "helm upgrade test --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
+                    }
+                }
+            }
+        }
     }
 }

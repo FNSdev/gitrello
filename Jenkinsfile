@@ -2,7 +2,7 @@ def tag
 
 pipeline {
     environment {
-        IMAGE_NAME = 'fnsdev/test'
+        IMAGE_NAME = 'fnsdev/gitrello'
     }
     agent {
         kubernetes {

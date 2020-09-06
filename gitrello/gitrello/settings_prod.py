@@ -1,5 +1,3 @@
-import ast
-
 from google.oauth2 import service_account
 
 from gitrello.settings import *

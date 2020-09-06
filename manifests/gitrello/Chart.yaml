@@ -5,4 +5,4 @@ description: Trello clone with GitHub integration
 type: application
 
 version: 0.1.0
-appVersion: 0.16dev
+appVersion: 0.17

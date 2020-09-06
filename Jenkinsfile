@@ -123,7 +123,7 @@ pipeline {
             steps {
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
-                        sh "cd gitrello && python manage.py collectstatic --settings=gitrello.settings_prod"
+                        sh "cd gitrello && python manage.py collectstatic --noinput --settings=gitrello.settings_prod"
                     }
                 }
             }

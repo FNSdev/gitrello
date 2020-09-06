@@ -5,12 +5,14 @@ from typing import Callable
 
 from django.db import IntegrityError
 from psycopg2 import errorcodes
+from requests import RequestException
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
 from gitrello.exceptions import (
     GITrelloException, APIRequestValidationException, PermissionDeniedException, AuthenticationFailedException,
+    HttpRequestException,
 )
 
 logger = logging.getLogger(__name__)
@@ -99,3 +101,15 @@ def retry_on_transaction_serialization_error(
         return retry(original_function)
 
     return retry
+
+
+def safe_http_request(original_function: Callable = None):
+    @wraps(original_function)
+    def wrapper(*args, **kwargs):
+        try:
+            return original_function(*args, **kwargs)
+        except RequestException as e:
+            logger.exception('HTTP Request exception in %s', original_function.__name__)
+            raise HttpRequestException from e
+
+    return wrapper

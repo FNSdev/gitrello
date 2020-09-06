@@ -1,6 +1,7 @@
 from gitrello.settings import *
 
-SECRET_KEY = 'TEST_SECRET_KEY'
+URL = 'http://127.0.0.1:8000'
+GITHUB_INTEGRATION_SERVICE_URL = 'http://127.0.0.1:8001'
 
 DATABASES = {
     'default': {
@@ -12,3 +13,6 @@ DATABASES = {
         'PORT': os.getenv('DJANGO_DB_PORT') or '26257',
     }
 }
+
+GITHUB_CLIENT_ID = 'test_github_client_id'
+GITHUB_CLIENT_SECRET = 'test_github_client_secret'

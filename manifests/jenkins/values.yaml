@@ -1,0 +1,32 @@
+master:
+  serviceType: ClusterIP
+  servicePort: 8081
+  installPlugins:
+    - kubernetes:1.27.1
+    - workflow-aggregator:2.6
+    - workflow-job:2.40
+    - git:4.4.1
+    - github:1.31.0
+    - configuration-as-code:1.41
+    - matrix-auth:2.6.2
+    - embeddable-build-status:2.0.3
+  jenkinsUrl: https://gitrello.me/jenkins
+  jenkinsAdminEmail: fnsdevelopment@gmail.com
+  JCasC:
+    securityRealm: |-
+      local:
+        allowsSignup: false
+  # https://github.com/helm/charts/issues/15453
+  customInitContainers:
+    - name: "volume-mount-permission"
+      image: "busybox"
+      command: ["/bin/chown", "-R", "1000", "/var/jenkins_home"]
+      volumeMounts:
+        - name: "jenkins-home"
+          mountPath: "/var/jenkins_home"
+      securityContext:
+        runAsUser: 0
+  jenkinsUriPrefix: "/jenkins"
+persistence:
+  storageClass: jenkins
+  size: "4Gi"

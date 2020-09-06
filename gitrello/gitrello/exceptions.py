@@ -21,3 +21,8 @@ class PermissionDeniedException(GITrelloException):
 class AuthenticationFailedException(GITrelloException):
     message = 'Authentication failed'
     code = 3
+
+
+class HttpRequestException(GITrelloException):
+    message = 'An error occurred when accessing an external service'
+    code = 4

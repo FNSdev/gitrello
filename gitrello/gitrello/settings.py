@@ -2,11 +2,14 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or 'DUMMY_SECRET_KEY'
 
 DEBUG = False
 
 ALLOWED_HOSTS = []
+
+URL = os.getenv('URL')
+GITHUB_INTEGRATION_SERVICE_URL = os.getenv('GITHUB_INTEGRATION_SERVICE_URL')
 
 ADMINS = [
     ('Uladzislau Stasheuski', 'fnsdevelopment@gmail.com'),
@@ -204,3 +207,8 @@ LOGGING = {
 GRAPHENE = {
     'SCHEMA': 'gitrello.schema.schema',
 }
+
+# Github
+GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET')
+GITHUB_DEFAULT_SCOPES = ('read:user', 'repo')

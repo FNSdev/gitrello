@@ -46,3 +46,10 @@ export class HttpClientPermissionDeniedError extends HttpClientError {
         super(message);
     }
 }
+
+
+export class HttpClientNotFoundError extends HttpClientError {
+    constructor(message) {
+        super(message);
+    }
+}

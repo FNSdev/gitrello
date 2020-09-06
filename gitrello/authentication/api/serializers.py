@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
+from authentication.choices import OauthProvider
 from authentication.models import User
 
 
@@ -26,3 +27,13 @@ class CreateUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail=e.messages)
 
         return attrs
+
+
+class CreateOauthStateSerializer(serializers.Serializer):
+    provider = serializers.CharField(max_length=32)
+
+    def validate_provider(self, value):
+        if value not in (OauthProvider.GITHUB, ):
+            raise serializers.ValidationError(f'Provider "{value}" is not supported')
+
+        return value

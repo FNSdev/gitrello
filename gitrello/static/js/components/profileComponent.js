@@ -26,16 +26,25 @@ template.innerHTML = `
         font-size: 24px;
       }
       
+      .container__github-button {
+        margin-top: 10px;
+      }
+      
+      .container__github-connection {
+        margin-top: 10px;
+      }
+      
       @media screen and (min-width: 992px) {
         .container {
           width: 20vw;
         }
       }
     </style>
-    <div class="container">
+    <div id="container" class="container">
       <div id="full-name" class="container__full-name"></div>
       <div id="email" class="container__email"></div>
       <div id="username" class="container__username"></div>
+      <github-connection-component class="container__github-connection"></github-connection-component>
     </div>
 `
 
@@ -50,10 +59,11 @@ export class ProfileComponent extends HTMLElement {
         this.stateHasChanged = null;
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         this.shadowRoot.getElementById('full-name').innerHTML = `${this.user.firstName} ${this.user.lastName}`;
         this.shadowRoot.getElementById('email').innerHTML = this.user.email;
         this.shadowRoot.getElementById('username').innerHTML = this.user.username;
+
     }
 }
 

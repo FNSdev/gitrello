@@ -15,6 +15,8 @@ pipeline {
                 labels:
                   app: jenkins
               spec:
+                nodeSelector:
+                  type: ci
                 containers:
                   - name: python
                     image: python:3.8.5-slim-buster

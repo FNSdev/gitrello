@@ -21,11 +21,25 @@ pipeline {
                     command:
                       - cat
                     tty: true
+                    resources:
+                      requests:
+                        memory: "500Mi"
+                        cpu: "0.5"
+                      limits:
+                        memory: "500Mi"
+                        cpu: "0.5"
                   - name: docker
                     image: docker:19.03
                     command:
                       - cat
                     tty: true
+                    resources:
+                      requests:
+                        memory: "300Mi"
+                        cpu: "0.2"
+                      limits:
+                        memory: "300Mi"
+                        cpu: "0.2"
                     volumeMounts:
                       - name: dockersock
                         mountPath: /var/run/docker.sock

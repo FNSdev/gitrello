@@ -119,11 +119,12 @@ pipeline {
             environment {
                 GS_BUCKET_NAME = credentials('gs-bucket-name')
                 GS_PROJECT_ID = credentials('gs-project-id')
-                GS_CREDENTIALS = credentials('gs-credentials')
             }
             steps {
                 container('python') {
-                    sh "cd gitrello && python manage.py collectstatic --settings=gitrello.settings_prod"
+                    withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')) {
+                        sh "cd gitrello && python manage.py collectstatic --settings=gitrello.settings_prod"
+                    }
                 }
             }
         }

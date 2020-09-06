@@ -10,7 +10,7 @@ master:
     - configuration-as-code:1.41
     - matrix-auth:2.6.2
     - embeddable-build-status:2.0.3
-  jenkinsUrl: https://tmp.me/jenkins
+  jenkinsUrl: https://gitrello.me/jenkins
   jenkinsAdminEmail: fnsdevelopment@gmail.com
   JCasC:
     securityRealm: |-

@@ -73,7 +73,7 @@ pipeline {
                         rm -rf /var/lib/apt/lists/*
                     """
                     sh "pip install -r requirements.txt"
-                    sh "cd gitrello && python manage.py test"
+                    sh "cd gitrello && python manage.py --noinput test"
                 }
             }
         }

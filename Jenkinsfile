@@ -23,10 +23,10 @@ pipeline {
                     tty: true
                     resources:
                       requests:
-                        memory: "500Mi"
+                        memory: "400Mi"
                         cpu: "0.5"
                       limits:
-                        memory: "500Mi"
+                        memory: "400Mi"
                         cpu: "0.5"
                   - name: docker
                     image: docker:19.03
@@ -35,10 +35,10 @@ pipeline {
                     tty: true
                     resources:
                       requests:
-                        memory: "300Mi"
+                        memory: "200Mi"
                         cpu: "0.2"
                       limits:
-                        memory: "300Mi"
+                        memory: "200Mi"
                         cpu: "0.2"
                     volumeMounts:
                       - name: dockersock

@@ -1,3 +1,5 @@
+import ast
+
 from google.oauth2 import service_account
 
 from gitrello.settings import *
@@ -26,6 +28,11 @@ STATIC_URL = f'https://storage.googleapis.com/{os.getenv("GS_BUCKET_NAME")}/stat
 GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
 DEFAULT_FILE_STORAGE = 'gitrello.gcloud_storages.GoogleCloudMediaStorage'
 STATICFILES_STORAGE = 'gitrello.gcloud_storages.GoogleCloudStaticFilesStorage'
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.getenv('GS_CREDENTIALS'))
+try:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
+        info=ast.literal_eval(os.getenv('GS_CREDENTIALS')),
+    )
+except Exception:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.getenv('GS_CREDENTIALS'))
 GS_PROJECT_ID = os.getenv('GS_PROJECT_ID')
 GS_DEFAULT_ACL = 'publicRead'

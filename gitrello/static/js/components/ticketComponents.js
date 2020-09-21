@@ -168,7 +168,7 @@ export class TicketComponent extends HTMLElement {
 
     _insertTicket(ticket) {
         if (ticket.title !== null) {
-            this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} ${ticket.title}`;
+            this.shadowRoot.getElementById('title').innerHTML = `${ticket.title}`;
         }
         else {
             this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} New Ticket`;

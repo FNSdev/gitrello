@@ -28,7 +28,7 @@ template.innerHTML = `
     </style>
     <form class="form">
       <h1 class="form__header">New Category</h1>
-      <input-component required minlength="5" maxlength="100" id="form-category-name" type="text" class="form__input" placeholder="Category name">
+      <input-component required minlength="3" maxlength="100" id="form-category-name" type="text" class="form__input" placeholder="Category name">
       </input-component>
       <errors-list-component id="form-errors" class="form__errors"></errors-list-component>
       <button-component type="success" id="create-category-button" class="form__button"/>

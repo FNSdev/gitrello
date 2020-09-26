@@ -3,6 +3,8 @@ def tag
 pipeline {
     environment {
         IMAGE_NAME = 'fnsdev/gitrello'
+        BOT_TOKEN = credentials('bot-token')
+        CHAT_ID = '-1001347488559'
     }
     agent {
         kubernetes {
@@ -67,6 +69,10 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('test-db-password')
             }
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Build started $BUILD_URL %F0%9F%AA%92'"
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Running tests %F0%9F%AA%92'"
+                }
                 container('python') {
                     sh """
                       apt-get update && \
@@ -88,6 +94,9 @@ pipeline {
         }
         stage('Build image') {
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Building Docker image %F0%9F%AA%92'"
+                }
                 container('docker') {
                     sh "docker build -t ${IMAGE_NAME}:${tag} ."
                 }
@@ -112,6 +121,9 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('db-password')
             }
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Migrating database %F0%9F%AA%92'"
+                }
                 container('python') {
                     sh "cd gitrello && python manage.py migrate"
                 }
@@ -123,6 +135,9 @@ pipeline {
                 GS_PROJECT_ID = credentials('gs-project-id')
             }
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Collecting static files %F0%9F%AA%92'"
+                }
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
                         sh "cd gitrello && python manage.py collectstatic --noinput --settings=gitrello.settings_prod"
@@ -132,11 +147,26 @@ pipeline {
         }
         stage('Deploy chart') {
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Deploying helm chart %F0%9F%AA%92'"
+                }
                 container('helm') {
                     withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
                         sh "helm upgrade gitrello --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
                     }
                 }
+            }
+        }
+    }
+    post {
+        success {
+            script {
+               sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Build succeeded %F0%9F%AA%92'"
+            }
+        }
+        failure {
+            script {
+                sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='%F0%9F%AA%92 Build failed %F0%9F%AA%92'"
             }
         }
     }

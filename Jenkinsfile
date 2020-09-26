@@ -3,6 +3,8 @@ def tag
 pipeline {
     environment {
         IMAGE_NAME = 'fnsdev/gitrello'
+        BOT_TOKEN = credentials('bot-token')
+        CHAT_ID = '-1001347488559'
     }
     agent {
         kubernetes {
@@ -67,6 +69,10 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('test-db-password')
             }
             steps {
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Build started $BUILD_URL'"
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Running tests'"
+                }
                 telegramSend(message: 'Build started $BUILD_URL', chatId: -1001347488559)
                 telegramSend(message: 'Running tests', chatId: -1001347488559)
                 container('python') {
@@ -90,7 +96,9 @@ pipeline {
         }
         stage('Build image') {
             steps {
-                telegramSend(message: 'Building Docker image', chatId: -1001347488559)
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Building Docker image'"
+                }
                 container('docker') {
                     sh "docker build -t ${IMAGE_NAME}:${tag} ."
                 }
@@ -115,7 +123,9 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('db-password')
             }
             steps {
-                telegramSend(message: 'Migrating database', chatId: -1001347488559)
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Migrating database'"
+                }
                 container('python') {
                     sh "cd gitrello && python manage.py migrate"
                 }
@@ -127,7 +137,9 @@ pipeline {
                 GS_PROJECT_ID = credentials('gs-project-id')
             }
             steps {
-                telegramSend(message: 'Collecting static files', chatId: -1001347488559)
+                script {
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Collecting static files'"
+                }
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
                         sh "cd gitrello && python manage.py collectstatic --noinput --settings=gitrello.settings_prod"
@@ -148,10 +160,14 @@ pipeline {
     }
     post {
         success {
-            telegramSend(message: 'Build succeeded', chatId: -1001347488559)
+            script {
+               sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Build succeeded'"
+            }
         }
         failure {
-            telegramSend(message: 'Build failed', chatId: -1001347488559)
+            script {
+                sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text='Build failed'"
+            }
         }
     }
 }

@@ -3,7 +3,6 @@ def tag
 pipeline {
     environment {
         IMAGE_NAME = 'fnsdev/gitrello'
-        CHAT_ID = '1001347488559'
     }
     agent {
         kubernetes {
@@ -68,8 +67,8 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('test-db-password')
             }
             steps {
-                telegramSend(message: 'Build started $BUILD_URL', chatId: '$CHAT_ID')
-                telegramSend(message: 'Running tests', chatId: $CHAT_ID)
+                telegramSend(message: 'Build started $BUILD_URL', chatId: 1001347488559)
+                telegramSend(message: 'Running tests', chatId: 1001347488559)
                 container('python') {
                     sh """
                       apt-get update && \
@@ -91,7 +90,7 @@ pipeline {
         }
         stage('Build image') {
             steps {
-                telegramSend(message: 'Building Docker image', chatId: '$CHAT_ID')
+                telegramSend(message: 'Building Docker image', chatId: 1001347488559)
                 container('docker') {
                     sh "docker build -t ${IMAGE_NAME}:${tag} ."
                 }
@@ -116,7 +115,7 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('db-password')
             }
             steps {
-                telegramSend(message: 'Migrating database', chatId: '$CHAT_ID')
+                telegramSend(message: 'Migrating database', chatId: 1001347488559)
                 container('python') {
                     sh "cd gitrello && python manage.py migrate"
                 }
@@ -128,7 +127,7 @@ pipeline {
                 GS_PROJECT_ID = credentials('gs-project-id')
             }
             steps {
-                telegramSend(message: 'Collecting static files', chatId: '$CHAT_ID')
+                telegramSend(message: 'Collecting static files', chatId: 1001347488559)
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
                         sh "cd gitrello && python manage.py collectstatic --noinput --settings=gitrello.settings_prod"
@@ -138,7 +137,7 @@ pipeline {
         }
         stage('Deploy chart') {
             steps {
-                telegramSend(message: 'Deploying helm chart', chatId: '$CHAT_ID')
+                telegramSend(message: 'Deploying helm chart', chatId: 1001347488559)
                 container('helm') {
                     withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
                         sh "helm upgrade gitrello --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
@@ -149,10 +148,10 @@ pipeline {
     }
     post {
         success {
-            telegramSend(message: 'Build succeeded', chatId: '$CHAT_ID')
+            telegramSend(message: 'Build succeeded', chatId: 1001347488559)
         }
         failure {
-            telegramSend(message: 'Build failed', chatId: '$CHAT_ID')
+            telegramSend(message: 'Build failed', chatId: 1001347488559)
         }
     }
 }

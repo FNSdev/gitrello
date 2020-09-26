@@ -1,5 +1,4 @@
 from rest_framework import views
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -12,7 +11,6 @@ from organizations.services import OrganizationService, OrganizationInviteServic
 
 class OrganizationsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
@@ -31,7 +29,6 @@ class OrganizationsView(views.APIView):
 
 class OrganizationInvitesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationInviteSerializer(data=request.data)
@@ -56,7 +53,6 @@ class OrganizationInvitesView(views.APIView):
 
 class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
@@ -82,7 +78,6 @@ class OrganizationInviteView(views.APIView):
 
 class OrganizationMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = OrganizationMembershipService()

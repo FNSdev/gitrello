@@ -66,7 +66,6 @@ export class AuthService {
             const response = await this.httpClient.get({url: this._authTokenUrl, headers: headers});
 
             this.tokenService.token = response['token'];
-            this.tokenService.jwtToken = response['jwt_token'];
             this._user = new User({
                 id: response['user']['id'],
                 token: response['token'],

@@ -1,5 +1,4 @@
 from rest_framework import views
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,7 +10,6 @@ from gitrello.exceptions import APIRequestValidationException, PermissionDeniedE
 
 class BoardsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardSerializer(data=request.data)
@@ -36,7 +34,6 @@ class BoardsView(views.APIView):
 
 class BoardMembershipsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardMembershipSerializer(data=request.data)
@@ -58,7 +55,6 @@ class BoardMembershipsView(views.APIView):
 
 class BoardMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = BoardMembershipService()

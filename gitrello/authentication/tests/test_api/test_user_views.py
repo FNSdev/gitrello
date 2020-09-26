@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 
 from authentication.exceptions import UserAlreadyExistsException
 from authentication.services import UserService
-from authentication.tests.factories import TokenFactory
+from authentication.tests.factories import UserFactory
 from gitrello.exceptions import APIRequestValidationException
 
 
@@ -18,10 +18,9 @@ class TestUsersView(TestCase):
             'email': 'test@test.com',
             'password': 'fsD43AasdSAFfV',
         }
+        user = UserFactory()
 
-        token = TokenFactory()
-
-        with patch.object(UserService, 'create_user', return_value=(token.user, token)) as mocked_create_user:
+        with patch.object(UserService, 'create_user', return_value=user) as mocked_create_user:
             response = APIClient().post('/api/v1/users', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
@@ -35,9 +34,8 @@ class TestUsersView(TestCase):
         self.assertDictEqual(
             response.data,
             {
-                'id': str(token.user_id),
-                'token': token.key,
-                'jwt_token': UserService().get_jwt_token(token.user_id),
+                'id': str(user.id),
+                'token': UserService().get_jwt_token(user.id),
             },
         )
 

@@ -67,8 +67,8 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('test-db-password')
             }
             steps {
-                telegramSend(message: 'Build started $BUILD_URL', chatId: 1001347488559)
-                telegramSend(message: 'Running tests', chatId: 1001347488559)
+                telegramSend(message: 'Build started $BUILD_URL', chatId: -1001347488559)
+                telegramSend(message: 'Running tests', chatId: -1001347488559)
                 container('python') {
                     sh """
                       apt-get update && \
@@ -90,7 +90,7 @@ pipeline {
         }
         stage('Build image') {
             steps {
-                telegramSend(message: 'Building Docker image', chatId: 1001347488559)
+                telegramSend(message: 'Building Docker image', chatId: -1001347488559)
                 container('docker') {
                     sh "docker build -t ${IMAGE_NAME}:${tag} ."
                 }
@@ -115,7 +115,7 @@ pipeline {
                 DJANGO_DB_PASSWORD = credentials('db-password')
             }
             steps {
-                telegramSend(message: 'Migrating database', chatId: 1001347488559)
+                telegramSend(message: 'Migrating database', chatId: -1001347488559)
                 container('python') {
                     sh "cd gitrello && python manage.py migrate"
                 }
@@ -127,7 +127,7 @@ pipeline {
                 GS_PROJECT_ID = credentials('gs-project-id')
             }
             steps {
-                telegramSend(message: 'Collecting static files', chatId: 1001347488559)
+                telegramSend(message: 'Collecting static files', chatId: -1001347488559)
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
                         sh "cd gitrello && python manage.py collectstatic --noinput --settings=gitrello.settings_prod"
@@ -137,7 +137,7 @@ pipeline {
         }
         stage('Deploy chart') {
             steps {
-                telegramSend(message: 'Deploying helm chart', chatId: 1001347488559)
+                telegramSend(message: 'Deploying helm chart', chatId: -1001347488559)
                 container('helm') {
                     withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
                         sh "helm upgrade gitrello --install ./manifests/gitrello -f ${OVERRIDES} --set deployment.image.tag=${tag}"
@@ -148,10 +148,10 @@ pipeline {
     }
     post {
         success {
-            telegramSend(message: 'Build succeeded', chatId: 1001347488559)
+            telegramSend(message: 'Build succeeded', chatId: -1001347488559)
         }
         failure {
-            telegramSend(message: 'Build failed', chatId: 1001347488559)
+            telegramSend(message: 'Build failed', chatId: -1001347488559)
         }
     }
 }

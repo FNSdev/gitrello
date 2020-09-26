@@ -70,8 +70,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Build started $BUILD_URL `echo -e '\\U0001FA92'`\""
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Running tests `echo -e '\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Build started $BUILD_URL `echo -e '\\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Running tests `echo -e '\\\U0001FA92'`\""
                 }
                 container('python') {
                     sh """
@@ -95,7 +95,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Building Docker image `echo -e '\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Building Docker image `echo -e '\\\U0001FA92'`\""
                 }
                 container('docker') {
                     sh "docker build -t ${IMAGE_NAME}:${tag} ."
@@ -122,7 +122,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Migrating database `echo -e '\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Migrating database `echo -e '\\\U0001FA92'`\""
                 }
                 container('python') {
                     sh "cd gitrello && python manage.py migrate"
@@ -136,7 +136,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Collecting static files `echo -e '\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Collecting static files `echo -e '\\\U0001FA92'`\""
                 }
                 container('python') {
                     withCredentials([file(credentialsId: 'gs-credentials', variable: 'GS_CREDENTIALS')]) {
@@ -148,7 +148,7 @@ pipeline {
         stage('Deploy chart') {
             steps {
                 script {
-                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Deploying helm chart `echo -e '\\U0001FA92'`\""
+                    sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Deploying helm chart `echo -e '\\\U0001FA92'`\""
                 }
                 container('helm') {
                     withCredentials([file(credentialsId: 'gitrello-overrides', variable: 'OVERRIDES')]) {
@@ -161,12 +161,12 @@ pipeline {
     post {
         success {
             script {
-               sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Build succeeded `echo -e '\\U0001FA92'`\""
+               sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Build succeeded `echo -e '\\\U0001FA92'`\""
             }
         }
         failure {
             script {
-                sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\U0001FA92'` Build failed `echo -e '\\U0001FA92'`\""
+                sh "curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -F chat_id=$CHAT_ID -d -F \"text=`echo -e '\\\U0001FA92'` Build failed `echo -e '\\\U0001FA92'`\""
             }
         }
     }

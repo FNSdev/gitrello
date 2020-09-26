@@ -10,12 +10,8 @@ class GithubRepositoryRepository {
     }
 
     async getAll() {
-        const headers = {
-            'Authorization': `Bearer ${this.httpClient.tokenService.jwtToken}`,
-        }
-
         try {
-            const response = await this.httpClient.get({url: this.getGithubRepositoriesUrl, headers})
+            const response = await this.httpClient.get({url: this.getGithubRepositoriesUrl})
 
             const githubRepositories = [];
             response.forEach(githubRepository => {

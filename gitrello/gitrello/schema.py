@@ -1,6 +1,7 @@
 import graphene
 from graphene_django.views import GraphQLView
 from graphql.error import GraphQLLocatedError
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import authentication_classes, permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -33,7 +34,7 @@ class DRFAuthenticatedGraphQLView(GraphQLView):
     def as_view(cls, *args, **kwargs):
         view = super().as_view(*args, **kwargs)
         view = permission_classes((IsAuthenticated, ))(view)
-        view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
+        view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES + [SessionAuthentication, ])(view)
         view = api_view(['GET', 'POST', ])(view)
         return view
 

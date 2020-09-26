@@ -80,6 +80,7 @@ export class CategoryComponent extends HTMLElement {
         this.boardMemberships = boardMemberships;
         this.stateHasChanged = null;
         this._ticketMoved = null;
+        this._ticketDeleted = null;
     }
 
     connectedCallback() {
@@ -157,13 +158,24 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
+    onTicketDeleted() {
+        if (this._ticketDeleted != null) {
+            this._ticketDeleted();
+        }
+    }
+
     set ticketMoved(callback) {
         this._ticketMoved = callback;
+    }
+
+    set ticketDeleted(callback) {
+        this._ticketDeleted = callback;
     }
 
     _insertTicket(ticket) {
         const ticketComponent = new TicketComponent(ticket, this.category.id, this.boardMemberships);
         ticketComponent.classList.add('container__tickets__list__item');
+        ticketComponent.ticketDeleted = () => this.onTicketDeleted();
         this.shadowRoot.getElementById('tickets-list').appendChild(ticketComponent);
     }
 

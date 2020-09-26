@@ -4,11 +4,12 @@ from django.test import TestCase
 
 from authentication.exceptions import UserNotFoundException
 from authentication.tests.factories import UserFactory
-from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
+from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationInviteAlreadyExistsException, OrganizationMembershipAlreadyExistsException,
     OrganizationNotFoundException, OrganizationInviteNotFoundException,
 )
+from organizations.models import OrganizationInvite
 from organizations.services import OrganizationInviteService, OrganizationMembershipService
 from organizations.tests.factories import OrganizationFactory, OrganizationMembershipFactory, OrganizationInviteFactory
 
@@ -28,7 +29,6 @@ class TestOrganizationInviteService(TestCase):
         self.assertEqual(invite.organization.id, organization.id)
         self.assertEqual(invite.user.id, user.id)
         self.assertEqual(invite.message, 'message')
-        self.assertEqual(invite.status, OrganizationInviteStatus.PENDING)
 
     def test_send_invite_organization_not_found(self):
         user = UserFactory()
@@ -59,6 +59,17 @@ class TestOrganizationInviteService(TestCase):
                 message='message',
             )
 
+    def test_send_invite_already_a_member(self):
+        owner = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        existing_member = OrganizationMembershipFactory(organization=owner.organization)
+
+        with self.assertRaises(OrganizationMembershipAlreadyExistsException):
+            _ = OrganizationInviteService().send_invite(
+                organization_id=owner.organization_id,
+                email=existing_member.user.email,
+                message='message',
+            )
+
     def test_can_send_invite(self):
         members = (
             OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER),
@@ -83,81 +94,53 @@ class TestOrganizationInviteService(TestCase):
             )
         )
 
-    def test_update_invite_accept(self):
+    def test_accept_or_decline_invite_accept(self):
         user = UserFactory()
         invite = OrganizationInviteFactory(user_id=user.id)
 
         with patch.object(OrganizationMembershipService, 'add_member') as mocked_add_member:
-            invite = OrganizationInviteService().update_invite(
-                organization_invite_id=invite.id,
-                accept=True,
-            )
+            OrganizationInviteService().accept_or_decline_invite(organization_invite_id=invite.id, accept=True)
 
-        self.assertIsNotNone(invite)
-        self.assertEqual(invite.status, OrganizationInviteStatus.ACCEPTED)
+        self.assertIsNone(OrganizationInvite.objects.first())
         mocked_add_member.assert_called_with(
             organization_id=invite.organization_id,
             user_id=user.id,
         )
 
-    def test_update_invite_decline(self):
+    def test_accept_or_decline_invite_decline(self):
         user = UserFactory()
         invite = OrganizationInviteFactory(user_id=user.id)
 
         with patch.object(OrganizationMembershipService, 'add_member') as mocked_add_member:
-            invite = OrganizationInviteService().update_invite(
+            OrganizationInviteService().accept_or_decline_invite(
                 organization_invite_id=invite.id,
                 accept=False,
             )
 
-        self.assertIsNotNone(invite)
-        self.assertEqual(invite.status, OrganizationInviteStatus.DECLINED)
+        self.assertIsNone(OrganizationInvite.objects.first())
         mocked_add_member.assert_not_called()
 
-    def test_update_invite_invite_not_found(self):
+    def test_accept_or_decline_invite_invite_not_found(self):
         with self.assertRaises(OrganizationInviteNotFoundException):
-            _ = OrganizationInviteService().update_invite(
-                organization_invite_id=-1,
-                accept=True,
-            )
+            OrganizationInviteService().accept_or_decline_invite(organization_invite_id=-1, accept=True)
 
-    def test_can_update_invite(self):
+    def test_can_accept_or_decline_invite(self):
         invite = OrganizationInviteFactory()
 
         self.assertTrue(
-            OrganizationInviteService().can_update_invite(
+            OrganizationInviteService().can_accept_or_decline_invite(
                 user_id=invite.user_id,
                 organization_invite_id=invite.id,
-            )
+            ),
         )
 
-    def test_can_update_invite_permission_denied(self):
+    def test_can_accept_or_decline_invite_permission_denied(self):
         invite = OrganizationInviteFactory()
         user = UserFactory()
 
         self.assertFalse(
-            OrganizationInviteService().can_update_invite(
-                user_id=user.id,
-                organization_invite_id=invite.id,
-            )
+            OrganizationInviteService().can_accept_or_decline_invite(user_id=user.id, organization_invite_id=invite.id),
         )
         self.assertFalse(
-            OrganizationInviteService().can_update_invite(
-                user_id=user.id,
-                organization_invite_id=-1,
-            )
+            OrganizationInviteService().can_accept_or_decline_invite(user_id=user.id, organization_invite_id=-1),
         )
-
-    def test_update_invite_already_a_member(self):
-        membership = OrganizationMembershipFactory()
-        invite = OrganizationInviteFactory(
-            user_id=membership.user_id,
-            organization_id=membership.organization_id,
-            status=OrganizationInviteStatus.ACCEPTED,
-        )
-
-        with self.assertRaises(OrganizationMembershipAlreadyExistsException):
-            _ = OrganizationInviteService().update_invite(
-                organization_invite_id=invite.id,
-                accept=True,
-            )

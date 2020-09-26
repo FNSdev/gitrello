@@ -10,12 +10,8 @@ class GithubProfileRepository {
     }
 
     async get() {
-        const headers = {
-            'Authorization': `Bearer ${this.httpClient.tokenService.jwtToken}`,
-        }
-
         try {
-            const response = await this.httpClient.get({url: this.getGithubProfileUrl, headers: headers})
+            const response = await this.httpClient.get({url: this.getGithubProfileUrl})
             return new GithubProfile({
                 id: response['id'],
                 githubUserId: response['github_user_id'],

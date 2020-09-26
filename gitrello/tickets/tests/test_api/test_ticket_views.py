@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from authentication.services.permissions_service import Permissions, PermissionsService
 from authentication.tests.factories import UserFactory
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from tickets.exceptions import CategoryNotFoundException, TicketNotFoundException
@@ -133,12 +134,17 @@ class TestTicketView(TestCase):
         api_client.force_authenticate(user=user)
 
         ticket = TicketFactory()
-        with patch.object(TicketService, 'can_update_ticket', return_value=True) as mocked_can_update_ticket, \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_ticket_permissions, \
                 patch.object(TicketService, 'update_ticket', return_value=ticket) as mocked_update_ticket:
             response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 200)
-        mocked_can_update_ticket.assert_called_with(
+        mocked_get_ticket_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=1,
         )
@@ -191,11 +197,9 @@ class TestTicketView(TestCase):
         }
 
         api_client = APIClient()
-        with patch.object(TicketService, 'can_update_ticket') as mocked_can_update_ticket:
-            response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
+        response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 401)
-        mocked_can_update_ticket.assert_not_called()
 
     def test_update_ticket_permission_denied(self):
         user = UserFactory()
@@ -207,7 +211,10 @@ class TestTicketView(TestCase):
             'body': 'Some Body',
             'due_date': '2021-01-01',
         }
-        with patch.object(TicketService, 'can_update_ticket', return_value=False) as mocked_can_update_ticket:
+        with patch.object(
+                PermissionsService,
+                'get_ticket_permissions',
+                return_value=Permissions.with_read_permissions()) as mocked_get_ticket_permissions:
             response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -215,7 +222,7 @@ class TestTicketView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_update_ticket.assert_called_with(
+        mocked_get_ticket_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=1,
         )
@@ -231,9 +238,17 @@ class TestTicketView(TestCase):
             'body': 'Some Body',
             'due_date': '2021-01-01',
         }
-        with patch.object(TicketService, 'can_update_ticket', return_value=True), \
-                patch.object(TicketService, 'update_ticket', side_effect=TicketNotFoundException) \
-                as mocked_update_ticket:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_ticket_permissions, \
+                patch.object(
+                    TicketService,
+                    'update_ticket',
+                    side_effect=TicketNotFoundException
+                ) as mocked_update_ticket:
             response = api_client.patch('/api/v1/tickets/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -241,6 +256,10 @@ class TestTicketView(TestCase):
             'error_code': TicketNotFoundException.code,
             'error_message': TicketNotFoundException.message,
         }
+        mocked_get_ticket_permissions.assert_called_with(
+            user_id=user.id,
+            ticket_id=1,
+        )
         mocked_update_ticket.assert_called_with(
             ticket_id=1,
             validated_data={

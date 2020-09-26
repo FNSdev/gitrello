@@ -125,7 +125,7 @@ export class TicketComponent extends HTMLElement {
         this.ticket = ticket;
         this.categoryId = categoryId;
         this.boardMemberships = boardMemberships;
-        this.stateHasChanged = null;
+        this._ticketDeleted = null;
     }
 
     connectedCallback() {
@@ -150,7 +150,8 @@ export class TicketComponent extends HTMLElement {
         };
 
         const ticketDetailsComponent = new TicketDetailsComponent(this.ticket, this.boardMemberships);
-        ticketDetailsComponent.callback = (ticket) => this.onTicketUpdated(ticket);
+        ticketDetailsComponent.ticketUpdated = (ticket) => this.onTicketUpdated(ticket);
+        ticketDetailsComponent.ticketDeleted = (ticket) => this.onTicketDeleted(ticket);
         this.shadowRoot.getElementById('ticket-modal-content').innerHTML = '';
         this.shadowRoot.getElementById('ticket-modal-content').appendChild(ticketDetailsComponent);
     }
@@ -161,17 +162,27 @@ export class TicketComponent extends HTMLElement {
         this._insertTicket(ticket);
     }
 
+    onTicketDeleted() {
+        if (this._ticketDeleted != null) {
+            this._ticketDeleted();
+        }
+    }
+
     onDragStart(event) {
         event.dataTransfer.setData("ticket", JSON.stringify(this.ticket));
         event.dataTransfer.setData('categoryId', this.categoryId);
     }
 
+    set ticketDeleted(callback) {
+        this._ticketDeleted = callback;
+    }
+
     _insertTicket(ticket) {
         if (ticket.title !== null) {
-            this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} ${ticket.title}`;
+            this.shadowRoot.getElementById('title').innerHTML = `${ticket.title}`;
         }
         else {
-            this.shadowRoot.getElementById('title').innerHTML = `${ticket.priority} New Ticket`;
+            this.shadowRoot.getElementById('title').innerHTML = `New Ticket`;
         }
         if (ticket.dueDate !== null) {
             this.shadowRoot.getElementById('due-date').innerHTML = `

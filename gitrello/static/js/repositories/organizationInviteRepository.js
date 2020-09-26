@@ -21,7 +21,6 @@ class OrganizationInviteRepository {
             const response = await this.httpClient.post({url: this.createOrganizationInviteUrl, data: data})
             return new OrganizationInvite({
                 id: response['id'],
-                status: response['status'],
             })
         }
         catch (e) {
@@ -55,7 +54,6 @@ class OrganizationInviteRepository {
                 organizationInvite = organizationInvite['node'];
                 organizationInvites.push(new OrganizationInvite({
                     id: organizationInvite['id'],
-                    status: organizationInvite['status'],
                     message: organizationInvite['message'],
                     addedAt: organizationInvite['addedAt'],
                     organization: new Organization({
@@ -81,14 +79,10 @@ class OrganizationInviteRepository {
         }
 
         try {
-            const response = await this.httpClient.patch({
+            await this.httpClient.patch({
                 url: `${this.createOrganizationInviteUrl}/${organizationInviteId}`,
                 data: data,
             });
-            return new OrganizationInvite({
-                id: response['id'],
-                status: response['status'],
-            })
         }
         catch (e) {
             console.log(e.message);

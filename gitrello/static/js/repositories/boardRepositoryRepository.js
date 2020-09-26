@@ -11,16 +11,12 @@ class BoardRepositoryRepository {
     }
 
     async getByBoardId(boardId) {
-        const headers = {
-            'Authorization': `Bearer ${this.httpClient.tokenService.jwtToken}`,
-        }
-
         const params = {
             'board_id': boardId,
         }
 
         try {
-            const response = await this.httpClient.get({url: this.getBoardRepositoryUrl, headers, params})
+            const response = await this.httpClient.get({url: this.getBoardRepositoryUrl, params})
 
             return new BoardRepository({
                 id: response['id'],
@@ -47,13 +43,9 @@ class BoardRepositoryRepository {
             'repository_name': repositoryName,
             'repository_owner': repositoryOwner,
         }
-        const headers = {
-            'Authorization': `Bearer ${this.httpClient.tokenService.jwtToken}`,
-            'Content-Type': 'application/json;charset=utf-8',
-        }
 
         try {
-            const response = await this.httpClient.put({url: this.createOrUpdateBoardRepositoryUrl, headers, data});
+            const response = await this.httpClient.put({url: this.createOrUpdateBoardRepositoryUrl, data});
 
             return new BoardRepository({
                 id: response['id'],

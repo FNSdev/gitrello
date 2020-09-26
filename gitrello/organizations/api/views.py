@@ -1,5 +1,4 @@
 from rest_framework import views
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -12,7 +11,6 @@ from organizations.services import OrganizationService, OrganizationInviteServic
 
 class OrganizationsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
@@ -31,7 +29,6 @@ class OrganizationsView(views.APIView):
 
 class OrganizationInvitesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationInviteSerializer(data=request.data)
@@ -49,14 +46,15 @@ class OrganizationInvitesView(views.APIView):
             status=201,
             data={
                 'id': str(invite.id),
-                'status': invite.get_status_display(),
+                'user_id': invite.user.id,
+                'organization_id': invite.organization.id,
+                'message': invite.message,
             },
         )
 
 
 class OrganizationInviteView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
@@ -64,25 +62,15 @@ class OrganizationInviteView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         service = OrganizationInviteService()
-        if not service.can_update_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
+        if not service.can_accept_or_decline_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
             raise PermissionDeniedException
 
-        invite = service.update_invite(
-            organization_invite_id=kwargs['id'],
-            **serializer.validated_data,
-        )
-        return Response(
-            status=200,
-            data={
-                'id': str(invite.id),
-                'status': invite.get_status_display(),
-            },
-        )
+        service.accept_or_decline_invite(organization_invite_id=kwargs['id'], **serializer.validated_data)
+        return Response(status=204)
 
 
 class OrganizationMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = OrganizationMembershipService()

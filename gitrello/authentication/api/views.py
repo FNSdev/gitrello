@@ -2,7 +2,7 @@ import logging
 
 from django.views.generic import RedirectView
 from rest_framework import views
-from rest_framework.authentication import TokenAuthentication, BasicAuthentication
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -21,13 +21,12 @@ class UsersView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         service = UserService()
-        user, token = service.create_user(**serializer.validated_data)
+        user = service.create_user(**serializer.validated_data)
         return Response(
             status=201,
             data={
                 'id': str(user.id),
-                'token': token.key,
-                'jwt_token': service.get_jwt_token(user.id),
+                'token': service.get_jwt_token(user.id),
             },
         )
 
@@ -40,8 +39,7 @@ class AuthTokenView(views.APIView):
         return Response(
             status=200,
             data={
-                'token': request.user.auth_token.key,
-                'jwt_token': UserService().get_jwt_token(request.user.id),
+                'token': UserService().get_jwt_token(request.user.id),
                 'user': {
                     'id': str(request.user.id),
                     'username': request.user.username,
@@ -55,7 +53,6 @@ class AuthTokenView(views.APIView):
 
 class AuthTokenOwnerView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, )
 
     def get(self, request, *args, **kwargs):
         return Response(
@@ -108,7 +105,6 @@ class GithubOauthView(RedirectView):
 
 class OauthStatesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, )
 
     # TODO add tests
     def post(self, request, *args, **kwargs):

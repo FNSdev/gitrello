@@ -44,6 +44,20 @@ class TicketService:
         ticket.save()
         return ticket
 
+    # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    def delete_ticket(self, ticket_id):
+        ticket = Ticket.objects.filter(id=ticket_id).first()
+        if not ticket:
+            raise TicketNotFoundException
+
+        Ticket.objects \
+            .filter(category_id=ticket.category_id, priority__gt=ticket.priority) \
+            .update(priority=F('priority') - 1)
+
+        ticket.delete()
+
     @retry_on_transaction_serialization_error
     @atomic
     def can_create_ticket(self, user_id: int, category_id: int) -> bool:
@@ -55,20 +69,6 @@ class TicketService:
             .filter(
                 organization_membership__user_id=user_id,
                 board_id=category['board_id'],
-            ) \
-            .exists()
-
-    @retry_on_transaction_serialization_error
-    @atomic
-    def can_update_ticket(self, user_id: int, ticket_id: int) -> bool:
-        ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
-        if not ticket:
-            return False
-
-        return BoardMembership.objects \
-            .filter(
-                organization_membership__user_id=user_id,
-                board_id=ticket['category__board_id'],
             ) \
             .exists()
 

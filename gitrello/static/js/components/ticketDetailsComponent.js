@@ -62,8 +62,14 @@ template.innerHTML = `
         padding: 10px;
       }
       
-      .container__form__button, .container__comment-form__button {
+      .container__form__buttons {
+        display: flex;
+        flex-direction: row;
         margin-top: 10px;
+      }
+      
+      .container__form__buttons__save-changes, .container__form__buttons__delete {
+        padding: 5px;
       }
       
       .container__members {
@@ -127,6 +133,10 @@ template.innerHTML = `
       .container__comments-list__item {
         margin-bottom: 10px;
       }
+      
+      .container__comment-form__button {
+        margin-top: 10px;
+      }
 
       @media screen and (min-width: 992px) {
           .container {
@@ -139,9 +149,14 @@ template.innerHTML = `
         <textarea maxlength="100" placeholder="New ticket" id="form-title" class="container__form__title"></textarea>
         <textarea id="form-body" class="container__form__body"></textarea>
         <errors-list-component id="form-errors" class="container__form__errors"></errors-list-component>
-        <button-component width="175px" type="success" id="save-changes-button" class="container__form__button"/>
-          Save Changes
-        </button-component>
+        <div class="container__form__buttons">
+          <button-component width="175px" type="success" id="save-changes-button" class="container__form__buttons__save-changes"/>
+            Save Changes
+          </button-component>
+          <button-component width="175px" type="danger" id="delete-ticket-button" class="container__form__buttons__delete"/>
+            Delete Ticket
+          </button-component>        
+        </div>
       </form>
       <div class="container__members">
           <div class="container__members__header"><strong>Click on Member to add or remove</strong></div>
@@ -171,8 +186,9 @@ export class TicketDetailsComponent extends HTMLElement {
         this.attachShadow({mode: 'open'});
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-        this._callback = null;
         this._ticket = ticket;
+        this._ticketUpdated = null;
+        this._ticketDeleted = null;
 
         this._boardMemberships = boardMemberships;
         this._boardMembershipsWithAssignments = this._getBoardMembershipsAndAssignments(boardMemberships);
@@ -183,6 +199,10 @@ export class TicketDetailsComponent extends HTMLElement {
         this.shadowRoot.getElementById('save-changes-button').addEventListener(
             'click',
             () => this.onSaveChangesClick(),
+        );
+        this.shadowRoot.getElementById('delete-ticket-button').addEventListener(
+            'click',
+            () => this.onDeleteTicketClick(),
         );
         this.shadowRoot.getElementById('new-comment-button').addEventListener(
             'click',
@@ -262,11 +282,27 @@ export class TicketDetailsComponent extends HTMLElement {
                 },
             );
 
-            if (this._callback != null) {
-                this._callback(this._ticket);
+            if (this._ticketUpdated != null) {
+                this._ticketDeleted(this._ticket);
             }
 
             errorsList.addSuccessMessage('Success');
+        }
+        catch (e) {
+            errorsList.addError(e.message);
+        }
+    }
+
+    async onDeleteTicketClick() {
+        const errorsList = this.shadowRoot.getElementById('form-errors');
+        errorsList.clear();
+
+        try {
+            await ticketRepository.delete(this._ticket.id);
+
+            if (this._ticketDeleted != null) {
+                this._ticketDeleted();
+            }
         }
         catch (e) {
             errorsList.addError(e.message);
@@ -303,8 +339,8 @@ export class TicketDetailsComponent extends HTMLElement {
             }
             
             this._insertMembers(this._getBoardMembershipsAndAssignments(this._boardMemberships));
-            if (this._callback != null) {
-                this._callback(this._ticket);
+            if (this._ticketUpdated != null) {
+                this._ticketUpdated(this._ticket);
             }
         }
         catch (e) {
@@ -333,8 +369,12 @@ export class TicketDetailsComponent extends HTMLElement {
         }
     }
 
-    set callback(callback) {
-        this._callback = callback;
+    set ticketUpdated(callback) {
+        this._ticketUpdated = callback;
+    }
+
+    set ticketDeleted(callback) {
+        this._ticketDeleted = callback;
     }
 
     _insertComment(comment, prepend=false) {

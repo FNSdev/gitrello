@@ -1,8 +1,8 @@
 from rest_framework import views
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from authentication.services.permissions_service import PermissionsService
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, UpdateTicketSerializer, CreateTicketAssignmentSerializer,
@@ -13,7 +13,6 @@ from tickets.services import CategoryService, CommentService, TicketAssignmentSe
 
 class CategoriesView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateCategorySerializer(data=request.data)
@@ -37,7 +36,6 @@ class CategoriesView(views.APIView):
 
 class TicketsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketSerializer(data=request.data)
@@ -61,17 +59,17 @@ class TicketsView(views.APIView):
 
 class TicketView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        service = TicketService()
-        if not service.can_update_ticket(user_id=request.user.id, ticket_id=kwargs['id']):
+        permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
+        service = TicketService()
         ticket = service.update_ticket(ticket_id=kwargs['id'], validated_data=serializer.validated_data)
         return Response(
             status=200,
@@ -85,10 +83,19 @@ class TicketView(views.APIView):
             },
         )
 
+    # TODO add tests
+    def delete(self, request, *args, **kwargs):
+        permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_delete:
+            raise PermissionDeniedException
+
+        service = TicketService()
+        service.delete_ticket(ticket_id=kwargs['id'])
+        return Response(status=204)
+
 
 class TicketAssignmentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketAssignmentSerializer(data=request.data)
@@ -116,7 +123,6 @@ class TicketAssignmentsView(views.APIView):
 
 class TicketAssignmentView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def delete(self, request, *args, **kwargs):
         service = TicketAssignmentService()
@@ -129,7 +135,6 @@ class TicketAssignmentView(views.APIView):
 
 class CommentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
-    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def post(self, request, *args, **kwargs):
         serializer = CreateCommentSerializer(data=request.data)

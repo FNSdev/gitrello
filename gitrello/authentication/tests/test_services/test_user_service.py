@@ -7,7 +7,7 @@ from authentication.tests.factories import UserFactory
 
 class TestUserService(TestCase):
     def test_create_user(self):
-        user, token = UserService().create_user(
+        user = UserService().create_user(
             username='username',
             first_name='fn',
             last_name='ln',
@@ -16,8 +16,6 @@ class TestUserService(TestCase):
         )
 
         self.assertIsNotNone(user)
-        self.assertIsNotNone(token)
-        self.assertEqual(token.user, user)
         self.assertEqual(user.username, 'username')
         self.assertEqual(user.first_name, 'fn')
         self.assertEqual(user.last_name, 'ln')

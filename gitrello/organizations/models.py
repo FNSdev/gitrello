@@ -1,6 +1,6 @@
 from django.db import models
 
-from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
+from organizations.choices import OrganizationMemberRole
 
 
 class Organization(models.Model):
@@ -60,9 +60,4 @@ class OrganizationInvite(models.Model):
 
     organization = models.ForeignKey(to=Organization, on_delete=models.CASCADE)
     user = models.ForeignKey(to='authentication.User', on_delete=models.CASCADE)
-    status = models.CharField(
-        max_length=30,
-        choices=OrganizationInviteStatus.CHOICES,
-        default=OrganizationInviteStatus.PENDING,
-    )
     message = models.TextField()

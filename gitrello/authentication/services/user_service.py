@@ -24,7 +24,7 @@ class UserService:
         first_name: str,
         last_name: str,
         password: str
-    ) -> Tuple[User, Token]:
+    ) -> User:
         if User.objects.filter(Q(username=username) | Q(email=email)).exists():
             raise UserAlreadyExistsException
 
@@ -37,8 +37,7 @@ class UserService:
         user.set_password(password)
         user.save()
 
-        token = Token.objects.create(user=user)
-        return user, token
+        return user
 
     def get_jwt_token(self, user_id: int) -> str:
         token = jwt.encode(

@@ -20,7 +20,7 @@ export class HttpClient {
         }
 
         if (this.tokenService.token != null) {
-            headers['Authorization'] = `Token ${this.tokenService.token}`;
+            headers['Authorization'] = `Bearer ${this.tokenService.token}`;
         }
 
         return headers;

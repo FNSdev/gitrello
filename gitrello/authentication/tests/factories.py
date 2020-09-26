@@ -10,12 +10,3 @@ class UserFactory(factory.DjangoModelFactory):
     first_name = Faker('first_name')
     last_name = Faker('last_name')
     email = Faker('email')
-
-
-class TokenFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = 'authtoken.Token'
-
-    user = factory.SubFactory(UserFactory)
-    key = Faker('uuid4')
-    created = Faker('date_time')

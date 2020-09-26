@@ -3,6 +3,7 @@ from django.db.transaction import atomic
 from boards.models import BoardMembership
 from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole
+from tickets.models import Ticket
 
 
 class Permissions:
@@ -36,6 +37,7 @@ class Permissions:
 
 
 class PermissionsService:
+    # TODO add tests
     @classmethod
     @retry_on_transaction_serialization_error
     @atomic
@@ -52,3 +54,23 @@ class PermissionsService:
             return Permissions.with_all_permissions()
 
         return Permissions.with_read_permissions()
+
+    @classmethod
+    @retry_on_transaction_serialization_error
+    @atomic
+    def get_ticket_permissions(cls, ticket_id: int, user_id: int) -> Permissions:
+        ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
+        if not ticket:
+            return Permissions.with_no_permissions()
+
+        is_board_member = BoardMembership.objects \
+            .filter(
+                organization_membership__user_id=user_id,
+                board_id=ticket['category__board_id'],
+            ) \
+            .exists()
+
+        if not is_board_member:
+            return Permissions.with_no_permissions()
+
+        return Permissions.with_all_permissions()

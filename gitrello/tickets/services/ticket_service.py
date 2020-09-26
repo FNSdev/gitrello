@@ -58,20 +58,6 @@ class TicketService:
             ) \
             .exists()
 
-    @retry_on_transaction_serialization_error
-    @atomic
-    def can_update_ticket(self, user_id: int, ticket_id: int) -> bool:
-        ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
-        if not ticket:
-            return False
-
-        return BoardMembership.objects \
-            .filter(
-                organization_membership__user_id=user_id,
-                board_id=ticket['category__board_id'],
-            ) \
-            .exists()
-
     def _move_ticket(self, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
         if not previous_ticket_id:
             new_priority = 0

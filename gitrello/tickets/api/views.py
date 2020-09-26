@@ -2,6 +2,7 @@ from rest_framework import views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from authentication.services.permissions_service import PermissionsService
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
 from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, UpdateTicketSerializer, CreateTicketAssignmentSerializer,
@@ -64,10 +65,11 @@ class TicketView(views.APIView):
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        service = TicketService()
-        if not service.can_update_ticket(user_id=request.user.id, ticket_id=kwargs['id']):
+        permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
+        service = TicketService()
         ticket = service.update_ticket(ticket_id=kwargs['id'], validated_data=serializer.validated_data)
         return Response(
             status=200,

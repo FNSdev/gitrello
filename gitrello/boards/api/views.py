@@ -72,4 +72,4 @@ class BoardPermissionsView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         permissions = PermissionsService.get_board_permissions(**serializer.validated_data)
-        return Response(status=200, data=permissions)
+        return Response(status=200, data=permissions.to_json())

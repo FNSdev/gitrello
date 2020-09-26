@@ -6,6 +6,7 @@ import {GITrelloError, } from "../errors.js";
 class TicketRepository {
     createTicketUrl = '/api/v1/tickets'
     updateTicketUrl = '/api/v1/tickets'
+    deleteTicketUrl = '/api/v1/tickets'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -110,6 +111,19 @@ class TicketRepository {
             ticket.priority = response['priority'];
 
             return ticket;
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async delete(ticketId) {
+        try {
+            await this.httpClient.delete({url: `${this.deleteTicketUrl}/${ticketId}`})
         }
         catch (e) {
             console.log(e.message);

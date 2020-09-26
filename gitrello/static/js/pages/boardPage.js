@@ -70,6 +70,9 @@ export class BoardPage extends Page {
         categoryComponent.ticketMoved = async () => {
             await this.router.reload();
         }
+        categoryComponent.ticketDeleted = async () => {
+            await this.router.reload();
+        }
         categoryComponent.classList.add('board-container__content__categories-list__item');
         document.getElementById('categories-list').insertBefore(
             categoryComponent,

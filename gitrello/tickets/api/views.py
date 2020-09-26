@@ -83,6 +83,16 @@ class TicketView(views.APIView):
             },
         )
 
+    # TODO add tests
+    def delete(self, request, *args, **kwargs):
+        permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_delete:
+            raise PermissionDeniedException
+
+        service = TicketService()
+        service.delete_ticket(ticket_id=kwargs['id'])
+        return Response(status=204)
+
 
 class TicketAssignmentsView(views.APIView):
     permission_classes = (IsAuthenticated, )

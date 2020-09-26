@@ -125,7 +125,7 @@ export class TicketComponent extends HTMLElement {
         this.ticket = ticket;
         this.categoryId = categoryId;
         this.boardMemberships = boardMemberships;
-        this.stateHasChanged = null;
+        this._ticketDeleted = null;
     }
 
     connectedCallback() {
@@ -150,7 +150,8 @@ export class TicketComponent extends HTMLElement {
         };
 
         const ticketDetailsComponent = new TicketDetailsComponent(this.ticket, this.boardMemberships);
-        ticketDetailsComponent.callback = (ticket) => this.onTicketUpdated(ticket);
+        ticketDetailsComponent.ticketUpdated = (ticket) => this.onTicketUpdated(ticket);
+        ticketDetailsComponent.ticketDeleted = (ticket) => this.onTicketDeleted(ticket);
         this.shadowRoot.getElementById('ticket-modal-content').innerHTML = '';
         this.shadowRoot.getElementById('ticket-modal-content').appendChild(ticketDetailsComponent);
     }
@@ -161,9 +162,19 @@ export class TicketComponent extends HTMLElement {
         this._insertTicket(ticket);
     }
 
+    onTicketDeleted() {
+        if (this._ticketDeleted != null) {
+            this._ticketDeleted();
+        }
+    }
+
     onDragStart(event) {
         event.dataTransfer.setData("ticket", JSON.stringify(this.ticket));
         event.dataTransfer.setData('categoryId', this.categoryId);
+    }
+
+    set ticketDeleted(callback) {
+        this._ticketDeleted = callback;
     }
 
     _insertTicket(ticket) {

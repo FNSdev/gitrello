@@ -283,7 +283,7 @@ export class TicketDetailsComponent extends HTMLElement {
             );
 
             if (this._ticketUpdated != null) {
-                this._ticketDeleted(this._ticket);
+                this._ticketUpdated(this._ticket);
             }
 
             errorsList.addSuccessMessage('Success');

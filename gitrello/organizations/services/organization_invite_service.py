@@ -4,7 +4,7 @@ from django.db.transaction import atomic
 from authentication.exceptions import UserNotFoundException
 from authentication.models import User
 from gitrello.handlers import retry_on_transaction_serialization_error
-from organizations.choices import OrganizationMemberRole, OrganizationInviteStatus
+from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationNotFoundException, OrganizationInviteAlreadyExistsException, OrganizationInviteNotFoundException,
     OrganizationMembershipAlreadyExistsException,
@@ -26,7 +26,6 @@ class OrganizationInviteService:
         if OrganizationInvite.objects.filter(organization_id=organization_id, user__email=email).exists():
             raise OrganizationInviteAlreadyExistsException
 
-        # TODO add test
         if OrganizationMembership.objects.filter(user__email=email, organization_id=organization_id).exists():
             raise OrganizationMembershipAlreadyExistsException
 
@@ -38,13 +37,10 @@ class OrganizationInviteService:
 
     @retry_on_transaction_serialization_error
     @atomic
-    def update_invite(self, organization_invite_id: int, accept: bool) -> OrganizationInvite:
+    def accept_or_decline_invite(self, organization_invite_id: int, accept: bool):
         invite = OrganizationInvite.objects.filter(id=organization_invite_id).first()
         if not invite:
             raise OrganizationInviteNotFoundException
-
-        invite.status = OrganizationInviteStatus.ACCEPTED if accept else OrganizationInviteStatus.DECLINED
-        invite.save()
 
         if accept:
             OrganizationMembershipService().add_member(
@@ -52,7 +48,7 @@ class OrganizationInviteService:
                 user_id=invite.user_id,
             )
 
-        return invite
+        invite.delete()
 
     @retry_on_transaction_serialization_error
     def can_send_invite(self, user_id: int, organization_id: int):
@@ -65,7 +61,7 @@ class OrganizationInviteService:
             .exists()
 
     @retry_on_transaction_serialization_error
-    def can_update_invite(self, user_id: int, organization_invite_id: int):
+    def can_accept_or_decline_invite(self, user_id: int, organization_invite_id: int):
         return OrganizationInvite.objects \
             .filter(
                 id=organization_invite_id,

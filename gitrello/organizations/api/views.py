@@ -46,7 +46,9 @@ class OrganizationInvitesView(views.APIView):
             status=201,
             data={
                 'id': str(invite.id),
-                'status': invite.get_status_display(),
+                'user_id': invite.user.id,
+                'organization_id': invite.organization.id,
+                'message': invite.message,
             },
         )
 
@@ -60,20 +62,11 @@ class OrganizationInviteView(views.APIView):
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
         service = OrganizationInviteService()
-        if not service.can_update_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
+        if not service.can_accept_or_decline_invite(user_id=request.user.id, organization_invite_id=kwargs['id']):
             raise PermissionDeniedException
 
-        invite = service.update_invite(
-            organization_invite_id=kwargs['id'],
-            **serializer.validated_data,
-        )
-        return Response(
-            status=200,
-            data={
-                'id': str(invite.id),
-                'status': invite.get_status_display(),
-            },
-        )
+        service.accept_or_decline_invite(organization_invite_id=kwargs['id'], **serializer.validated_data)
+        return Response(status=204)
 
 
 class OrganizationMembershipView(views.APIView):

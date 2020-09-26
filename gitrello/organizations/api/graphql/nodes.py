@@ -38,7 +38,6 @@ class OrganizationInviteNode(DjangoObjectType):
             'added_at',
             'organization_name',
             'user',
-            'status',
             'message',
         )
         interfaces = (GITrelloNode, )

@@ -146,7 +146,7 @@ pipeline {
                 }
             }
         }
-    },
+    }
     post {
         success {
             telegramSend(message: 'Build succeeded', chatId: $CHAT_ID)

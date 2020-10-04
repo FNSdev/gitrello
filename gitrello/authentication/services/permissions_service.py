@@ -1,8 +1,6 @@
-from django.db.transaction import atomic
-
 from boards.models import BoardMembership
-from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole
+from organizations.models import OrganizationMembership
 from tickets.models import Ticket
 
 
@@ -37,10 +35,24 @@ class Permissions:
 
 
 class PermissionsService:
-    # TODO add tests
     @classmethod
-    @retry_on_transaction_serialization_error
-    @atomic
+    def get_organization_permissions(cls, organization_id: int, user_id: int) -> Permissions:
+        organization_membership = OrganizationMembership.objects \
+            .filter(
+                organization_id=organization_id,
+                user_id=user_id,
+            ) \
+            .first()
+
+        if not organization_membership:
+            return Permissions.with_no_permissions()
+
+        if organization_membership.role == OrganizationMemberRole.OWNER:
+            return Permissions.with_all_permissions()
+
+        return Permissions.with_read_permissions()
+
+    @classmethod
     def get_board_permissions(cls, board_id: int, user_id: int) -> Permissions:
         board_membership = BoardMembership.objects \
             .filter(board_id=board_id, organization_membership__user_id=user_id) \
@@ -53,11 +65,49 @@ class PermissionsService:
         if board_membership.organization_membership.role == OrganizationMemberRole.OWNER:
             return Permissions.with_all_permissions()
 
+        if board_membership.organization_membership.role == OrganizationMemberRole.ADMIN:
+            return Permissions.with_mutate_permissions()
+
         return Permissions.with_read_permissions()
 
     @classmethod
-    @retry_on_transaction_serialization_error
-    @atomic
+    def get_board_membership_permissions(cls, board_membership_id: int, user_id: int) -> Permissions:
+        target_board_membership = BoardMembership.objects \
+            .filter(id=board_membership_id) \
+            .select_related('organization_membership') \
+            .first()
+
+        if not target_board_membership:
+            return Permissions.with_no_permissions()
+
+        if target_board_membership.organization_membership.user_id == user_id:
+            return Permissions.with_all_permissions()
+
+        board_membership = BoardMembership.objects \
+            .filter(
+                board_id=target_board_membership.board_id,
+                organization_membership__user_id=user_id,
+            ) \
+            .values('organization_membership__role') \
+            .first()
+
+        if not board_membership:
+            return Permissions.with_no_permissions()
+
+        role = board_membership['organization_membership__role']
+
+        if role == OrganizationMemberRole.MEMBER:
+            return Permissions.with_read_permissions()
+
+        if role == OrganizationMemberRole.ADMIN:
+            if target_board_membership.organization_membership.role == OrganizationMemberRole.OWNER:
+                return Permissions.with_read_permissions()
+
+            return Permissions.with_all_permissions()
+
+        return Permissions.with_all_permissions()
+
+    @classmethod
     def get_ticket_permissions(cls, ticket_id: int, user_id: int) -> Permissions:
         ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
         if not ticket:

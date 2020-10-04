@@ -64,12 +64,12 @@ def custom_exception_handler(exc, context):
 
 
 def retry_on_transaction_serialization_error(
-        original_function: Callable = None,
-        *,
-        num_retries: int = 3,
-        on_failure: GITrelloException = GITrelloException,
-        delay: float = 0.02,
-        backoff: float = 2,
+    original_function: Callable = None,
+    *,
+    num_retries: int = 3,
+    on_failure: GITrelloException = GITrelloException,
+    delay: float = 0.02,
+    backoff: float = 2,
 ) -> Callable:
     """
     Should be used along with atomic() decorator to retry when transaction with serializable isolation level fails.

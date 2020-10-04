@@ -3,31 +3,39 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from authentication.services.permissions_service import Permissions, PermissionsService
 from authentication.tests.factories import UserFactory
 from boards.exceptions import BoardAlreadyExistsException
 from boards.services import BoardService
 from boards.tests.factories import BoardFactory
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
-from organizations.choices import OrganizationMemberRole
-from organizations.tests.factories import OrganizationMembershipFactory
 
 
 class TestBoardsView(TestCase):
     def test_create_board(self):
-        membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=membership.user)
-        board = BoardFactory()
+        api_client.force_authenticate(user=user)
 
+        board = BoardFactory()
         payload = {
             'name': 'Main Board',
-            'organization_id': membership.organization_id,
+            'organization_id': board.organization_id,
         }
-
-        with patch.object(BoardService, 'create_board', return_value=board) as mocked_create_board:
+        with  \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_all_permissions()
+                ) as mocked_get_permissions, \
+                patch.object(BoardService, 'create_board', return_value=board) as mocked_create_board:
             response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
+        mocked_get_permissions.assert_called_with(
+            organization_id=board.organization_id,
+            user_id=user.id,
+        )
         mocked_create_board.assert_called_with(
             name=payload['name'],
             organization_id=payload['organization_id'],
@@ -41,12 +49,9 @@ class TestBoardsView(TestCase):
         }
 
         api_client = APIClient()
-
-        with patch.object(BoardService, 'can_create_board') as mocked_can_create_board:
-            response = api_client.post('/api/v1/boards', data=payload, format='json')
+        response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 401)
-        mocked_can_create_board.assert_not_called()
 
     def test_create_board_request_not_valid(self):
         payload = {
@@ -58,7 +63,6 @@ class TestBoardsView(TestCase):
         response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
-
         expected_response = {
             'error_code': APIRequestValidationException.code,
             'error_message': APIRequestValidationException.message,
@@ -74,24 +78,35 @@ class TestBoardsView(TestCase):
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_board_already_exists(self):
-        membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=membership.user)
+        api_client.force_authenticate(user=user)
         payload = {
             'name': 'Main Board',
-            'organization_id': membership.organization_id,
+            'organization_id': 42,
         }
 
-        with patch.object(
-                BoardService,
-                'create_board',
-                side_effect=BoardAlreadyExistsException) as mocked_create_board:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    BoardService,
+                    'create_board',
+                    side_effect=BoardAlreadyExistsException,
+                ) as mocked_create_board:
             response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
         mocked_create_board.assert_called_with(
             name=payload['name'],
             organization_id=payload['organization_id']
+        )
+        mocked_get_permissions.assert_called_with(
+            organization_id=payload['organization_id'],
+            user_id=user.id,
         )
         expected_response = {
             'error_code': BoardAlreadyExistsException.code,
@@ -108,14 +123,18 @@ class TestBoardsView(TestCase):
             'organization_id': 1,
         }
 
-        with patch.object(
-                BoardService,
-                'can_create_board',
-                return_value=False) as mocked_can_create_board:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_no_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(BoardService, 'create_board') as mocked_create_board:
             response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
-        mocked_can_create_board.assert_called_with(
+        mocked_create_board.assert_not_called()
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             organization_id=payload['organization_id']
         )

@@ -1,3 +1,4 @@
+from django.db.transaction import atomic
 from rest_framework import views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,22 +7,27 @@ from authentication.services import PermissionsService
 from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer, GetBoardPermissionsSerializer
 from boards.services import BoardService, BoardMembershipService
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from gitrello.handlers import retry_on_transaction_serialization_error
 
 
 class BoardsView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        service = BoardService()
-        if not service.can_create_board(
-                user_id=request.user.id,
-                organization_id=serializer.validated_data['organization_id']):
+        permissions = PermissionsService.get_organization_permissions(
+            organization_id=serializer.validated_data['organization_id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
+        service = BoardService()
         board = service.create_board(**serializer.validated_data)
         return Response(
             status=201,
@@ -35,16 +41,21 @@ class BoardsView(views.APIView):
 class BoardMembershipsView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardMembershipSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        service = BoardMembershipService()
-        if not service.can_add_member(user_id=request.user.id, **serializer.validated_data):
+        permissions = PermissionsService.get_board_permissions(
+            board_id=serializer.validated_data['board_id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
-        board_membership = service.add_member(**serializer.validated_data)
+        board_membership = BoardMembershipService.create_board_membership(**serializer.validated_data)
         return Response(
             status=201,
             data={
@@ -56,16 +67,23 @@ class BoardMembershipsView(views.APIView):
 class BoardMembershipView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
     def delete(self, request, *args, **kwargs):
-        service = BoardMembershipService()
-        if not service.can_delete_member(user_id=request.user.id, board_membership_id=kwargs['id']):
+        permissions = PermissionsService.get_board_membership_permissions(
+            board_membership_id=kwargs['id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_delete:
             raise PermissionDeniedException
 
-        service.delete_member(board_membership_id=kwargs['id'])
+        BoardMembershipService.delete_board_membership(board_membership_id=kwargs['id'])
         return Response(status=204)
 
 
 class BoardPermissionsView(views.APIView):
+    @retry_on_transaction_serialization_error
+    @atomic
     def get(self, request, *args, **kwargs):
         serializer = GetBoardPermissionsSerializer(data=request.data)
         if not serializer.is_valid():

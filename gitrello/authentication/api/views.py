@@ -1,5 +1,6 @@
 import logging
 
+from django.db.transaction import atomic
 from django.views.generic import RedirectView
 from rest_framework import views
 from rest_framework.authentication import BasicAuthentication
@@ -10,23 +11,25 @@ from authentication.api.serializers import CreateUserSerializer, CreateOauthStat
 from authentication.services import GithubOauthService, OauthStateService, UserService
 from github_integration import GithubIntegrationServiceAPIClient
 from gitrello.exceptions import APIRequestValidationException, HttpRequestException
+from gitrello.handlers import retry_on_transaction_serialization_error
 
 logger = logging.getLogger(__name__)
 
 
 class UsersView(views.APIView):
+    @retry_on_transaction_serialization_error
+    @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        service = UserService()
-        user = service.create_user(**serializer.validated_data)
+        user = UserService.create_user(**serializer.validated_data)
         return Response(
             status=201,
             data={
                 'id': str(user.id),
-                'token': service.get_jwt_token(user.id),
+                'token': UserService.get_jwt_token(user.id),
             },
         )
 
@@ -71,6 +74,8 @@ class GithubOauthView(RedirectView):
     url = '/profile'
 
     # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
     def get(self, request, *args, **kwargs):
         error = request.GET.get('error')
         if error:
@@ -84,14 +89,12 @@ class GithubOauthView(RedirectView):
             # TODO show error message to user somehow
             return super().get(request, *args, **kwargs)
 
-        token = GithubOauthService().exchange_code_for_token(code)
+        token = GithubOauthService.exchange_code_for_token(code)
 
-        oauth_state_service = OauthStateService()
-        oauth_state = oauth_state_service.get_by_state(state)
-
+        oauth_state = OauthStateService.get_by_state(state)
         user_id = oauth_state.user_id
 
-        oauth_state_service.delete(oauth_state.id)
+        OauthStateService.delete(oauth_state.id)
 
         # TODO show error message to user somehow
         try:
@@ -107,12 +110,14 @@ class OauthStatesView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
     # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateOauthStateSerializer(data=request.data)
         if not serializer.is_valid():
             raise APIRequestValidationException(serializer_errors=serializer.errors)
 
-        oauth_state = OauthStateService().get_or_create(user_id=request.user.id, **serializer.validated_data)
+        oauth_state = OauthStateService.get_or_create(user_id=request.user.id, **serializer.validated_data)
         return Response(
             status=201,
             data={

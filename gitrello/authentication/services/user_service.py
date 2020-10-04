@@ -1,24 +1,17 @@
-from typing import Tuple
-
 import jwt
 from django.db.models import Q
-from django.db.transaction import atomic
 from django.conf import settings
 from django.views.decorators.debug import sensitive_variables
 
-from rest_framework.authtoken.models import Token
-
 from authentication.exceptions import UserAlreadyExistsException
 from authentication.models import User
-from gitrello.handlers import retry_on_transaction_serialization_error
 
 
 class UserService:
-    @retry_on_transaction_serialization_error
+    @classmethod
     @sensitive_variables('password')
-    @atomic
     def create_user(
-        self,
+        cls,
         username: str,
         email: str,
         first_name: str,
@@ -39,7 +32,8 @@ class UserService:
 
         return user
 
-    def get_jwt_token(self, user_id: int) -> str:
+    @classmethod
+    def get_jwt_token(cls, user_id: int) -> str:
         token = jwt.encode(
             payload={
                 'user_id': user_id,

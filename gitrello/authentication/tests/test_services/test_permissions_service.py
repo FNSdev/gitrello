@@ -4,7 +4,7 @@ from authentication.services.permissions_service import Permissions, Permissions
 from authentication.tests.factories import UserFactory
 from boards.tests.factories import BoardFactory, BoardMembershipFactory
 from organizations.choices import OrganizationMemberRole
-from organizations.tests.factories import OrganizationFactory, OrganizationMembershipFactory
+from organizations.tests.factories import OrganizationFactory, OrganizationInviteFactory, OrganizationMembershipFactory
 from tickets.tests.factories import CategoryFactory, TicketFactory
 
 
@@ -59,6 +59,137 @@ class TestPermissionsService(TestCase):
     def test_organization_permissions_organization_not_found(self):
         permissions = PermissionsService.get_organization_permissions(
             organization_id=-1,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_organization_membership_permissions_for_owner(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        target_organization_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+        )
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+    def test_organization_membership_permissions_for_admin(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.ADMIN)
+        target_organization_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+        )
+        target_organization_owner_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+            role=OrganizationMemberRole.OWNER,
+        )
+        target_organization_admin_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+            role=OrganizationMemberRole.ADMIN,
+        )
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_owner_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_read_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_admin_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_read_permissions(permissions)
+
+    def test_organization_membership_permissions_for_member(self):
+        organization_membership = OrganizationMembershipFactory(role=OrganizationMemberRole.MEMBER)
+        target_organization_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+        )
+        target_organization_owner_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+            role=OrganizationMemberRole.OWNER,
+        )
+        target_organization_admin_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+            role=OrganizationMemberRole.OWNER,
+        )
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_read_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_owner_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_read_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_organization_admin_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_read_permissions(permissions)
+
+    def test_organization_membership_permissions_for_not_organization_member(self):
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=OrganizationMembershipFactory().id,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_organization_membership_permissions_organization_membership_not_found(self):
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=-1,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_organization_invite_permissions_for_recipient(self):
+        invite = OrganizationInviteFactory()
+
+        permissions = PermissionsService.get_organization_invite_permissions(
+            organization_invite_id=invite.id,
+            user_id=invite.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+    def test_organization_invite_permissions_for_a_random_user(self):
+        permissions = PermissionsService.get_organization_invite_permissions(
+            organization_invite_id=OrganizationInviteFactory().id,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_organization_invite_permissions_organization_invite_not_found(self):
+        permissions = PermissionsService.get_organization_invite_permissions(
+            organization_invite_id=-1,
             user_id=UserFactory().id,
         )
         self._assert_has_no_permissions(permissions)

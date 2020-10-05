@@ -1,6 +1,6 @@
 from boards.models import BoardMembership
 from organizations.choices import OrganizationMemberRole
-from organizations.models import OrganizationMembership
+from organizations.models import OrganizationInvite, OrganizationMembership
 from tickets.models import Ticket
 
 
@@ -51,6 +51,54 @@ class PermissionsService:
             return Permissions.with_all_permissions()
 
         return Permissions.with_read_permissions()
+
+    @classmethod
+    def get_organization_membership_permissions(cls, organization_membership_id: int, user_id: int) -> Permissions:
+        target_organization_membership = OrganizationMembership.objects \
+            .filter(id=organization_membership_id) \
+            .first()
+
+        if not target_organization_membership:
+            return Permissions.with_no_permissions()
+
+        if target_organization_membership.user_id == user_id:
+            return Permissions.with_all_permissions()
+
+        membership = OrganizationMembership.objects \
+            .filter(
+                organization_id=target_organization_membership.organization_id,
+                user_id=user_id,
+            ) \
+            .values('role') \
+            .first()
+
+        if not membership:
+            return Permissions.with_no_permissions()
+
+        if membership['role'] == OrganizationMemberRole.OWNER:
+            return Permissions.with_all_permissions()
+
+        if membership['role'] == OrganizationMemberRole.ADMIN:
+            if target_organization_membership.role == OrganizationMemberRole.MEMBER:
+                return Permissions.with_all_permissions()
+
+            return Permissions.with_read_permissions()
+
+        return Permissions.with_read_permissions()
+
+    @classmethod
+    def get_organization_invite_permissions(cls, organization_invite_id, user_id) -> Permissions:
+        organization_invite = OrganizationInvite.objects \
+            .filter(
+                id=organization_invite_id,
+                user_id=user_id,
+            ) \
+            .first()
+
+        if not organization_invite:
+            return Permissions.with_no_permissions()
+
+        return Permissions.with_all_permissions()
 
     @classmethod
     def get_board_permissions(cls, board_id: int, user_id: int) -> Permissions:

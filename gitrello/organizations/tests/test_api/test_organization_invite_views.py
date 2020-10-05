@@ -4,53 +4,58 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from authentication.exceptions import UserNotFoundException
+from authentication.services.permissions_service import Permissions, PermissionsService
 from authentication.tests.factories import UserFactory
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
-from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationInviteAlreadyExistsException, OrganizationMembershipAlreadyExistsException
 )
 from organizations.services import OrganizationInviteService
-from organizations.tests.factories import OrganizationMembershipFactory, OrganizationInviteFactory
+from organizations.tests.factories import OrganizationInviteFactory
 
 
 class TestOrganizationInvitesView(TestCase):
     def test_create_invite(self):
-        members = (
-            OrganizationMembershipFactory(
-                role=OrganizationMemberRole.OWNER,
-            ),
-            OrganizationMembershipFactory(
-                role=OrganizationMemberRole.ADMIN,
-            ),
-        )
+        user = UserFactory()
         api_client = APIClient()
+        api_client.force_authenticate(user)
+        invite = OrganizationInviteFactory()
 
-        for member in members:
-            invite = OrganizationInviteFactory(organization_id=member.organization_id)
-            api_client.force_authenticate(member.user)
+        payload = {
+            'organization_id': 42,
+            'email': invite.user.email,
+            'message': 'message',
+        }
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    OrganizationInviteService,
+                    'create_organization_invite',
+                    return_value=invite,
+                ) as mocked_send_invite:
+            response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
-            payload = {
-                'organization_id': member.organization_id,
-                'email': invite.user.email,
-                'message': 'message',
-            }
-            with patch.object(OrganizationInviteService, 'send_invite', return_value=invite) as mocked_send_invite:
-                response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
-
-            self.assertEqual(response.status_code, 201)
-            mocked_send_invite.assert_called_with(
-                organization_id=payload['organization_id'],
-                email=payload['email'],
-                message=payload['message']
-            )
-            expected_response = {
-                'id': str(invite.id),
-                'user_id': invite.user_id,
-                'organization_id': invite.organization_id,
-                'message': invite.message,
-            }
-            self.assertDictEqual(response.data, expected_response)
+        self.assertEqual(response.status_code, 201)
+        mocked_get_permissions.assert_called_with(
+            organization_id=payload['organization_id'],
+            user_id=user.id,
+        )
+        mocked_send_invite.assert_called_with(
+            organization_id=payload['organization_id'],
+            email=payload['email'],
+            message=payload['message']
+        )
+        expected_response = {
+            'id': str(invite.id),
+            'user_id': invite.user_id,
+            'organization_id': invite.organization_id,
+            'message': invite.message,
+        }
+        self.assertDictEqual(response.data, expected_response)
 
     def test_create_invite_request_not_valid(self):
         payload = {
@@ -89,7 +94,7 @@ class TestOrganizationInvitesView(TestCase):
         }
 
         api_client = APIClient()
-        with patch.object(OrganizationInviteService, 'send_invite') as mocked_send_invite:
+        with patch.object(OrganizationInviteService, 'create_organization_invite') as mocked_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 401)
@@ -105,11 +110,13 @@ class TestOrganizationInvitesView(TestCase):
             'email': 'test@test.com',
             'message': 'message',
         }
-        with patch.object(
-                OrganizationInviteService,
-                'can_send_invite',
-                return_value=False
-        ) as mocked_can_send_invite:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_no_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(OrganizationInviteService, 'create_organization_invite') as mocked_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -117,27 +124,34 @@ class TestOrganizationInvitesView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_send_invite.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             organization_id=payload['organization_id'],
         )
+        mocked_send_invite.assert_not_called()
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_invite_user_not_found(self):
-        member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=member.user)
+        api_client.force_authenticate(user=user)
 
         payload = {
-            'organization_id': member.organization_id,
+            'organization_id': 42,
             'email': 'test@test.com',
             'message': 'message',
         }
-        with patch.object(
-                OrganizationInviteService,
-                'send_invite',
-                side_effect=UserNotFoundException
-        ) as mocked_send_invite:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    OrganizationInviteService,
+                    'create_organization_invite',
+                    side_effect=UserNotFoundException,
+                ) as mocked_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -145,6 +159,10 @@ class TestOrganizationInvitesView(TestCase):
             'error_code': UserNotFoundException.code,
             'error_message': UserNotFoundException.message,
         }
+        mocked_get_permissions.assert_called_with(
+            organization_id=payload['organization_id'],
+            user_id=user.id,
+        )
         mocked_send_invite.assert_called_with(
             organization_id=payload['organization_id'],
             email=payload['email'],
@@ -153,21 +171,26 @@ class TestOrganizationInvitesView(TestCase):
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_invite_already_exists(self):
-        member = OrganizationMembershipFactory(role=OrganizationMemberRole.OWNER)
         user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=member.user)
+        api_client.force_authenticate(user=user)
 
         payload = {
-            'organization_id': member.organization_id,
+            'organization_id': 42,
             'email': user.email,
             'message': 'message',
         }
-        with patch.object(
-                OrganizationInviteService,
-                'send_invite',
-                side_effect=OrganizationInviteAlreadyExistsException
-        ) as mocked_send_invite:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    OrganizationInviteService,
+                    'create_organization_invite',
+                    side_effect=OrganizationInviteAlreadyExistsException,
+                ) as mocked_send_invite:
             response = api_client.post('/api/v1/organization-invites', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -175,6 +198,10 @@ class TestOrganizationInvitesView(TestCase):
             'error_code': OrganizationInviteAlreadyExistsException.code,
             'error_message': OrganizationInviteAlreadyExistsException.message,
         }
+        mocked_get_permissions.assert_called_with(
+            organization_id=payload['organization_id'],
+            user_id=user.id,
+        )
         mocked_send_invite.assert_called_with(
             organization_id=payload['organization_id'],
             email=payload['email'],
@@ -185,17 +212,27 @@ class TestOrganizationInvitesView(TestCase):
 
 class TestOrganizationInviteView(TestCase):
     def test_accept_or_decline_invite(self):
-        invite = OrganizationInviteFactory()
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=invite.user)
+        api_client.force_authenticate(user=user)
 
         payload = {'accept': True}
-        with patch.object(OrganizationInviteService, 'accept_or_decline_invite') as mocked_accept_or_decline_invite:
-            response = api_client.patch(f'/api/v1/organization-invites/{invite.id}', data=payload, format='json')
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_invite_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(OrganizationInviteService, 'accept_or_decline_invite') as mocked_accept_or_decline_invite:
+            response = api_client.patch(f'/api/v1/organization-invites/42', data=payload, format='json')
 
         self.assertEqual(response.status_code, 204)
+        mocked_get_permissions.assert_called_with(
+            organization_invite_id=42,
+            user_id=user.id,
+        )
         mocked_accept_or_decline_invite.assert_called_with(
-            organization_invite_id=invite.id,
+            organization_invite_id=42,
             accept=payload['accept'],
         )
 
@@ -240,18 +277,24 @@ class TestOrganizationInviteView(TestCase):
         api_client.force_authenticate(user=user)
 
         payload = {'accept': True}
-        with patch.object(
-                OrganizationInviteService,
-                'can_accept_or_decline_invite',
-                return_value=False,
-        ) as mocked_can_accept_or_decline_invite:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_invite_permissions',
+                    return_value=Permissions.with_no_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    OrganizationInviteService,
+                    'accept_or_decline_invite',
+                ) as mocked_accept_or_decline_invite:
             response = api_client.patch('/api/v1/organization-invites/1', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
-        mocked_can_accept_or_decline_invite.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             organization_invite_id=1,
         )
+        mocked_accept_or_decline_invite.assert_not_called()
         expected_response = {
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
@@ -259,21 +302,31 @@ class TestOrganizationInviteView(TestCase):
         self.assertDictEqual(response.data, expected_response)
 
     def test_accept_or_decline_invite_already_a_member(self):
-        invite = OrganizationInviteFactory()
+        user = UserFactory()
         api_client = APIClient()
-        api_client.force_authenticate(user=invite.user)
+        api_client.force_authenticate(user=user)
 
         payload = {'accept': True}
-        with patch.object(
-                OrganizationInviteService,
-                'accept_or_decline_invite',
-                side_effect=OrganizationMembershipAlreadyExistsException
-        ) as mocked_accept_or_decline_invite:
-            response = api_client.patch(f'/api/v1/organization-invites/{invite.id}', data=payload, format='json')
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_organization_invite_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    OrganizationInviteService,
+                    'accept_or_decline_invite',
+                    side_effect=OrganizationMembershipAlreadyExistsException
+                ) as mocked_accept_or_decline_invite:
+            response = api_client.patch(f'/api/v1/organization-invites/42', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
+        mocked_get_permissions.assert_called_with(
+            organization_invite_id=42,
+            user_id=user.id,
+        )
         mocked_accept_or_decline_invite.assert_called_with(
-            organization_invite_id=invite.id,
+            organization_invite_id=42,
             accept=payload['accept'],
         )
         expected_response = {

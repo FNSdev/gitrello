@@ -1,10 +1,7 @@
-from django.db.models import Q, Subquery
-from django.db.transaction import atomic
+from django.db.models import Subquery
 
 from authentication.exceptions import UserNotFoundException
 from authentication.models import User
-from gitrello.handlers import retry_on_transaction_serialization_error
-from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationNotFoundException, OrganizationInviteAlreadyExistsException, OrganizationInviteNotFoundException,
     OrganizationMembershipAlreadyExistsException,
@@ -14,9 +11,8 @@ from organizations.services.organization_membership_service import OrganizationM
 
 
 class OrganizationInviteService:
-    @retry_on_transaction_serialization_error
-    @atomic
-    def send_invite(self, organization_id: int, email: str, message: str) -> OrganizationInvite:
+    @classmethod
+    def create_organization_invite(cls, organization_id: int, email: str, message: str) -> OrganizationInvite:
         if not Organization.objects.filter(id=organization_id).exists():
             raise OrganizationNotFoundException
 
@@ -35,36 +31,16 @@ class OrganizationInviteService:
             message=message,
         )
 
-    @retry_on_transaction_serialization_error
-    @atomic
-    def accept_or_decline_invite(self, organization_invite_id: int, accept: bool):
+    @classmethod
+    def accept_or_decline_invite(cls, organization_invite_id: int, accept: bool):
         invite = OrganizationInvite.objects.filter(id=organization_invite_id).first()
         if not invite:
             raise OrganizationInviteNotFoundException
 
         if accept:
-            OrganizationMembershipService().add_member(
+            OrganizationMembershipService.create_organization_membership(
                 organization_id=invite.organization_id,
                 user_id=invite.user_id,
             )
 
         invite.delete()
-
-    @retry_on_transaction_serialization_error
-    def can_send_invite(self, user_id: int, organization_id: int):
-        return OrganizationMembership.objects \
-            .filter(
-                Q(organization_id=organization_id),
-                Q(user_id=user_id),
-                Q(role=OrganizationMemberRole.OWNER) | Q(role=OrganizationMemberRole.ADMIN),
-            ) \
-            .exists()
-
-    @retry_on_transaction_serialization_error
-    def can_accept_or_decline_invite(self, user_id: int, organization_invite_id: int):
-        return OrganizationInvite.objects \
-            .filter(
-                id=organization_invite_id,
-                user_id=user_id,
-            ) \
-            .exists()

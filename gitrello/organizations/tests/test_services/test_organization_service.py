@@ -13,7 +13,7 @@ class TestOrganizationService(TestCase):
     def test_create_organization(self):
         user = UserFactory()
 
-        with patch.object(OrganizationMembershipService, 'add_member') as mocked_add_member:
+        with patch.object(OrganizationMembershipService, 'create_organization_membership') as mocked_add_member:
             organization = OrganizationService().create_organization(
                 owner_id=user.id,
                 name='organization',

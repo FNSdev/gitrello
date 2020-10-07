@@ -77,7 +77,7 @@ class CreateTicketAssignmentResponseSerializer(serializers.ModelSerializer):
 class CreateCommentResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ('id', 'ticket_id', 'author_id', 'message')
+        fields = ('id', 'ticket_id', 'author_id', 'message', 'added_at')
 
     id = serializers.CharField()
     ticket_id = serializers.CharField()

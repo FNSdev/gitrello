@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from authentication.services import PermissionsService
 from boards.api.serializers import CreateBoardSerializer, CreateBoardMembershipSerializer, GetBoardPermissionsSerializer
 from boards.services import BoardService, BoardMembershipService
-from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from gitrello.exceptions import PermissionDeniedException
 from gitrello.handlers import retry_on_transaction_serialization_error
 
 
@@ -17,8 +17,7 @@ class BoardsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_organization_permissions(
             organization_id=serializer.validated_data['organization_id'],
@@ -45,8 +44,7 @@ class BoardMembershipsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardMembershipSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_board_permissions(
             board_id=serializer.validated_data['board_id'],
@@ -86,8 +84,7 @@ class BoardPermissionsView(views.APIView):
     @atomic
     def get(self, request, *args, **kwargs):
         serializer = GetBoardPermissionsSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_board_permissions(**serializer.validated_data)
         return Response(status=200, data=permissions.to_json())

@@ -6,7 +6,7 @@ from typing import Callable
 from django.db import IntegrityError
 from psycopg2 import errorcodes
 from requests import RequestException
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
@@ -31,13 +31,13 @@ def custom_exception_handler(exc, context):
             }
         )
 
-    if isinstance(exc, APIRequestValidationException):
+    if isinstance(exc, ValidationError):
         return Response(
             status=400,
             data={
-                'error_code': exc.code,
-                'error_message': exc.message,
-                'error_details': {field: errors for field, errors in exc.serializer_errors.items()},
+                'error_code': APIRequestValidationException.code,
+                'error_message': APIRequestValidationException.message,
+                'error_details': {field: errors for field, errors in exc.detail.items()},
             }
         )
 

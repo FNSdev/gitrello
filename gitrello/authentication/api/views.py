@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from authentication.api.serializers import CreateUserSerializer, CreateOauthStateSerializer
 from authentication.services import GithubOauthService, OauthStateService, UserService
 from github_integration import GithubIntegrationServiceAPIClient
-from gitrello.exceptions import APIRequestValidationException, HttpRequestException
+from gitrello.exceptions import HttpRequestException
 from gitrello.handlers import retry_on_transaction_serialization_error
 
 logger = logging.getLogger(__name__)
@@ -21,8 +21,7 @@ class UsersView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         user = UserService.create_user(**serializer.validated_data)
         return Response(
@@ -114,8 +113,7 @@ class OauthStatesView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateOauthStateSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         oauth_state = OauthStateService.get_or_create(user_id=request.user.id, **serializer.validated_data)
         return Response(

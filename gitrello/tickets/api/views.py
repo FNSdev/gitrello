@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from authentication.services import PermissionsService
-from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from gitrello.exceptions import PermissionDeniedException
 from gitrello.handlers import retry_on_transaction_serialization_error
 from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, CreateTicketAssignmentSerializer, CreateCommentSerializer,
@@ -20,8 +20,7 @@ class CategoriesView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateCategorySerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_board_permissions(
             board_id=serializer.validated_data['board_id'],
@@ -48,8 +47,7 @@ class TicketsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_category_permissions(
             category_id=serializer.validated_data['category_id'],
@@ -76,8 +74,7 @@ class TicketView(views.APIView):
     @atomic
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
         if not permissions.can_mutate:
@@ -115,8 +112,7 @@ class TicketAssignmentsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketAssignmentSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_ticket_permissions(
             ticket_id=serializer.validated_data['ticket_id'],
@@ -162,8 +158,7 @@ class CommentsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateCommentSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_ticket_permissions(
             ticket_id=serializer.validated_data['ticket_id'],

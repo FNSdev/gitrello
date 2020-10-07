@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from authentication.services import PermissionsService
-from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from gitrello.exceptions import PermissionDeniedException
 from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
@@ -19,8 +19,7 @@ class OrganizationsView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         organization = OrganizationService.create_organization(owner_id=request.user.id, **serializer.validated_data)
         return Response(
@@ -39,8 +38,7 @@ class OrganizationInvitesView(views.APIView):
     @atomic
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationInviteSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_organization_permissions(
             organization_id=serializer.validated_data['organization_id'],
@@ -68,8 +66,7 @@ class OrganizationInviteView(views.APIView):
     @atomic
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_organization_invite_permissions(
             organization_invite_id=kwargs['id'],

@@ -5,7 +5,7 @@ from authentication.tests.factories import UserFactory
 from boards.tests.factories import BoardFactory, BoardMembershipFactory
 from organizations.choices import OrganizationMemberRole
 from organizations.tests.factories import OrganizationFactory, OrganizationInviteFactory, OrganizationMembershipFactory
-from tickets.tests.factories import CategoryFactory, TicketFactory
+from tickets.tests.factories import CategoryFactory, TicketAssignmentFactory, TicketFactory
 
 
 class TestPermissionsService(TestCase):
@@ -347,6 +347,42 @@ class TestPermissionsService(TestCase):
         )
         self._assert_has_no_permissions(permissions)
 
+    def test_category_permissions_for_board_member(self):
+        board_membership = BoardMembershipFactory()
+        category = CategoryFactory(board_id=board_membership.board_id)
+
+        permissions = PermissionsService.get_category_permissions(
+            category_id=category.id,
+            user_id=board_membership.organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+    def test_category_permissions_for_not_a_board_member(self):
+        category = CategoryFactory()
+        organization_membership = OrganizationMembershipFactory(
+            organization_id=category.board.organization_id,
+        )
+
+        permissions = PermissionsService.get_category_permissions(
+            category_id=category.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_category_permissions_for_a_random_user(self):
+        permissions = PermissionsService.get_category_permissions(
+            category_id=CategoryFactory().id,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_category_permissions_category_not_found(self):
+        permissions = PermissionsService.get_category_permissions(
+            category_id=-1,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
     def test_ticket_permissions_for_board_member(self):
         board_membership = BoardMembershipFactory()
         ticket = TicketFactory(category=CategoryFactory(board_id=board_membership.board_id))
@@ -379,6 +415,46 @@ class TestPermissionsService(TestCase):
     def test_ticket_permissions_ticket_not_found(self):
         permissions = PermissionsService.get_ticket_permissions(
             ticket_id=-1,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_ticket_assignment_permissions_for_board_member(self):
+        board_membership = BoardMembershipFactory()
+        ticket_assignment = TicketAssignmentFactory(
+            ticket=TicketFactory(
+                category=CategoryFactory(board_id=board_membership.board_id),
+            ),
+        )
+
+        permissions = PermissionsService.get_ticket_assignment_permissions(
+            ticket_assignment_id=ticket_assignment.id,
+            user_id=board_membership.organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+    def test_ticket_assignment_permissions_for_not_a_board_member(self):
+        ticket_assignment = TicketAssignmentFactory()
+        organization_membership = OrganizationMembershipFactory(
+            organization_id=ticket_assignment.ticket.category.board.organization_id,
+        )
+
+        permissions = PermissionsService.get_ticket_assignment_permissions(
+            ticket_assignment_id=ticket_assignment.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_ticket_assignment_permissions_for_a_random_user(self):
+        permissions = PermissionsService.get_ticket_assignment_permissions(
+            ticket_assignment_id=TicketAssignmentFactory().id,
+            user_id=UserFactory().id,
+        )
+        self._assert_has_no_permissions(permissions)
+
+    def test_ticket_assignment_permissions_ticket_assignment_not_found(self):
+        permissions = PermissionsService.get_ticket_assignment_permissions(
+            ticket_assignment_id=-1,
             user_id=UserFactory().id,
         )
         self._assert_has_no_permissions(permissions)

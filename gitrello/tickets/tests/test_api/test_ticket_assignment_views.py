@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from authentication.services.permissions_service import Permissions, PermissionsService
 from authentication.tests.factories import UserFactory
 from boards.exceptions import BoardMembershipNotFoundException
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
@@ -24,17 +25,22 @@ class TestTicketAssignmentsView(TestCase):
 
         ticket_assignment = TicketAssignmentFactory()
         with \
-                patch.object(TicketAssignmentService, 'can_assign_member', return_value=True) \
-                as mocked_can_assign_member, \
-                patch.object(TicketAssignmentService, 'assign_member', return_value=ticket_assignment) \
-                as mocked_assign_member:
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    TicketAssignmentService,
+                    'create_ticket_assignment',
+                    return_value=ticket_assignment,
+                ) as mocked_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
-        mocked_can_assign_member.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=payload['ticket_id'],
-            board_membership_id=payload['board_membership_id'],
         )
         mocked_assign_member.assert_called_with(
             ticket_id=payload['ticket_id'],
@@ -80,11 +86,9 @@ class TestTicketAssignmentsView(TestCase):
         }
 
         api_client = APIClient()
-        with patch.object(TicketAssignmentService, 'can_assign_member') as mocked_can_assign_member:
-            response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
+        response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 401)
-        mocked_can_assign_member.assert_not_called()
 
     def test_create_ticket_assignment_permission_denied(self):
         user = UserFactory()
@@ -95,7 +99,13 @@ class TestTicketAssignmentsView(TestCase):
             'ticket_id': 1,
             'board_membership_id': 1,
         }
-        with patch.object(TicketAssignmentService, 'can_assign_member', return_value=False) as mocked_can_assign_member:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_read_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(TicketAssignmentService, 'create_ticket_assignment') as mocked_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -103,11 +113,11 @@ class TestTicketAssignmentsView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_assign_member.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=payload['ticket_id'],
-            board_membership_id=payload['board_membership_id'],
         )
+        mocked_assign_member.assert_not_called()
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_ticket_assignment_ticket_not_found(self):
@@ -119,9 +129,17 @@ class TestTicketAssignmentsView(TestCase):
             'ticket_id': 1,
             'board_membership_id': 1,
         }
-        with patch.object(TicketAssignmentService, 'can_assign_member', return_value=True), \
-                patch.object(TicketAssignmentService, 'assign_member', side_effect=TicketNotFoundException) \
-                as mocked_create_ticket:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    TicketAssignmentService,
+                    'create_ticket_assignment',
+                    side_effect=TicketNotFoundException,
+                ) as mocked_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -129,7 +147,11 @@ class TestTicketAssignmentsView(TestCase):
             'error_code': TicketNotFoundException.code,
             'error_message': TicketNotFoundException.message,
         }
-        mocked_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
+            ticket_id=payload['ticket_id'],
+            user_id=user.id,
+        )
+        mocked_assign_member.assert_called_with(
             ticket_id=payload['ticket_id'],
             board_membership_id=payload['board_membership_id'],
         )
@@ -144,9 +166,17 @@ class TestTicketAssignmentsView(TestCase):
             'ticket_id': 1,
             'board_membership_id': 1,
         }
-        with patch.object(TicketAssignmentService, 'can_assign_member', return_value=True), \
-                patch.object(TicketAssignmentService, 'assign_member', side_effect=BoardMembershipNotFoundException) \
-                as mocked_create_ticket:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(
+                    TicketAssignmentService,
+                    'create_ticket_assignment',
+                    side_effect=BoardMembershipNotFoundException,
+                ) as mocked_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -154,7 +184,11 @@ class TestTicketAssignmentsView(TestCase):
             'error_code': BoardMembershipNotFoundException.code,
             'error_message': BoardMembershipNotFoundException.message,
         }
-        mocked_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
+            ticket_id=payload['ticket_id'],
+            user_id=user.id,
+        )
+        mocked_assign_member.assert_called_with(
             ticket_id=payload['ticket_id'],
             board_membership_id=payload['board_membership_id'],
         )
@@ -169,13 +203,17 @@ class TestTicketAssignmentsView(TestCase):
             'ticket_id': 1,
             'board_membership_id': 1,
         }
-        with patch.object(TicketAssignmentService, 'can_assign_member', return_value=True), \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
                 patch.object(
                     TicketAssignmentService,
-                    'assign_member',
-                    side_effect=TicketAssignmentAlreadyExistsException
-                ) \
-                as mocked_create_ticket:
+                    'create_ticket_assignment',
+                    side_effect=TicketAssignmentAlreadyExistsException,
+                ) as mocked_assign_member:
             response = api_client.post('/api/v1/ticket-assignments', data=payload, format='json')
 
         self.assertEqual(response.status_code, 400)
@@ -183,7 +221,11 @@ class TestTicketAssignmentsView(TestCase):
             'error_code': TicketAssignmentAlreadyExistsException.code,
             'error_message': TicketAssignmentAlreadyExistsException.message,
         }
-        mocked_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
+            ticket_id=payload['ticket_id'],
+            user_id=user.id,
+        )
+        mocked_assign_member.assert_called_with(
             ticket_id=payload['ticket_id'],
             board_membership_id=payload['board_membership_id'],
         )
@@ -196,16 +238,17 @@ class TestTicketAssignmentView(TestCase):
         user = UserFactory()
         api_client.force_authenticate(user=user)
 
-        ticket_assignment = TicketAssignmentFactory()
         with \
-                patch.object(TicketAssignmentService, 'can_unassign_member', return_value=True) \
-                as mocked_can_unassign_member, \
-                patch.object(TicketAssignmentService, 'unassign_member', return_value=ticket_assignment) \
-                as mocked_unassign_member:
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_assignment_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(TicketAssignmentService, 'delete_ticket_assignment') as mocked_unassign_member:
             response = api_client.delete('/api/v1/ticket-assignments/1',)
 
         self.assertEqual(response.status_code, 204)
-        mocked_can_unassign_member.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_assignment_id=1,
         )
@@ -215,19 +258,21 @@ class TestTicketAssignmentView(TestCase):
 
     def test_delete_ticket_assignment_not_authenticated(self):
         api_client = APIClient()
-        with patch.object(TicketAssignmentService, 'can_unassign_member') as mocked_can_unassign_member:
-            response = api_client.delete('/api/v1/ticket-assignments/1')
-
+        response = api_client.delete('/api/v1/ticket-assignments/1')
         self.assertEqual(response.status_code, 401)
-        mocked_can_unassign_member.assert_not_called()
 
     def test_delete_ticket_assignment_permission_denied(self):
         user = UserFactory()
         api_client = APIClient()
         api_client.force_authenticate(user=user)
 
-        with patch.object(TicketAssignmentService, 'can_unassign_member', return_value=False) \
-                as mocked_can_unassign_member:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_assignment_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(TicketAssignmentService, 'delete_ticket_assignment') as mocked_unassign_member:
             response = api_client.delete('/api/v1/ticket-assignments/1')
 
         self.assertEqual(response.status_code, 403)
@@ -235,10 +280,11 @@ class TestTicketAssignmentView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_unassign_member.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_assignment_id=1,
         )
+        mocked_unassign_member.assert_not_called()
         self.assertDictEqual(response.data, expected_response)
 
     def test_delete_ticket_assignment_ticket_assignment_not_found(self):
@@ -246,13 +292,17 @@ class TestTicketAssignmentView(TestCase):
         api_client = APIClient()
         api_client.force_authenticate(user=user)
 
-        with patch.object(TicketAssignmentService, 'can_unassign_member', return_value=True), \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_assignment_permissions',
+                    return_value=Permissions.with_all_permissions(),
+                ) as mocked_get_permissions, \
                 patch.object(
                     TicketAssignmentService,
-                    'unassign_member',
-                    side_effect=TicketAssignmentNotFoundException
-                ) \
-                as mocked_create_ticket:
+                    'delete_ticket_assignment',
+                    side_effect=TicketAssignmentNotFoundException,
+                ) as mocked_unassign_member:
             response = api_client.delete('/api/v1/ticket-assignments/1')
 
         self.assertEqual(response.status_code, 400)
@@ -260,7 +310,11 @@ class TestTicketAssignmentView(TestCase):
             'error_code': TicketAssignmentNotFoundException.code,
             'error_message': TicketAssignmentNotFoundException.message,
         }
-        mocked_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
+            ticket_assignment_id=1,
+            user_id=user.id,
+        )
+        mocked_unassign_member.assert_called_with(
             ticket_assignment_id=1,
         )
         self.assertDictEqual(response.data, expected_response)

@@ -1,7 +1,7 @@
 from boards.models import BoardMembership
 from organizations.choices import OrganizationMemberRole
 from organizations.models import OrganizationInvite, OrganizationMembership
-from tickets.models import Ticket
+from tickets.models import Category, Ticket, TicketAssignment
 
 
 class Permissions:
@@ -156,6 +156,24 @@ class PermissionsService:
         return Permissions.with_all_permissions()
 
     @classmethod
+    def get_category_permissions(cls, category_id, user_id: int) -> Permissions:
+        category = Category.objects.filter(id=category_id).values('board_id').first()
+        if not category:
+            return Permissions.with_no_permissions()
+
+        is_board_member = BoardMembership.objects \
+            .filter(
+                organization_membership__user_id=user_id,
+                board_id=category['board_id'],
+            ) \
+            .exists()
+
+        if not is_board_member:
+            return Permissions.with_no_permissions()
+
+        return Permissions.with_all_permissions()
+
+    @classmethod
     def get_ticket_permissions(cls, ticket_id: int, user_id: int) -> Permissions:
         ticket = Ticket.objects.filter(id=ticket_id).values('category__board_id').first()
         if not ticket:
@@ -165,6 +183,28 @@ class PermissionsService:
             .filter(
                 organization_membership__user_id=user_id,
                 board_id=ticket['category__board_id'],
+            ) \
+            .exists()
+
+        if not is_board_member:
+            return Permissions.with_no_permissions()
+
+        return Permissions.with_all_permissions()
+
+    @classmethod
+    def get_ticket_assignment_permissions(cls, ticket_assignment_id: int, user_id: int) -> Permissions:
+        ticket_assignment = TicketAssignment.objects \
+            .filter(id=ticket_assignment_id) \
+            .values('ticket__category__board_id') \
+            .first()
+
+        if not ticket_assignment:
+            return Permissions.with_no_permissions()
+
+        is_board_member = BoardMembership.objects \
+            .filter(
+                organization_membership__user_id=user_id,
+                board_id=ticket_assignment['ticket__category__board_id'],
             ) \
             .exists()
 

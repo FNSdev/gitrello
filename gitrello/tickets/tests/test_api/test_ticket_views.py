@@ -22,12 +22,17 @@ class TestTicketsView(TestCase):
         api_client.force_authenticate(user=user)
 
         ticket = TicketFactory()
-        with patch.object(TicketService, 'can_create_ticket', return_value=True) as mocked_can_create_ticket, \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_category_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
                 patch.object(TicketService, 'create_ticket', return_value=ticket) as mocked_create_ticket:
             response = api_client.post('/api/v1/tickets', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
-        mocked_can_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             category_id=payload['category_id'],
         )
@@ -68,13 +73,9 @@ class TestTicketsView(TestCase):
         payload = {
             'category_id': 1,
         }
-
         api_client = APIClient()
-        with patch.object(TicketService, 'can_create_ticket') as mocked_can_create_ticket:
-            response = api_client.post('/api/v1/tickets', data=payload, format='json')
-
+        response = api_client.post('/api/v1/tickets', data=payload, format='json')
         self.assertEqual(response.status_code, 401)
-        mocked_can_create_ticket.assert_not_called()
 
     def test_create_ticket_permission_denied(self):
         user = UserFactory()
@@ -84,7 +85,13 @@ class TestTicketsView(TestCase):
         payload = {
             'category_id': 1,
         }
-        with patch.object(TicketService, 'can_create_ticket', return_value=False) as mocked_can_create_ticket:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_category_permissions',
+                    return_value=Permissions.with_no_permissions(),
+                ) as mocked_get_permissions, \
+                patch.object(TicketService, 'create_ticket', return_value=False) as mocked_create_ticket:
             response = api_client.post('/api/v1/tickets', data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -92,10 +99,11 @@ class TestTicketsView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_create_ticket.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             category_id=payload['category_id'],
         )
+        mocked_create_ticket.assert_not_called()
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_ticket_category_not_found(self):
@@ -106,7 +114,12 @@ class TestTicketsView(TestCase):
         payload = {
             'category_id': 1,
         }
-        with patch.object(TicketService, 'can_create_ticket', return_value=True), \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_category_permissions',
+                    return_value=Permissions.with_mutate_permissions(),
+                ) as mocked_get_permissions, \
                 patch.object(TicketService, 'create_ticket', side_effect=CategoryNotFoundException) \
                 as mocked_create_ticket:
             response = api_client.post('/api/v1/tickets', data=payload, format='json')
@@ -116,6 +129,10 @@ class TestTicketsView(TestCase):
             'error_code': CategoryNotFoundException.code,
             'error_message': CategoryNotFoundException.message,
         }
+        mocked_get_permissions.assert_called_with(
+            category_id=payload['category_id'],
+            user_id=user.id,
+        )
         mocked_create_ticket.assert_called_with(
             category_id=payload['category_id'],
         )

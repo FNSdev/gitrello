@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from authentication.services.permissions_service import Permissions, PermissionsService
 from authentication.tests.factories import UserFactory
 from boards.exceptions import BoardMembershipNotFoundException
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
@@ -23,12 +24,17 @@ class TestCategoriesView(TestCase):
         api_client.force_authenticate(user=user)
 
         comment = CommentFactory()
-        with patch.object(CommentService, 'can_create_comment', return_value=True) as mocked_can_create_comment, \
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions()
+                ) as mocked_get_permissions, \
                 patch.object(CommentService, 'create_comment', return_value=comment) as mocked_create_comment:
             response = api_client.post(reverse('tickets:comments'), data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
-        mocked_can_create_comment.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=payload['ticket_id'],
         )
@@ -77,13 +83,9 @@ class TestCategoriesView(TestCase):
             'ticket_id': 1,
             'message': 'test_message',
         }
-
         api_client = APIClient()
-        with patch.object(CommentService, 'can_create_comment') as mocked_can_create_comment:
-            response = api_client.post(reverse('tickets:comments'), data=payload, format='json')
-
+        response = api_client.post(reverse('tickets:comments'), data=payload, format='json')
         self.assertEqual(response.status_code, 401)
-        mocked_can_create_comment.assert_not_called()
 
     def test_create_comment_permission_denied(self):
         user = UserFactory()
@@ -94,11 +96,13 @@ class TestCategoriesView(TestCase):
             'ticket_id': 1,
             'message': 'test_message',
         }
-        with patch.object(
-                CommentService,
-                'can_create_comment',
-                return_value=False,
-        ) as mocked_can_create_comment:
+        with \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_read_permissions()
+                ) as mocked_get_permissions, \
+                patch.object(CommentService, 'create_comment') as mocked_create_comment:
             response = api_client.post(reverse('tickets:comments'), data=payload, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -106,10 +110,11 @@ class TestCategoriesView(TestCase):
             'error_code': PermissionDeniedException.code,
             'error_message': PermissionDeniedException.message,
         }
-        mocked_can_create_comment.assert_called_with(
+        mocked_get_permissions.assert_called_with(
             user_id=user.id,
             ticket_id=payload['ticket_id'],
         )
+        mocked_create_comment.assert_not_called()
         self.assertDictEqual(response.data, expected_response)
 
     def test_create_comment_ticket_not_found(self):
@@ -122,7 +127,11 @@ class TestCategoriesView(TestCase):
             'message': 'test_message',
         }
         with \
-                patch.object(CommentService, 'can_create_comment', return_value=True), \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions()
+                ) as mocked_get_permissions, \
                 patch.object(
                     CommentService,
                     'create_comment',
@@ -135,6 +144,10 @@ class TestCategoriesView(TestCase):
             'error_code': TicketNotFoundException.code,
             'error_message': TicketNotFoundException.message,
         }
+        mocked_get_permissions.assert_called_with(
+            ticket_id=payload['ticket_id'],
+            user_id=user.id,
+        )
         mocked_create_comment.assert_called_with(
             ticket_id=payload['ticket_id'],
             user_id=user.id,
@@ -152,7 +165,11 @@ class TestCategoriesView(TestCase):
             'message': 'test_message',
         }
         with \
-                patch.object(CommentService, 'can_create_comment', return_value=True), \
+                patch.object(
+                    PermissionsService,
+                    'get_ticket_permissions',
+                    return_value=Permissions.with_mutate_permissions()
+                ) as mocked_get_permissions, \
                 patch.object(
                     CommentService,
                     'create_comment',
@@ -165,6 +182,10 @@ class TestCategoriesView(TestCase):
             'error_code': BoardMembershipNotFoundException.code,
             'error_message': BoardMembershipNotFoundException.message,
         }
+        mocked_get_permissions.assert_called_with(
+            ticket_id=payload['ticket_id'],
+            user_id=user.id,
+        )
         mocked_create_comment.assert_called_with(
             ticket_id=payload['ticket_id'],
             user_id=user.id,

@@ -9,9 +9,6 @@ class APIRequestValidationException(GITrelloException):
     message = 'Request validation failed'
     code = 1
 
-    def __init__(self, serializer_errors):
-        self.serializer_errors = serializer_errors
-
 
 class PermissionDeniedException(GITrelloException):
     message = 'Permission denied'

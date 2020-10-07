@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from authentication.choices import OauthProvider
-from authentication.models import User
+from authentication.models import OauthState, User
 
 
 class CreateUserSerializer(serializers.Serializer):
@@ -30,10 +30,39 @@ class CreateUserSerializer(serializers.Serializer):
 
 
 class CreateOauthStateSerializer(serializers.Serializer):
-    provider = serializers.CharField(max_length=32)
+    provider = serializers.ChoiceField(choices=OauthProvider.CHOICES)
 
-    def validate_provider(self, value):
-        if value not in (OauthProvider.GITHUB, ):
-            raise serializers.ValidationError(f'Provider "{value}" is not supported')
 
-        return value
+class CreateUserResponseSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=100)
+    token = serializers.CharField()
+
+
+class LoginResponseSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=100)
+    token = serializers.CharField()
+
+
+class AuthTokenOwnerResponseSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=100)
+
+
+class CreateOauthStateResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OauthState
+        fields = ('id', 'user_id', 'provider', 'state')
+
+    id = serializers.CharField()
+    user_id = serializers.CharField()

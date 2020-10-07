@@ -1,4 +1,6 @@
 import graphene
+from drf_yasg.openapi import Response
+from drf_yasg.utils import swagger_auto_schema
 from graphene_django.views import GraphQLView
 from graphql.error import GraphQLLocatedError
 from rest_framework.authentication import SessionAuthentication
@@ -9,7 +11,10 @@ from rest_framework.settings import api_settings
 
 from authentication.api.graphql.schema import Query as AuthenticationQuery
 from boards.api.graphql.schema import Query as BoardsQuery
-from gitrello.exceptions import GITrelloException
+from gitrello.exceptions import (
+    APIRequestValidationException, AuthenticationFailedException, GITrelloException, PermissionDeniedException,
+)
+from gitrello.serializers import ErrorResponseSerializer
 from organizations.api.graphql.schema import Query as OrganizationsQuery
 from tickets.api.graphql.schema import Query as TicketsQuery
 
@@ -56,3 +61,52 @@ class DRFAuthenticatedGraphQLView(GraphQLView):
 
 
 schema = graphene.Schema(query=Query)
+
+
+def gitrello_schema(**kwargs):
+    responses = kwargs.pop('responses', {})
+    if 400 not in responses:
+        responses[400] = Response(
+            schema=ErrorResponseSerializer,
+            description='Given request is invalid for some reason',
+            examples={
+                'application/json': {
+                    'error_code': APIRequestValidationException.code,
+                    'error_message': APIRequestValidationException.message,
+                    'error_details': {
+                        'name': ['This field is required.', ],
+                        'age': ['Not a valid integer', ],
+                    }
+                }
+            }
+        )
+    if 401 not in responses:
+        responses[401] = Response(
+            schema=ErrorResponseSerializer,
+            description='Authentication credentials were not provided or are incorrect',
+            examples={
+                'application/json': {
+                    'error_code': AuthenticationFailedException.code,
+                    'error_message': AuthenticationFailedException.message,
+                    'error_details': {
+                        'error': 'Authentication credentials were not provided.'
+                    }
+                },
+            }
+        )
+    if 403 not in responses:
+        responses[403] = Response(
+            schema=ErrorResponseSerializer,
+            description='User is authenticated, but not authorized to perform some action or access some data',
+            examples={
+                'application/json': {
+                    'error_code': PermissionDeniedException.code,
+                    'error_message': PermissionDeniedException.message,
+                },
+            }
+        )
+
+    return swagger_auto_schema(
+        responses=responses,
+        **kwargs,
+    )

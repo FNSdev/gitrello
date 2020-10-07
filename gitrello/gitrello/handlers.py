@@ -6,7 +6,7 @@ from typing import Callable
 from django.db import IntegrityError
 from psycopg2 import errorcodes
 from requests import RequestException
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def custom_exception_handler(exc, context):
     logger.exception(exc)
 
-    if isinstance(exc, AuthenticationFailed):
+    if isinstance(exc, AuthenticationFailed) or isinstance(exc, NotAuthenticated):
         return Response(
             status=401,
             data={

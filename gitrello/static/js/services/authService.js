@@ -67,12 +67,12 @@ export class AuthService {
 
             this.tokenService.token = response['token'];
             this._user = new User({
-                id: response['user']['id'],
+                id: response['id'],
                 token: response['token'],
-                username: response['user']['username'],
-                email: response['user']['email'],
-                firstName: response['user']['first_name'],
-                lastName: response['user']['last_name'],
+                username: response['username'],
+                email: response['email'],
+                firstName: response['first_name'],
+                lastName: response['last_name'],
             });
 
             return this._user;

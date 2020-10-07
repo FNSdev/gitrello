@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from authentication.choices import OauthProvider
 from authentication.models import OauthState, User
+from authentication.services.permissions_service import Permissions
 
 
 class CreateUserSerializer(serializers.Serializer):
@@ -66,3 +67,9 @@ class CreateOauthStateResponseSerializer(serializers.ModelSerializer):
 
     id = serializers.CharField()
     user_id = serializers.CharField()
+
+
+class PermissionsSerializer(serializers.Serializer):
+    can_read = serializers.BooleanField()
+    can_mutate = serializers.BooleanField()
+    can_delete = serializers.BooleanField()

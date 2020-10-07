@@ -28,7 +28,8 @@ class CreateOrganizationResponseSerializer(serializers.ModelSerializer):
 class CreateOrganizationInviteResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationInvite
-        fields = ('id', 'user_id', 'message')
+        fields = ('id', 'user_id', 'organization_id', 'message')
 
     id = serializers.CharField()
     user_id = serializers.CharField()
+    organization_id = serializers.CharField()

@@ -6,8 +6,10 @@ from rest_framework.response import Response
 from authentication.services import PermissionsService
 from gitrello.exceptions import PermissionDeniedException
 from gitrello.handlers import retry_on_transaction_serialization_error
+from gitrello.schema import gitrello_schema
 from organizations.api.serializers import (
-    CreateOrganizationSerializer, CreateOrganizationInviteSerializer, UpdateOrganizationInviteSerializer,
+    CreateOrganizationSerializer, CreateOrganizationResponseSerializer, CreateOrganizationInviteSerializer,
+    CreateOrganizationInviteResponseSerializer, UpdateOrganizationInviteSerializer,
 )
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
@@ -17,17 +19,18 @@ class OrganizationsView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
+    @gitrello_schema(
+        query_serializer=CreateOrganizationSerializer, responses={201: CreateOrganizationResponseSerializer},
+    )
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         organization = OrganizationService.create_organization(owner_id=request.user.id, **serializer.validated_data)
+        response_serializer = CreateOrganizationResponseSerializer(instance=organization)
         return Response(
             status=201,
-            data={
-                'id': str(organization.id),
-                'name': organization.name,
-            },
+            data=response_serializer.data,
         )
 
 
@@ -36,6 +39,10 @@ class OrganizationInvitesView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
+    @gitrello_schema(
+        query_serializer=CreateOrganizationInviteSerializer,
+        responses={201: CreateOrganizationInviteResponseSerializer},
+    )
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -48,14 +55,10 @@ class OrganizationInvitesView(views.APIView):
             raise PermissionDeniedException
 
         invite = OrganizationInviteService.create_organization_invite(**serializer.validated_data)
+        response_serializer = CreateOrganizationInviteResponseSerializer(instance=invite)
         return Response(
             status=201,
-            data={
-                'id': str(invite.id),
-                'user_id': invite.user.id,
-                'organization_id': invite.organization.id,
-                'message': invite.message,
-            },
+            data=response_serializer.data,
         )
 
 
@@ -64,6 +67,7 @@ class OrganizationInviteView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
+    @gitrello_schema(query_serializer=UpdateOrganizationInviteSerializer, responses={204: ''})
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -84,6 +88,7 @@ class OrganizationMembershipView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
+    @gitrello_schema(responses={204: ''})
     def delete(self, request, *args, **kwargs):
         permissions = PermissionsService.get_organization_membership_permissions(
             organization_membership_id=kwargs['id'],

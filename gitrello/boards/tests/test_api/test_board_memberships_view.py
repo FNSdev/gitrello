@@ -46,7 +46,14 @@ class TestBoardMembershipsView(TestCase):
             board_id=payload['board_id'],
             organization_membership_id=payload['organization_membership_id'],
         )
-        self.assertDictEqual(response.data, {'id': str(board_membership.id)})
+        self.assertDictEqual(
+            response.data,
+            {
+                'id': str(board_membership.id),
+                'board_id': str(board_membership.board_id),
+                'organization_membership_id': str(board_membership.organization_membership_id),
+            },
+        )
 
     def test_create_board_membership_not_authenticated(self):
         payload = {

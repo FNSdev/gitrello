@@ -48,7 +48,7 @@ class TestCategoriesView(TestCase):
             'ticket_id': str(comment.ticket_id),
             'author_id': str(comment.author_id),
             'message': str(comment.message),
-            'added_at': comment.added_at,
+            'added_at': comment.added_at.strftime('%Y-%m-%dT%H:%M:%S.%f%z'),
         }
         self.assertDictEqual(response.data, expected_response)
 

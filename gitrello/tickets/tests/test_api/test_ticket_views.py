@@ -177,7 +177,7 @@ class TestTicketView(TestCase):
             'id': str(ticket.id),
             'title': ticket.title,
             'body': ticket.body,
-            'due_date': ticket.due_date,
+            'due_date': ticket.due_date.isoformat(),
             'priority': ticket.priority,
             'category_id': str(ticket.category_id),
         }

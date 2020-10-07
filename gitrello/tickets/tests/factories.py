@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 import factory
 
@@ -21,7 +21,7 @@ class TicketFactory(factory.DjangoModelFactory):
     priority = factory.sequence(lambda i: i)
     title = factory.sequence(lambda i: f'ticket_{i}')
     body = factory.sequence(lambda i: f'ticket_body_{i}')
-    due_date = factory.sequence(lambda i: datetime(2000 + i, 1, 1))
+    due_date = factory.sequence(lambda i: date(2000 + i, 1, 1))
     category = factory.SubFactory(CategoryFactory)
 
 

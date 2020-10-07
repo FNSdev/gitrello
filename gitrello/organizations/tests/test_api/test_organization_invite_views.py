@@ -51,8 +51,8 @@ class TestOrganizationInvitesView(TestCase):
         )
         expected_response = {
             'id': str(invite.id),
-            'user_id': invite.user_id,
-            'organization_id': invite.organization_id,
+            'user_id': str(invite.user_id),
+            'organization_id': str(invite.organization_id),
             'message': invite.message,
         }
         self.assertDictEqual(response.data, expected_response)

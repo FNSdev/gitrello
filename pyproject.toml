@@ -11,6 +11,7 @@ django-cockroachdb = "^3.0.1"
 django-filter = "^2.3.0"
 django-storages = { version = "^1.9.1", extras = ["google"] }
 djangorestframework = "^3.11.0"
+drf-yasg = "^1.17.1"
 graphene = "^2.1.8"
 graphene-django = "^2.12.1"
 graphene-django-optimizer = { git = "https://github.com/FNSdev/graphene-django-optimizer.git", branch = "master" }

@@ -1,6 +1,3 @@
-from django.db.transaction import atomic
-
-from gitrello.handlers import retry_on_transaction_serialization_error
 from organizations.choices import OrganizationMemberRole
 from organizations.exceptions import (
     OrganizationMembershipAlreadyExistsException, OrganizationMembershipNotFoundException,
@@ -10,10 +7,9 @@ from organizations.models import OrganizationMembership
 
 
 class OrganizationMembershipService:
-    @retry_on_transaction_serialization_error
-    @atomic
-    def add_member(
-        self,
+    @classmethod
+    def create_organization_membership(
+        cls,
         organization_id: int,
         user_id: int,
         role: str = OrganizationMemberRole.MEMBER
@@ -27,44 +23,17 @@ class OrganizationMembershipService:
             role=role,
         )
 
-    # TODO delete/update invite?
-    @retry_on_transaction_serialization_error
-    @atomic
-    def delete_member(self, organization_membership_id):
-        membership = OrganizationMembership.objects.filter(id=organization_membership_id).first()
-        if not membership:
-            raise OrganizationMembershipNotFoundException
-
-        membership.delete()
-
-    @retry_on_transaction_serialization_error
-    @atomic
-    def can_delete_member(self, user_id: int, organization_membership_id: int) -> bool:
-        membership_to_delete = OrganizationMembership.objects.filter(id=organization_membership_id).first()
-        if not membership_to_delete:
-            return False
-
-        if membership_to_delete.role == OrganizationMemberRole.OWNER:
-            raise CanNotLeaveOrganizationException
-
-        # User wants to leave organization
-        if membership_to_delete.user_id == user_id:
-            return True
-
-        membership = OrganizationMembership.objects \
-            .filter(
-                organization_id=membership_to_delete.organization_id,
-                user_id=user_id,
-            ) \
+    @classmethod
+    def delete_organization_membership(cls, organization_membership_id):
+        organization_membership = OrganizationMembership.objects \
+            .filter(id=organization_membership_id) \
             .values('role') \
             .first()
 
-        if not membership:
-            return False
+        if not organization_membership:
+            raise OrganizationMembershipNotFoundException
 
-        # ADMIN users can be deleted from organization only by it's owner
-        if membership_to_delete.role == OrganizationMemberRole.ADMIN:
-            return membership['role'] == OrganizationMemberRole.OWNER
+        if organization_membership['role'] == OrganizationMemberRole.OWNER:
+            raise CanNotLeaveOrganizationException
 
-        # MEMBER users can be deleted from organization by owner and admins
-        return membership['role'] == OrganizationMemberRole.OWNER or membership['role'] == OrganizationMemberRole.ADMIN
+        OrganizationMembership.objects.filter(id=organization_membership_id).delete()

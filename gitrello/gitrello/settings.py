@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg',
     'django_filters',
     'graphene_django',
 ]
@@ -133,7 +134,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'EXCEPTION_HANDLER': 'gitrello.handlers.custom_exception_handler',
-    'PAGE_SIZE': 5
+    'PAGE_SIZE': 5,
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S.%f%z',
 }
 
 # Logging

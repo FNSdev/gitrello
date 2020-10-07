@@ -353,7 +353,8 @@ export class TicketDetailsComponent extends HTMLElement {
         errorsList.clear();
 
         try {
-            let message = this.shadowRoot.getElementById('comment-form-message').value.trim();
+            let messageForm = this.shadowRoot.getElementById('comment-form-message');
+            let message = messageForm.value.trim();
             message = message === '' ? null : message;
 
             const comment = await commentRepository.create(this._ticket, message);
@@ -363,6 +364,7 @@ export class TicketDetailsComponent extends HTMLElement {
 
             this._ticket.comments.push(comment);
             this._insertComment(comment, true);
+            messageForm.value = '';
         }
         catch (e) {
             errorsList.addError(e.message);

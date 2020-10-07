@@ -1,12 +1,16 @@
+from django.db.transaction import atomic
 from rest_framework import views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from authentication.services.permissions_service import PermissionsService
-from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from authentication.services import PermissionsService
+from gitrello.exceptions import PermissionDeniedException
+from gitrello.handlers import retry_on_transaction_serialization_error
+from gitrello.schema import gitrello_schema
 from tickets.api.serializers import (
-    CreateCategorySerializer, CreateTicketSerializer, UpdateTicketSerializer, CreateTicketAssignmentSerializer,
-    CreateCommentSerializer,
+    CreateCategorySerializer, CreateTicketSerializer, CreateTicketAssignmentSerializer, CreateCommentSerializer,
+    UpdateTicketSerializer, CreateCategoryResponseSerializer, CreateTicketAssignmentResponseSerializer,
+    CreateCommentResponseSerializer, CreateTicketResponseSerializer, UpdateTicketResponseSerializer,
 )
 from tickets.services import CategoryService, CommentService, TicketAssignmentService, TicketService
 
@@ -14,145 +18,155 @@ from tickets.services import CategoryService, CommentService, TicketAssignmentSe
 class CategoriesView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=CreateCategorySerializer, responses={201: CreateCategoryResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateCategorySerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        service = CategoryService()
-        if not service.can_create_category(user_id=request.user.id, board_id=serializer.validated_data['board_id']):
+        permissions = PermissionsService.get_board_permissions(
+            board_id=serializer.validated_data['board_id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_read:
             raise PermissionDeniedException
 
-        category = service.create_category(**serializer.validated_data)
+        category = CategoryService.create_category(**serializer.validated_data)
+        response_serializer = CreateCategoryResponseSerializer(instance=category)
         return Response(
             status=201,
-            data={
-                'id': str(category.id),
-                'board_id': str(category.board_id),
-                'name': category.name,
-            },
+            data=response_serializer.data,
         )
 
 
 class TicketsView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=CreateTicketSerializer, responses={201: CreateTicketResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        service = TicketService()
-        if not service.can_create_ticket(user_id=request.user.id, category_id=serializer.validated_data['category_id']):
+        permissions = PermissionsService.get_category_permissions(
+            category_id=serializer.validated_data['category_id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
-        ticket = service.create_ticket(**serializer.validated_data)
+        ticket = TicketService.create_ticket(**serializer.validated_data)
+        response_serializer = CreateTicketResponseSerializer(instance=ticket)
         return Response(
             status=201,
-            data={
-                'id': str(ticket.id),
-                'category_id': str(ticket.category_id),
-                'priority': ticket.priority,
-            },
+            data=response_serializer.data,
         )
 
 
 class TicketView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=UpdateTicketSerializer, responses={201: UpdateTicketResponseSerializer})
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
         if not permissions.can_mutate:
             raise PermissionDeniedException
 
-        service = TicketService()
-        ticket = service.update_ticket(ticket_id=kwargs['id'], validated_data=serializer.validated_data)
+        ticket = TicketService.update_ticket(ticket_id=kwargs['id'], validated_data=serializer.validated_data)
+        response_serializer = UpdateTicketResponseSerializer(instance=ticket)
         return Response(
             status=200,
-            data={
-                'id': str(ticket.id),
-                'title': ticket.title,
-                'body': ticket.body,
-                'due_date': ticket.due_date,
-                'priority': ticket.priority,
-                'category_id': str(ticket.category_id),
-            },
+            data=response_serializer.data,
         )
 
     # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(responses={204: ''})
     def delete(self, request, *args, **kwargs):
         permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
         if not permissions.can_delete:
             raise PermissionDeniedException
 
-        service = TicketService()
-        service.delete_ticket(ticket_id=kwargs['id'])
+        TicketService.delete_ticket(ticket_id=kwargs['id'])
         return Response(status=204)
 
 
 class TicketAssignmentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(
+        query_serializer=CreateTicketAssignmentSerializer,
+        responses={201: CreateTicketAssignmentResponseSerializer},
+    )
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketAssignmentSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        service = TicketAssignmentService()
-        if not service.can_assign_member(
-            user_id=request.user.id,
+        permissions = PermissionsService.get_ticket_permissions(
             ticket_id=serializer.validated_data['ticket_id'],
-            board_membership_id=serializer.validated_data['board_membership_id'],
-        ):
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
-        ticket_assignment = service.assign_member(**serializer.validated_data)
+        ticket_assignment = TicketAssignmentService.create_ticket_assignment(**serializer.validated_data)
+        response_serializer = CreateTicketAssignmentResponseSerializer(instance=ticket_assignment)
         return Response(
             status=201,
-            data={
-                'id': str(ticket_assignment.id),
-                'ticket_id': str(ticket_assignment.ticket_id),
-                'assignee_id': str(ticket_assignment.assignee_id),
-            },
+            data=response_serializer.data,
         )
 
 
 class TicketAssignmentView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(responses={204: ''})
     def delete(self, request, *args, **kwargs):
         service = TicketAssignmentService()
-        if not service.can_unassign_member(user_id=request.user.id, ticket_assignment_id=kwargs['id']):
+
+        permissions = PermissionsService.get_ticket_assignment_permissions(
+            ticket_assignment_id=kwargs['id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_delete:
             raise PermissionDeniedException
 
-        service.unassign_member(ticket_assignment_id=kwargs['id'])
+        service.delete_ticket_assignment(ticket_assignment_id=kwargs['id'])
         return Response(status=204)
 
 
 class CommentsView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=CreateCommentSerializer, responses={201: CreateCommentResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateCommentSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        service = CommentService()
-        if not service.can_create_comment(user_id=request.user.id, ticket_id=serializer.validated_data['ticket_id']):
+        permissions = PermissionsService.get_ticket_permissions(
+            ticket_id=serializer.validated_data['ticket_id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
             raise PermissionDeniedException
 
-        comment = service.create_comment(user_id=request.user.id, **serializer.validated_data)
+        comment = CommentService.create_comment(user_id=request.user.id, **serializer.validated_data)
+        response_serializer = CreateCommentResponseSerializer(instance=comment)
         return Response(
             status=201,
-            data={
-                'id': str(comment.id),
-                'ticket_id': str(comment.ticket_id),
-                'author_id': str(comment.author_id),
-                'message': comment.message,
-                'added_at': comment.added_at,
-            },
+            data=response_serializer.data,
         )

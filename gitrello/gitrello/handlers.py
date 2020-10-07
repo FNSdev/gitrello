@@ -6,7 +6,7 @@ from typing import Callable
 from django.db import IntegrityError
 from psycopg2 import errorcodes
 from requests import RequestException
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def custom_exception_handler(exc, context):
     logger.exception(exc)
 
-    if isinstance(exc, AuthenticationFailed):
+    if isinstance(exc, AuthenticationFailed) or isinstance(exc, NotAuthenticated):
         return Response(
             status=401,
             data={
@@ -31,13 +31,13 @@ def custom_exception_handler(exc, context):
             }
         )
 
-    if isinstance(exc, APIRequestValidationException):
+    if isinstance(exc, ValidationError):
         return Response(
             status=400,
             data={
-                'error_code': exc.code,
-                'error_message': exc.message,
-                'error_details': {field: errors for field, errors in exc.serializer_errors.items()},
+                'error_code': APIRequestValidationException.code,
+                'error_message': APIRequestValidationException.message,
+                'error_details': {field: errors for field, errors in exc.detail.items()},
             }
         )
 
@@ -64,12 +64,12 @@ def custom_exception_handler(exc, context):
 
 
 def retry_on_transaction_serialization_error(
-        original_function: Callable = None,
-        *,
-        num_retries: int = 3,
-        on_failure: GITrelloException = GITrelloException,
-        delay: float = 0.02,
-        backoff: float = 2,
+    original_function: Callable = None,
+    *,
+    num_retries: int = 3,
+    on_failure: GITrelloException = GITrelloException,
+    delay: float = 0.02,
+    backoff: float = 2,
 ) -> Callable:
     """
     Should be used along with atomic() decorator to retry when transaction with serializable isolation level fails.

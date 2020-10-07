@@ -7,7 +7,7 @@ from authentication.tests.factories import UserFactory
 
 class TestUserService(TestCase):
     def test_create_user(self):
-        user = UserService().create_user(
+        user = UserService.create_user(
             username='username',
             first_name='fn',
             last_name='ln',
@@ -25,7 +25,7 @@ class TestUserService(TestCase):
     def test_create_user_username_not_unique(self):
         UserFactory(username='username')
         with self.assertRaises(UserAlreadyExistsException):
-            _, _ = UserService().create_user(
+            _, _ = UserService.create_user(
                 username='username',
                 first_name='fn',
                 last_name='ln',
@@ -36,7 +36,7 @@ class TestUserService(TestCase):
     def test_create_user_email_not_unique(self):
         UserFactory(email='test@test.com')
         with self.assertRaises(UserAlreadyExistsException):
-            _, _ = UserService().create_user(
+            _, _ = UserService.create_user(
                 username='username',
                 first_name='fn',
                 last_name='ln',

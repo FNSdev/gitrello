@@ -14,7 +14,7 @@ class GithubIntegrationServiceAPIClient:
 
     def __init__(self, user_id):
         self.headers = {
-            'Authorization': f'Bearer {UserService().get_jwt_token(user_id)}',
+            'Authorization': f'Bearer {UserService.get_jwt_token(user_id)}',
         }
 
     @safe_http_request

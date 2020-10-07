@@ -13,8 +13,9 @@ class GithubOauthService:
         if response_data.get('error'):
             raise GithubException(response_data['error'], response_data['error_description'])
 
+    @classmethod
     @safe_http_request
-    def exchange_code_for_token(self, code: str) -> str:
+    def exchange_code_for_token(cls, code: str) -> str:
         response = requests.post(
             url=self.ACCESS_TOKEN_URL,
             data={
@@ -24,7 +25,7 @@ class GithubOauthService:
             },
             headers={
                 'Accept': 'application/json',
-            }
+            },
         )
 
         response_data = response.json()

@@ -1,63 +1,81 @@
 import logging
 
+from django.db.transaction import atomic
 from django.views.generic import RedirectView
 from rest_framework import views
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from authentication.api.serializers import CreateUserSerializer, CreateOauthStateSerializer
+from authentication.api.serializers import (
+    AuthTokenOwnerResponseSerializer, CreateOauthStateResponseSerializer, CreateOauthStateSerializer,
+    CreateUserResponseSerializer, CreateUserSerializer, LoginResponseSerializer,
+)
 from authentication.services import GithubOauthService, OauthStateService, UserService
 from github_integration import GithubIntegrationServiceAPIClient
-from gitrello.exceptions import APIRequestValidationException, HttpRequestException
+from gitrello.exceptions import HttpRequestException
+from gitrello.handlers import retry_on_transaction_serialization_error
+from gitrello.schema import gitrello_schema
 
 logger = logging.getLogger(__name__)
 
 
 class UsersView(views.APIView):
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=CreateUserSerializer, responses={201: CreateUserResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        service = UserService()
-        user = service.create_user(**serializer.validated_data)
+        user = UserService.create_user(**serializer.validated_data)
+        response_serializer = CreateUserResponseSerializer(
+            instance={
+                'id': str(user.id),
+                'token': UserService.get_jwt_token(user.id),
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'username': user.username,
+            },
+        )
         return Response(
             status=201,
-            data={
-                'id': str(user.id),
-                'token': service.get_jwt_token(user.id),
-            },
+            data=response_serializer.data,
         )
 
 
-class AuthTokenView(views.APIView):
+class LoginView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (BasicAuthentication, )
 
+    @gitrello_schema(operation_id='login', responses={200: LoginResponseSerializer, 400: None, 403: None})
     def get(self, request, *args, **kwargs):
+        response_serializer = LoginResponseSerializer(
+            instance={
+                'id': str(request.user.id),
+                'token': UserService.get_jwt_token(request.user.id),
+                'first_name': request.user.first_name,
+                'last_name': request.user.last_name,
+                'email': request.user.email,
+                'username': request.username,
+            },
+        )
         return Response(
             status=200,
-            data={
-                'token': UserService().get_jwt_token(request.user.id),
-                'user': {
-                    'id': str(request.user.id),
-                    'username': request.user.username,
-                    'email': request.user.email,
-                    'first_name': request.user.first_name,
-                    'last_name': request.user.last_name,
-                },
-            },
+            data=response_serializer.data,
         )
 
 
 class AuthTokenOwnerView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
+    @gitrello_schema(
+        operation_id='user_details', responses={200: AuthTokenOwnerResponseSerializer, 400: None, 403: None},
+    )
     def get(self, request, *args, **kwargs):
-        return Response(
-            status=200,
-            data={
+        response_serializer = AuthTokenOwnerResponseSerializer(
+            instance={
                 'id': str(request.user.id),
                 'email': request.user.email,
                 'first_name': request.user.first_name,
@@ -65,12 +83,18 @@ class AuthTokenOwnerView(views.APIView):
                 'username': request.user.username,
             },
         )
+        return Response(
+            status=200,
+            data=response_serializer.data,
+        )
 
 
 class GithubOauthView(RedirectView):
     url = '/profile'
 
     # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
     def get(self, request, *args, **kwargs):
         error = request.GET.get('error')
         if error:
@@ -84,14 +108,12 @@ class GithubOauthView(RedirectView):
             # TODO show error message to user somehow
             return super().get(request, *args, **kwargs)
 
-        token = GithubOauthService().exchange_code_for_token(code)
+        token = GithubOauthService.exchange_code_for_token(code)
 
-        oauth_state_service = OauthStateService()
-        oauth_state = oauth_state_service.get_by_state(state)
-
+        oauth_state = OauthStateService.get_by_state(state)
         user_id = oauth_state.user_id
 
-        oauth_state_service.delete(oauth_state.id)
+        OauthStateService.delete(oauth_state.id)
 
         # TODO show error message to user somehow
         try:
@@ -107,18 +129,16 @@ class OauthStatesView(views.APIView):
     permission_classes = (IsAuthenticated, )
 
     # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=CreateOauthStateSerializer, responses={201: CreateOauthStateResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateOauthStateSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIRequestValidationException(serializer_errors=serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
-        oauth_state = OauthStateService().get_or_create(user_id=request.user.id, **serializer.validated_data)
+        oauth_state = OauthStateService.get_or_create(user_id=request.user.id, **serializer.validated_data)
+        response_serializer = CreateOauthStateResponseSerializer(instance=oauth_state)
         return Response(
             status=201,
-            data={
-                'id': str(oauth_state.id),
-                'user_id': oauth_state.user_id,
-                'provider': oauth_state.provider,
-                'state': oauth_state.state,
-            },
+            data=response_serializer.data,
         )

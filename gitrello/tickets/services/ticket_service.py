@@ -1,18 +1,14 @@
 from typing import Optional
 
 from django.db.models import Case, F, Subquery, When
-from django.db.transaction import atomic
 
-from boards.models import BoardMembership
-from gitrello.handlers import retry_on_transaction_serialization_error
 from tickets.exceptions import CategoryNotFoundException, TicketNotFoundException
 from tickets.models import Category, Ticket
 
 
 class TicketService:
-    @retry_on_transaction_serialization_error
-    @atomic
-    def create_ticket(self, category_id: int) -> Ticket:
+    @classmethod
+    def create_ticket(cls, category_id: int) -> Ticket:
         if not Category.objects.filter(id=category_id).exists():
             raise CategoryNotFoundException
 
@@ -27,15 +23,14 @@ class TicketService:
             priority=last_ticket.priority + 1 if last_ticket else 0,
         )
 
-    @retry_on_transaction_serialization_error
-    @atomic
-    def update_ticket(self, ticket_id: int, validated_data: dict) -> Ticket:
+    @classmethod
+    def update_ticket(cls, ticket_id: int, validated_data: dict) -> Ticket:
         ticket = Ticket.objects.filter(id=ticket_id).first()
         if not ticket:
             raise TicketNotFoundException
 
         if (new_category_id := validated_data.get('category_id')) is not None:
-            self._move_ticket(ticket, validated_data.get('previous_ticket_id'), new_category_id)
+            cls._move_ticket(ticket, validated_data.get('previous_ticket_id'), new_category_id)
 
         ticket.title = validated_data['title']
         ticket.due_date = validated_data['due_date']
@@ -45,9 +40,8 @@ class TicketService:
         return ticket
 
     # TODO add tests
-    @retry_on_transaction_serialization_error
-    @atomic
-    def delete_ticket(self, ticket_id):
+    @classmethod
+    def delete_ticket(cls, ticket_id):
         ticket = Ticket.objects.filter(id=ticket_id).first()
         if not ticket:
             raise TicketNotFoundException
@@ -58,21 +52,9 @@ class TicketService:
 
         ticket.delete()
 
-    @retry_on_transaction_serialization_error
-    @atomic
-    def can_create_ticket(self, user_id: int, category_id: int) -> bool:
-        category = Category.objects.filter(id=category_id).values('board_id').first()
-        if not category:
-            return False  # TODO add tests
-
-        return BoardMembership.objects \
-            .filter(
-                organization_membership__user_id=user_id,
-                board_id=category['board_id'],
-            ) \
-            .exists()
-
-    def _move_ticket(self, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
+    # TODO add tests
+    @classmethod
+    def _move_ticket(cls, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
         if not previous_ticket_id:
             new_priority = 0
         else:

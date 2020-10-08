@@ -58,7 +58,7 @@ class LoginView(views.APIView):
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'email': request.user.email,
-                'username': request.username,
+                'username': request.user.username,
             },
         )
         return Response(

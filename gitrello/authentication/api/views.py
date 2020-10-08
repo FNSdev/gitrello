@@ -23,7 +23,11 @@ logger = logging.getLogger(__name__)
 class UsersView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateUserSerializer, responses={201: CreateUserResponseSerializer})
+    @gitrello_schema(
+        query_serializer=CreateUserSerializer,
+        responses={201: CreateUserResponseSerializer},
+        security=[],
+    )
     def post(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,7 +53,11 @@ class LoginView(views.APIView):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (BasicAuthentication, )
 
-    @gitrello_schema(operation_id='login', responses={200: LoginResponseSerializer, 400: None, 403: None})
+    @gitrello_schema(
+        operation_id='login',
+        responses={200: LoginResponseSerializer, 400: None, 403: None},
+        security=[{'Basic': []}],
+    )
     def get(self, request, *args, **kwargs):
         response_serializer = LoginResponseSerializer(
             instance={
@@ -58,7 +66,7 @@ class LoginView(views.APIView):
                 'first_name': request.user.first_name,
                 'last_name': request.user.last_name,
                 'email': request.user.email,
-                'username': request.username,
+                'username': request.user.username,
             },
         )
         return Response(

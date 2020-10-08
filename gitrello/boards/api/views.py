@@ -93,6 +93,7 @@ class BoardPermissionsView(views.APIView):
         operation_id='board-permissions_details',
         query_serializer=GetBoardPermissionsSerializer,
         responses={200: PermissionsSerializer, 401: None, 403: None},
+        security=[],
     )
     def get(self, request, *args, **kwargs):
         serializer = GetBoardPermissionsSerializer(data=request.data)

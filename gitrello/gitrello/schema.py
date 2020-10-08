@@ -106,7 +106,14 @@ def gitrello_schema(**kwargs):
             }
         )
 
+    security = kwargs.pop('security', None)
+    if security is None:
+        security = [{
+            'Bearer': [],
+        }]
+
     return swagger_auto_schema(
         responses=responses,
+        security=security,
         **kwargs,
     )

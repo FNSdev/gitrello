@@ -6,6 +6,8 @@ from tickets.models import Category
 
 
 class CategoryService:
+    NOT_SORTED = 'Not Sorted'
+
     @classmethod
     def create_category(cls, name: str, board_id: int) -> Category:
         if not Board.objects.filter(id=board_id).exists():

@@ -13,6 +13,7 @@ from boards.services import BoardService, BoardMembershipService
 from gitrello.exceptions import PermissionDeniedException
 from gitrello.handlers import retry_on_transaction_serialization_error
 from gitrello.schema import gitrello_schema
+from tickets.services import CategoryService
 
 
 class BoardsView(views.APIView):
@@ -33,6 +34,8 @@ class BoardsView(views.APIView):
             raise PermissionDeniedException
 
         board = BoardService.create_board(**serializer.validated_data)
+        CategoryService.create_category(name=CategoryService.NOT_SORTED, board_id=board.id)
+
         response_serializer = CreateBoardResponseSerializer(instance=board)
         return Response(
             status=201,

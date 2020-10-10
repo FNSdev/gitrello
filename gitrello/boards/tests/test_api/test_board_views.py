@@ -9,6 +9,7 @@ from boards.exceptions import BoardAlreadyExistsException
 from boards.services import BoardService
 from boards.tests.factories import BoardFactory
 from gitrello.exceptions import APIRequestValidationException, PermissionDeniedException
+from tickets.services import CategoryService
 
 
 class TestBoardsView(TestCase):
@@ -28,7 +29,8 @@ class TestBoardsView(TestCase):
                     'get_organization_permissions',
                     return_value=Permissions.with_all_permissions()
                 ) as mocked_get_permissions, \
-                patch.object(BoardService, 'create_board', return_value=board) as mocked_create_board:
+                patch.object(BoardService, 'create_board', return_value=board) as mocked_create_board, \
+                patch.object(CategoryService, 'create_category') as mocked_create_category:
             response = api_client.post('/api/v1/boards', data=payload, format='json')
 
         self.assertEqual(response.status_code, 201)
@@ -39,6 +41,10 @@ class TestBoardsView(TestCase):
         mocked_create_board.assert_called_with(
             name=payload['name'],
             organization_id=payload['organization_id'],
+        )
+        mocked_create_category.assert_called_with(
+            name=CategoryService.NOT_SORTED,
+            board_id=board.id,
         )
         self.assertDictEqual(
             response.data,

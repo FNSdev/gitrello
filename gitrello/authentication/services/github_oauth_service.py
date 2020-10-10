@@ -17,7 +17,7 @@ class GithubOauthService:
     @safe_http_request
     def exchange_code_for_token(cls, code: str) -> str:
         response = requests.post(
-            url=self.ACCESS_TOKEN_URL,
+            url=cls.ACCESS_TOKEN_URL,
             data={
                 'client_id': settings.GITHUB_CLIENT_ID,
                 'client_secret': settings.GITHUB_CLIENT_SECRET,
@@ -29,5 +29,5 @@ class GithubOauthService:
         )
 
         response_data = response.json()
-        self._check_response_for_error(response_data)
+        cls._check_response_for_error(response_data)
         return response_data['access_token']

@@ -31,7 +31,7 @@ template.innerHTML = `
         font-size: 24px;
         text-decoration: none;
         width: 60%;
-        word-break: break-all;
+        word-break: break-word;
         text-align: center;
       }
       

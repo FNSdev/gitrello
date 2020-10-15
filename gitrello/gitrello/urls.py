@@ -8,6 +8,7 @@ from rest_framework import permissions
 import authentication.urls
 import boards.urls
 import core.urls
+import github_integration.urls
 import organizations.urls
 import tickets.urls
 from gitrello.schema import DRFAuthenticatedGraphQLView
@@ -32,5 +33,6 @@ urlpatterns = [
     path('api/', include(organizations.urls, namespace='organizations')),
     path('api/', include(boards.urls, namespace='boards')),
     path('api/', include(tickets.urls, namespace='tickets')),
+    path('', include(github_integration.urls, namespace='github_integration')),
     path('', include(core.urls, namespace='core')),
 ]

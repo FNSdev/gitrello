@@ -201,6 +201,7 @@ export class BoardComponent extends HTMLElement {
         this.shadowRoot.appendChild(template.content.cloneNode(true));
 
         this.board = board;
+        this.boardRepository = null;
     }
 
     connectedCallback() {
@@ -277,8 +278,8 @@ export class BoardComponent extends HTMLElement {
 
         try {
             const githubRepositories = await githubRepositoryRepository.getAll();
-            const boardRepository = await boardRepositoryRepository.getByBoardId(this.board.id);
-            this._insertGithubRepositories(githubRepositories, boardRepository);
+            this.boardRepository = await boardRepositoryRepository.getByBoardId(this.board.id);
+            this._insertGithubRepositories(githubRepositories, this.boardRepository);
         }
         catch (e) {
             console.log(e);
@@ -301,12 +302,22 @@ export class BoardComponent extends HTMLElement {
     async onGithubRepositoryClick(repositoryName, repositoryOwner) {
         try {
             const githubRepositories = await githubRepositoryRepository.getAll();
-            const boardRepository = await boardRepositoryRepository.createOrUpdate(
-                this.board.id,
-                repositoryName,
-                repositoryOwner,
-            );
-            this._insertGithubRepositories(githubRepositories, boardRepository);
+
+            if(this.boardRepository != null
+                    && this.boardRepository.repositoryName === repositoryName
+                    && this.boardRepository.repositoryOwner === repositoryOwner) {
+                await boardRepositoryRepository.delete(this.boardRepository.id);
+                this.boardRepository = null;
+            }
+            else {
+                this.boardRepository = await boardRepositoryRepository.createOrUpdate(
+                    this.board.id,
+                    repositoryName,
+                    repositoryOwner,
+                );
+            }
+
+            this._insertGithubRepositories(githubRepositories, this.boardRepository);
         }
         catch (e) {
             console.log(e);

@@ -5,6 +5,7 @@ import {BoardRepository, } from "../models/boardRepository.js";
 class BoardRepositoryRepository {
     getBoardRepositoryUrl = `${window.GITHUB_INTEGRATION_SERVICE_URL}/api/v1/board-repository`;
     createOrUpdateBoardRepositoryUrl = `${window.GITHUB_INTEGRATION_SERVICE_URL}/api/v1/board-repositories`;
+    deleteBoardRepositoryUrl = `${window.GITHUB_INTEGRATION_SERVICE_URL}/api/v1/board-repositories`;
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -53,6 +54,19 @@ class BoardRepositoryRepository {
                 repositoryName: response['repository_name'],
                 repositoryOwner: response['repository_owner'],
             });
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async delete(boardRepositoryId) {
+        try {
+            await this.httpClient.delete({url: `${this.deleteBoardRepositoryUrl}/${boardRepositoryId}`});
         }
         catch (e) {
             console.log(e.message);

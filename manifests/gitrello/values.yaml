@@ -38,6 +38,7 @@ secret:
   gs_credentials: "credentials_json"
   url: "https://example.com"
   github_integration_service_url: "github-integration-service"
+  github_integration_service_token: "example"
   github_client_id: "example"
   github_client_secret: "example"
 
@@ -47,7 +48,7 @@ deployment:
   image:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.25
+    tag: 0.26
 
   imagePullSecrets: []
 

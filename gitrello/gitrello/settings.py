@@ -9,6 +9,8 @@ DEBUG = False
 ALLOWED_HOSTS = []
 
 URL = os.getenv('URL')
+
+# TODO split into internal and external url
 GITHUB_INTEGRATION_SERVICE_URL = os.getenv('GITHUB_INTEGRATION_SERVICE_URL')
 
 ADMINS = [

@@ -8,6 +8,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'gitrello.me',
     'www.gitrello.me',
+    'gitrello',
 ]
 
 # Mailing

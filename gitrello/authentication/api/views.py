@@ -1,7 +1,6 @@
 import logging
 
 from django.db.transaction import atomic
-from django.views.generic import RedirectView
 from rest_framework import views
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -11,9 +10,7 @@ from authentication.api.serializers import (
     AuthTokenOwnerResponseSerializer, CreateOauthStateResponseSerializer, CreateOauthStateSerializer,
     CreateUserResponseSerializer, CreateUserSerializer, LoginResponseSerializer,
 )
-from authentication.services import GithubOauthService, OauthStateService, UserService
-from github_integration import GithubIntegrationServiceAPIClient
-from gitrello.exceptions import HttpRequestException
+from authentication.services import OauthStateService, UserService
 from gitrello.handlers import retry_on_transaction_serialization_error
 from gitrello.schema import gitrello_schema
 
@@ -95,42 +92,6 @@ class AuthTokenOwnerView(views.APIView):
             status=200,
             data=response_serializer.data,
         )
-
-
-class GithubOauthView(RedirectView):
-    url = '/profile'
-
-    # TODO add tests
-    @retry_on_transaction_serialization_error
-    @atomic
-    def get(self, request, *args, **kwargs):
-        error = request.GET.get('error')
-        if error:
-            # TODO show error message to user somehow
-            return super().get(request, *args, **kwargs)
-
-        code = request.GET.get('code')
-        state = request.GET.get('state')
-
-        if not code or not state:
-            # TODO show error message to user somehow
-            return super().get(request, *args, **kwargs)
-
-        token = GithubOauthService.exchange_code_for_token(code)
-
-        oauth_state = OauthStateService.get_by_state(state)
-        user_id = oauth_state.user_id
-
-        OauthStateService.delete(oauth_state.id)
-
-        # TODO show error message to user somehow
-        try:
-            github_integration_service_api_client = GithubIntegrationServiceAPIClient(user_id)
-            github_integration_service_api_client.create_github_profile(token)
-        except HttpRequestException as e:
-            logger.exception(e)
-
-        return super().get(request, *args, **kwargs)
 
 
 class OauthStatesView(views.APIView):

@@ -1,9 +1,10 @@
 from typing import Optional
 
-from django.db.models import Case, F, Subquery, When
+from django.db.models import Case, F, When
 
 from tickets.exceptions import CategoryNotFoundException, TicketNotFoundException
 from tickets.models import Category, Ticket
+from tickets.services import CategoryService
 
 
 class TicketService:
@@ -19,7 +20,32 @@ class TicketService:
             .first()
 
         return Ticket.objects.create(
-            category_id=Subquery(Category.objects.filter(id=category_id).values('id')),
+            category_id=category_id,
+            priority=last_ticket.priority + 1 if last_ticket else 0,
+        )
+
+    # TODO add tests
+    @classmethod
+    def create_ticket_from_github_issue(cls, board_id: int, title: str, body: str) -> Ticket:
+        category = Category.objects \
+            .filter(board_id=board_id) \
+            .order_by('added_at') \
+            .first()
+
+        last_ticket = None
+        if category:
+            last_ticket = Ticket.objects \
+                .filter(category_id=category.id) \
+                .order_by('-priority') \
+                .only('priority') \
+                .first()
+        else:
+            category = CategoryService.create_category(CategoryService.NOT_SORTED, board_id)
+
+        return Ticket.objects.create(
+            category_id=category.id,
+            title=title,
+            body=body,
             priority=last_ticket.priority + 1 if last_ticket else 0,
         )
 

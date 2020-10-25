@@ -11,7 +11,7 @@ class IndexView(TemplateView):
 
         context_data['GITHUB_CLIENT_ID'] = settings.GITHUB_CLIENT_ID
         context_data['GITHUB_DEFAULT_SCOPES'] = ','.join(settings.GITHUB_DEFAULT_SCOPES)
-        context_data['GITHUB_REDIRECT_URL'] = f'{settings.URL}{reverse("authentication:github-oauth")}'
+        context_data['GITHUB_REDIRECT_URL'] = f'{settings.URL}{reverse("github_integration:github-oauth")}'
         context_data['GITHUB_INTEGRATION_SERVICE_URL'] = settings.GITHUB_INTEGRATION_SERVICE_URL
 
         return context_data

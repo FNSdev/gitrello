@@ -24,6 +24,8 @@ template.innerHTML = `
       .container__name {
         font-size: 24px;
         text-decoration: none;
+        text-align: center;
+        word-break: break-word;
       }
       
       .container__role {

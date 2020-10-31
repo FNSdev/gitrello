@@ -110,8 +110,14 @@ export class GithubConnectionComponent extends HTMLElement {
         const errorsList = this.shadowRoot.getElementById('errors-list');
         errorsList.clear();
 
-        // TODO
-        errorsList.addError("NOT IMPLEMENTED");
+        try {
+            await githubProfileRepository.delete();
+            this.shadowRoot.getElementById('connect').style.display = "flex";
+            this.shadowRoot.getElementById('disconnect').style.display = "none";
+        }
+        catch (e) {
+            errorsList.addError(e);
+        }
     }
 }
 

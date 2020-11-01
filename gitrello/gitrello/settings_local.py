@@ -7,8 +7,6 @@ load_dotenv(dotenv_path=env_path, verbose=True)
 
 from gitrello.settings import *
 
-SECRET_KEY = 'aDFgbU43GTgf@34cxbJhg7gsgd^hdgH%'
-
 DEBUG = True
 
 # To disable IPython debug messages

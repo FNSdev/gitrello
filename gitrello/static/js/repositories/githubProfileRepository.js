@@ -4,6 +4,7 @@ import {GithubProfile, } from "../models/githubProfile.js";
 
 class GithubProfileRepository {
     getGithubProfileUrl = `${window.GITHUB_INTEGRATION_SERVICE_URL}/api/v1/github-profile`;
+    deleteGithubProfileUrl = `${window.GITHUB_INTEGRATION_SERVICE_URL}/api/v1/github-profile`;
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -23,6 +24,19 @@ class GithubProfileRepository {
             if (e instanceof HttpClientNotFoundError) {
                 return null;
             }
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async delete() {
+        try {
+            return await this.httpClient.delete({url: this.deleteGithubProfileUrl})
+        }
+        catch (e) {
+            console.log(e.message);
             if (e instanceof GITrelloError) {
                 throw e;
             }

@@ -57,7 +57,7 @@ export class NotificationsModalComponent extends HTMLElement {
             else if (message['type'] === 'warning') {
                 errors.addWarningMessage(message['text']);
             }
-            else if (message['type'] === 'warning') {
+            else if (message['type'] === 'success') {
                 errors.addSuccessMessage(message['text']);
             }
             else {

@@ -1,7 +1,7 @@
 import requests
 from django.conf import settings
 
-from authentication.exceptions import GithubException
+from github_integration.exceptions import GithubException
 from gitrello.handlers import safe_http_request
 
 

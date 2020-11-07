@@ -12,6 +12,7 @@ import {ErrorListComponent, } from "./components/common/errorsListComponent.js";
 import {GithubConnectionComponent, } from "./components/githubConnectionComponent.js";
 import {InputComponent, } from "./components/common/inputComponent.js";
 import {LogInFormComponent, } from "./components/forms/logInFormComponent.js";
+import {NotificationsModalComponent, } from "./components/common/notificationsModalComponent.js";
 import {OrganizationComponent, } from "./components/organizationComponent.js";
 import {OrganizationInviteComponent, } from "./components/organizationInviteComponent.js";
 import {OrganizationMembershipComponent, } from "./components/organizationMembershipComponent.js";

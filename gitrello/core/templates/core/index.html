@@ -57,6 +57,13 @@
       window.GITHUB_REDIRECT_URL = "{{ GITHUB_REDIRECT_URL }}";
       window.GITHUB_DEFAULT_SCOPES = "{{ GITHUB_DEFAULT_SCOPES }}";
       window.GITHUB_INTEGRATION_SERVICE_URL = "{{ GITHUB_INTEGRATION_SERVICE_URL }}";
+
+      window.MESSAGES = [];
+      {% if messages %}
+        {% for message in messages %}
+          window.MESSAGES.push({"type": "{{ message.tags }}", "text": "{{ message }}"});
+        {% endfor %}
+      {% endif %}
     </script>
   </body>
 </html>

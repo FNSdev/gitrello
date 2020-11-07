@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 
 from authentication.services import UserService
+from github_integration.exceptions import GithubAccountUsedByAnotherUserException
 from gitrello.exceptions import HttpRequestException
 from gitrello.handlers import safe_http_request
 
@@ -27,5 +28,12 @@ class GithubIntegrationServiceAPIClient:
             headers=self.headers,
         )
 
-        if not response.status_code == 201:
-            raise HttpRequestException
+        if response.status_code == 201:
+            return
+
+        if response.status_code == 400:
+            data = response.json()
+            if data['error_code'] == self.ALREADY_EXISTS:
+                raise GithubAccountUsedByAnotherUserException
+
+        raise HttpRequestException

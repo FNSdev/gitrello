@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gitrello"
-version = "0.1.0"
+version = "0.29.0"
 description = "Trello clone with GitHub integration"
 authors = ["Uladzislau Stasheuski <fnsdevelopment@gmail.com>"]
 

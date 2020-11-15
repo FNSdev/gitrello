@@ -124,11 +124,11 @@ export class CategoryComponent extends HTMLElement {
 
         // Find ticket that dragged ticket should be inserted after
         let ticketComponentBefore = null;
-        let previousTicketId = null;
+        let insertAfterTicketId = null;
         this.shadowRoot.querySelectorAll('.container__tickets__list__item').forEach(ticketComponent => {
             if (ticketComponent.getBoundingClientRect().top < event.clientY) {
                 ticketComponentBefore = ticketComponent;
-                previousTicketId = ticketComponent.ticket.id;
+                insertAfterTicketId = ticketComponent.ticket.id;
             }
         })
 
@@ -142,16 +142,7 @@ export class CategoryComponent extends HTMLElement {
             return;
         }
 
-        await ticketRepository.update(
-            ticket,
-            {
-                title: ticket.title,
-                dueDate: ticket.dueDate,
-                body: ticket.body,
-                previousTicketId: previousTicketId,
-                categoryId: this.category.id,
-            }
-        )
+        await ticketRepository.move(ticket, insertAfterTicketId, this.category.id)
 
         if (this._ticketMoved != null) {
             await this._ticketMoved();

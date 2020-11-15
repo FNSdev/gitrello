@@ -1,5 +1,5 @@
 from django.db.transaction import atomic
-from rest_framework import views
+from rest_framework import views, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,6 +11,7 @@ from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, CreateTicketAssignmentSerializer, CreateCommentSerializer,
     UpdateTicketSerializer, CreateCategoryResponseSerializer, CreateTicketAssignmentResponseSerializer,
     CreateCommentResponseSerializer, CreateTicketResponseSerializer, UpdateTicketResponseSerializer,
+    MoveTicketActionResponseSerializer, MoveTicketActionSerializer,
 )
 from tickets.services import CategoryService, CommentService, TicketAssignmentService, TicketService
 
@@ -70,7 +71,7 @@ class TicketView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=UpdateTicketSerializer, responses={201: UpdateTicketResponseSerializer})
+    @gitrello_schema(query_serializer=UpdateTicketSerializer, responses={200: UpdateTicketResponseSerializer})
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -97,6 +98,30 @@ class TicketView(views.APIView):
 
         TicketService.delete_ticket(ticket_id=kwargs['id'])
         return Response(status=204)
+
+
+class TicketActionsViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated, )
+
+    # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(query_serializer=MoveTicketActionSerializer, responses={200: MoveTicketActionResponseSerializer})
+    def move(self, request, *args, **kwargs):
+        serializer = MoveTicketActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        permissions = PermissionsService.get_ticket_permissions(ticket_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_mutate:
+            raise PermissionDeniedException
+
+        ticket = TicketService.move_ticket(
+            ticket_id=kwargs['id'],
+            insert_after_ticket_id=serializer.validated_data['insert_after_ticket_id'],
+            new_category_id=serializer.validated_data['category_id'],
+        )
+        response_serializer = MoveTicketActionResponseSerializer(instance=ticket)
+        return Response(status=200, data=response_serializer.data)
 
 
 class TicketAssignmentsView(views.APIView):

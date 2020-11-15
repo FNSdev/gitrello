@@ -4,9 +4,7 @@ import {Ticket, } from "../models/ticket.js";
 import {GITrelloError, } from "../errors.js";
 
 class TicketRepository {
-    createTicketUrl = '/api/v1/tickets'
-    updateTicketUrl = '/api/v1/tickets'
-    deleteTicketUrl = '/api/v1/tickets'
+    resourceUrl = '/api/v1/tickets'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -18,7 +16,7 @@ class TicketRepository {
         }
 
         try {
-            const response = await this.httpClient.post({url: this.createTicketUrl, data: data})
+            const response = await this.httpClient.post({url: this.resourceUrl, data: data})
             return new Ticket({
                 id: response['id'],
                 priority: response['priority'],
@@ -92,24 +90,43 @@ class TicketRepository {
         }
     }
 
-    async update(ticket, {title= null, body = null, dueDate = null, previousTicketId = null, categoryId = null}) {
+    async update(ticket, {title= null, body = null, dueDate = null}) {
         try {
             const response = await this.httpClient.patch({
-                url: `${this.updateTicketUrl}/${ticket.id}`,
+                url: `${this.resourceUrl}/${ticket.id}`,
                 data: {
                     'title': title,
                     'body': body,
                     'due_date': dueDate,
-                    'previous_ticket_id': previousTicketId,
-                    'category_id': categoryId,
-                }
+                },
             });
 
             ticket.title = response['title'];
             ticket.body = response['body'];
             ticket.dueDate = response['due_date'];
-            ticket.priority = response['priority'];
 
+            return ticket;
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async move(ticket, insertAfterTicketId, categoryId) {
+        try {
+            const response = await this.httpClient.post({
+                url: `${this.resourceUrl}/${ticket.id}/actions/move`,
+                data: {
+                    'insert_after_ticket_id': insertAfterTicketId,
+                    'category_id': categoryId,
+                },
+            });
+
+            ticket.priority = response['priority'];
             return ticket;
         }
         catch (e) {
@@ -123,7 +140,7 @@ class TicketRepository {
 
     async delete(ticketId) {
         try {
-            await this.httpClient.delete({url: `${this.deleteTicketUrl}/${ticketId}`})
+            await this.httpClient.delete({url: `${this.resourceUrl}/${ticketId}`})
         }
         catch (e) {
             console.log(e.message);

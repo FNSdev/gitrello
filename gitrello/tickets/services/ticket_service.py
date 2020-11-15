@@ -55,14 +55,11 @@ class TicketService:
         if not ticket:
             raise TicketNotFoundException
 
-        if (new_category_id := validated_data.get('category_id')) is not None:
-            cls._move_ticket(ticket, validated_data.get('previous_ticket_id'), new_category_id)
-
         ticket.title = validated_data['title']
         ticket.due_date = validated_data['due_date']
         ticket.body = validated_data['body']
-
         ticket.save()
+
         return ticket
 
     # TODO add tests
@@ -80,11 +77,15 @@ class TicketService:
 
     # TODO add tests
     @classmethod
-    def _move_ticket(cls, ticket: Ticket, previous_ticket_id: Optional[int], new_category_id: int, save: bool = False):
-        if not previous_ticket_id:
+    def move_ticket(cls, ticket_id: int, insert_after_ticket_id: Optional[int], new_category_id: int) -> Ticket:
+        ticket = Ticket.objects.filter(id=ticket_id).first()
+        if not ticket:
+            raise TicketNotFoundException
+
+        if not insert_after_ticket_id:
             new_priority = 0
         else:
-            previous_ticket = Ticket.objects.filter(id=previous_ticket_id).first()
+            previous_ticket = Ticket.objects.filter(id=insert_after_ticket_id).first()
             if not previous_ticket:
                 raise TicketNotFoundException
 
@@ -125,6 +126,6 @@ class TicketService:
 
         ticket.category_id = new_category_id
         ticket.priority = new_priority
+        ticket.save(update_fields=('priority', 'category_id'))
 
-        if save:
-            ticket.save(update_fields=('priority', 'category_id'))
+        return ticket

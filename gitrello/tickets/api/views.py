@@ -11,7 +11,8 @@ from tickets.api.serializers import (
     CreateCategorySerializer, CreateTicketSerializer, CreateTicketAssignmentSerializer, CreateCommentSerializer,
     UpdateTicketSerializer, CreateCategoryResponseSerializer, CreateTicketAssignmentResponseSerializer,
     CreateCommentResponseSerializer, CreateTicketResponseSerializer, UpdateTicketResponseSerializer,
-    MoveTicketActionResponseSerializer, MoveTicketActionSerializer,
+    MoveTicketActionResponseSerializer, MoveTicketActionSerializer, MoveCategoryActionSerializer,
+    MoveCategoryActionResponseSerializer,
 )
 from tickets.services import CategoryService, CommentService, TicketAssignmentService, TicketService
 
@@ -39,6 +40,32 @@ class CategoriesView(views.APIView):
             status=201,
             data=response_serializer.data,
         )
+
+
+class CategoryActionsViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated, )
+
+    # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(
+        query_serializer=MoveCategoryActionSerializer,
+        responses={200: MoveCategoryActionResponseSerializer},
+    )
+    def move(self, request, *args, **kwargs):
+        serializer = MoveCategoryActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        permissions = PermissionsService.get_category_permissions(category_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_mutate:
+            raise PermissionDeniedException
+
+        category = CategoryService.move_category(
+            category_id=kwargs['id'],
+            insert_after_category_id=serializer.validated_data['insert_after_category_id'],
+        )
+        response_serializer = MoveCategoryActionResponseSerializer(instance=category)
+        return Response(status=200, data=response_serializer.data)
 
 
 class TicketsView(views.APIView):

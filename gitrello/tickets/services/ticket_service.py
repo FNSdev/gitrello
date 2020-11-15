@@ -126,6 +126,6 @@ class TicketService:
 
         ticket.category_id = new_category_id
         ticket.priority = new_priority
-        ticket.save(update_fields=('priority', 'category_id'))
+        ticket.save(update_fields=('updated_at', 'priority', 'category_id'))
 
         return ticket

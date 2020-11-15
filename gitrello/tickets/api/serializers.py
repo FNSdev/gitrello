@@ -8,6 +8,10 @@ class CreateCategorySerializer(serializers.Serializer):
     board_id = serializers.IntegerField()
 
 
+class MoveCategoryActionSerializer(serializers.Serializer):
+    insert_after_category_id = serializers.IntegerField(allow_null=True)
+
+
 class CreateTicketSerializer(serializers.Serializer):
     category_id = serializers.IntegerField()
 
@@ -40,6 +44,14 @@ class CreateCategoryResponseSerializer(serializers.ModelSerializer):
 
     id = serializers.CharField()
     board_id = serializers.CharField()
+
+
+class MoveCategoryActionResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'priority')
+
+    id = serializers.CharField()
 
 
 class CreateTicketResponseSerializer(serializers.ModelSerializer):

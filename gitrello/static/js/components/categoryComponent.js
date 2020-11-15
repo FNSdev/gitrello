@@ -120,7 +120,7 @@ export class CategoryComponent extends HTMLElement {
     }
 
     onDragOver(event) {
-        if (event.dataTransfer.getData("ticket") === "") {
+        if (!event.dataTransfer.types.includes("ticket")) {
             return;
         }
 

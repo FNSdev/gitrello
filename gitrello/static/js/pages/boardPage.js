@@ -70,7 +70,7 @@ export class BoardPage extends Page {
     }
 
     onDragOver(event) {
-        if (event.dataTransfer.getData("category") === "") {
+        if (!event.dataTransfer.types.includes("category")) {
             return;
         }
 

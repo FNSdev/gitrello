@@ -17,3 +17,8 @@
   display: flex;
   align-items: start;
 }
+
+.board-container__content__categories-list__item {
+  margin-left: 20px;
+  margin-right: 20px;
+}

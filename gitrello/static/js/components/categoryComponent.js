@@ -18,8 +18,9 @@ template.innerHTML = `
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 100vw;
+        width: 90vw;
         height: 90vh;
+        cursor: pointer;
       }
       
       .container__name {
@@ -31,7 +32,7 @@ template.innerHTML = `
         border: 2px solid var(--primary-dark);
         border-radius: 6px;
         box-shadow: var(--default-shadow);
-        width: 90%;
+        width: 100%;
         height: 90%;
         overflow-y: auto;
         scrollbar-color: var(--primary-dark) var(--primary-light);
@@ -54,11 +55,11 @@ template.innerHTML = `
       
       @media screen and (min-width: 992px) {
         .container {
-          width: 20vw;
+          width: 18vw;
         }
       }
     </style>
-    <div class="container">
+    <div draggable="true" class="container" id="container">
       <h1 id="name" class="container__name"></h1>
       <div class="container__tickets" id="tickets-list-container">
         <ul class="container__tickets__list" id="tickets-list"></ul>
@@ -95,6 +96,10 @@ export class CategoryComponent extends HTMLElement {
         this.shadowRoot.getElementById('tickets-list-container').addEventListener(
             'drop', (event) => this.onDrop(event),
         )
+        this.shadowRoot.getElementById('container').addEventListener(
+            'dragstart',
+            (event) => this.onDragStart(event),
+        );
         this._insertTickets(this.category.tickets);
     }
 
@@ -110,13 +115,22 @@ export class CategoryComponent extends HTMLElement {
         }
     }
 
+    onDragStart(event) {
+        event.dataTransfer.setData("category", JSON.stringify(this.category));
+    }
+
     onDragOver(event) {
+        if (event.dataTransfer.getData("ticket") === "") {
+            return;
+        }
+
         if (event.target.id === 'tickets-list-container' || event.target.id === 'tickets-list') {
             event.preventDefault();
         }
     }
 
     async onDrop(event) {
+        event.stopPropagation();
         event.preventDefault();
 
         const ticket = JSON.parse(event.dataTransfer.getData("ticket"));

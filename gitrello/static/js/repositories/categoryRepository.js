@@ -3,7 +3,7 @@ import {Category, } from "../models/category.js";
 import {GITrelloError, } from "../errors.js";
 
 class CategoryRepository {
-    createCategoryUrl = '/api/v1/categories'
+    resourceUrl = '/api/v1/categories'
 
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -16,12 +16,32 @@ class CategoryRepository {
         }
 
         try {
-            const response = await this.httpClient.post({url: this.createCategoryUrl, data: data})
+            const response = await this.httpClient.post({url: this.resourceUrl, data: data})
             return new Category({
                 id: response['id'],
+                priority: response['priority'],
                 name: response['name'],
                 tickets: [],
             })
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async move(category, insertAfterCategoryId) {
+        try {
+            const response = await this.httpClient.post({
+                url: `${this.resourceUrl}/${category.id}/actions/move`,
+                data: {'insert_after_category_id': insertAfterCategoryId},
+            });
+
+            category.priority = response['priority'];
+            return category;
         }
         catch (e) {
             console.log(e.message);

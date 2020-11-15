@@ -169,6 +169,7 @@ export class TicketComponent extends HTMLElement {
     }
 
     onDragStart(event) {
+        event.stopPropagation();
         event.dataTransfer.setData("ticket", JSON.stringify(this.ticket));
         event.dataTransfer.setData('categoryId', this.categoryId);
     }

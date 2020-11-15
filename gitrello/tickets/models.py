@@ -2,9 +2,13 @@ from django.db import models
 
 
 class Category(models.Model):
+    class Meta:
+        ordering = ['priority', ]
+
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    priority = models.IntegerField()
     name = models.CharField(max_length=100)
     board = models.ForeignKey(to='boards.Board', related_name='categories', on_delete=models.CASCADE)
 

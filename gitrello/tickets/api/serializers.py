@@ -36,7 +36,7 @@ class CreateCommentSerializer(serializers.Serializer):
 class CreateCategoryResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('id', 'board_id', 'name')
+        fields = ('id', 'board_id', 'name', 'priority')
 
     id = serializers.CharField()
     board_id = serializers.CharField()

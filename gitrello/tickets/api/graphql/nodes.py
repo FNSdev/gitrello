@@ -11,6 +11,7 @@ class CategoryNode(DjangoObjectType):
             'id',
             'name',
             'board',
+            'priority',
             'tickets',
         )
         interfaces = (GITrelloNode, )

@@ -11,7 +11,14 @@ class CategoryService:
         if not Board.objects.filter(id=board_id).exists():
             raise BoardNotFoundException
 
+        last_category = Category.objects \
+            .filter(board_id=board_id) \
+            .order_by('-priority') \
+            .only('priority') \
+            .first()
+
         return Category.objects.create(
             name=name,
             board_id=board_id,
+            priority=last_category.priority + 1 if last_category else 0,
         )

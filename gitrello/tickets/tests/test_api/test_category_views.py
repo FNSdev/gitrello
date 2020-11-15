@@ -44,6 +44,7 @@ class TestCategoriesView(TestCase):
             'id': str(category.id),
             'name': category.name,
             'board_id': str(category.board_id),
+            'priority': category.priority,
         }
         self.assertDictEqual(response.data, expected_response)
 

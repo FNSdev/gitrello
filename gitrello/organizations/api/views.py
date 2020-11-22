@@ -10,6 +10,7 @@ from gitrello.schema import gitrello_schema
 from organizations.api.serializers import (
     CreateOrganizationSerializer, CreateOrganizationResponseSerializer, CreateOrganizationInviteSerializer,
     CreateOrganizationInviteResponseSerializer, UpdateOrganizationInviteSerializer,
+    UpdateOrganizationMembershipResponseSerializer, UpdateOrganizationMembershipSerializer,
 )
 from organizations.services import OrganizationService, OrganizationInviteService, OrganizationMembershipService
 
@@ -99,3 +100,32 @@ class OrganizationMembershipView(views.APIView):
 
         OrganizationMembershipService.delete_organization_membership(organization_membership_id=kwargs['id'])
         return Response(status=204)
+
+    # TODO add tests
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(
+        request_body=UpdateOrganizationMembershipSerializer,
+        responses={'200': UpdateOrganizationMembershipResponseSerializer},
+    )
+    def patch(self, request, *args, **kwargs):
+        serializer = UpdateOrganizationMembershipSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=kwargs['id'],
+            user_id=request.user.id,
+        )
+        if not permissions.can_mutate:
+            raise PermissionDeniedException
+
+        organization_membership = OrganizationMembershipService.update_role(
+            organization_membership_id=kwargs['id'],
+            role=serializer.validated_data['role'],
+        )
+
+        response_serializer = UpdateOrganizationMembershipResponseSerializer(instance=organization_membership)
+        return Response(
+            status=200,
+            data=response_serializer.data,
+        )

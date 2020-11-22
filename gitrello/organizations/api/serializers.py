@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from organizations.models import Organization, OrganizationInvite
+from organizations.choices import OrganizationMemberRole
+from organizations.models import Organization, OrganizationInvite, OrganizationMembership
 
 
 class CreateOrganizationSerializer(serializers.Serializer):
@@ -15,6 +16,15 @@ class CreateOrganizationInviteSerializer(serializers.Serializer):
 
 class UpdateOrganizationInviteSerializer(serializers.Serializer):
     accept = serializers.BooleanField()
+
+
+class UpdateOrganizationMembershipSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=(
+            OrganizationMemberRole.ADMIN,
+            OrganizationMemberRole.MEMBER,
+        ),
+    )
 
 
 class CreateOrganizationResponseSerializer(serializers.ModelSerializer):
@@ -33,3 +43,11 @@ class CreateOrganizationInviteResponseSerializer(serializers.ModelSerializer):
     id = serializers.CharField()
     user_id = serializers.CharField()
     organization_id = serializers.CharField()
+
+
+class UpdateOrganizationMembershipResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationMembership
+        fields = ('id', 'user_id', 'organization_id', 'role')
+
+    id = serializers.CharField()

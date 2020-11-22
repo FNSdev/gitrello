@@ -22,7 +22,7 @@ class CategoriesView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateCategorySerializer, responses={201: CreateCategoryResponseSerializer})
+    @gitrello_schema(request_body=CreateCategorySerializer, responses={201: CreateCategoryResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateCategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,7 +49,7 @@ class CategoryActionsViewSet(viewsets.ViewSet):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=MoveCategoryActionSerializer,
+        request_body=MoveCategoryActionSerializer,
         responses={200: MoveCategoryActionResponseSerializer},
     )
     def move(self, request, *args, **kwargs):
@@ -73,7 +73,7 @@ class TicketsView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateTicketSerializer, responses={201: CreateTicketResponseSerializer})
+    @gitrello_schema(request_body=CreateTicketSerializer, responses={201: CreateTicketResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateTicketSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -98,7 +98,7 @@ class TicketView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=UpdateTicketSerializer, responses={200: UpdateTicketResponseSerializer})
+    @gitrello_schema(request_body=UpdateTicketSerializer, responses={200: UpdateTicketResponseSerializer})
     def patch(self, request, *args, **kwargs):
         serializer = UpdateTicketSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -133,7 +133,7 @@ class TicketActionsViewSet(viewsets.ViewSet):
     # TODO add tests
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=MoveTicketActionSerializer, responses={200: MoveTicketActionResponseSerializer})
+    @gitrello_schema(request_body=MoveTicketActionSerializer, responses={200: MoveTicketActionResponseSerializer})
     def move(self, request, *args, **kwargs):
         serializer = MoveTicketActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -157,7 +157,7 @@ class TicketAssignmentsView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=CreateTicketAssignmentSerializer,
+        request_body=CreateTicketAssignmentSerializer,
         responses={201: CreateTicketAssignmentResponseSerializer},
     )
     def post(self, request, *args, **kwargs):
@@ -204,7 +204,7 @@ class CommentsView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateCommentSerializer, responses={201: CreateCommentResponseSerializer})
+    @gitrello_schema(request_body=CreateCommentSerializer, responses={201: CreateCommentResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateCommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

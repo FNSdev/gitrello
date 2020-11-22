@@ -21,7 +21,7 @@ class OrganizationsView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=CreateOrganizationSerializer, responses={201: CreateOrganizationResponseSerializer},
+        request_body=CreateOrganizationSerializer, responses={201: CreateOrganizationResponseSerializer},
     )
     def post(self, request, *args, **kwargs):
         serializer = CreateOrganizationSerializer(data=request.data)
@@ -41,7 +41,7 @@ class OrganizationInvitesView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=CreateOrganizationInviteSerializer,
+        request_body=CreateOrganizationInviteSerializer,
         responses={201: CreateOrganizationInviteResponseSerializer},
     )
     def post(self, request, *args, **kwargs):
@@ -68,7 +68,7 @@ class OrganizationInviteView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=UpdateOrganizationInviteSerializer, responses={204: ''})
+    @gitrello_schema(request_body=UpdateOrganizationInviteSerializer, responses={204: ''})
     def patch(self, request, *args, **kwargs):
         serializer = UpdateOrganizationInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

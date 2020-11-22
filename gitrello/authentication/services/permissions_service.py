@@ -61,28 +61,21 @@ class PermissionsService:
         if not target_organization_membership:
             return Permissions.with_no_permissions()
 
-        if target_organization_membership.user_id == user_id:
-            return Permissions.with_all_permissions()
-
         membership = OrganizationMembership.objects \
             .filter(
                 organization_id=target_organization_membership.organization_id,
                 user_id=user_id,
             ) \
-            .values('role') \
             .first()
 
         if not membership:
             return Permissions.with_no_permissions()
 
-        if membership['role'] == OrganizationMemberRole.OWNER:
+        if membership.role == OrganizationMemberRole.OWNER:
             return Permissions.with_all_permissions()
 
-        if membership['role'] == OrganizationMemberRole.ADMIN:
-            if target_organization_membership.role == OrganizationMemberRole.MEMBER:
-                return Permissions.with_all_permissions()
-
-            return Permissions.with_read_permissions()
+        if membership.id == target_organization_membership.id:
+            return Permissions(can_read=True, can_mutate=False, can_delete=True)
 
         return Permissions.with_read_permissions()
 

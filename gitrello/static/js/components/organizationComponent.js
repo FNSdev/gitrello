@@ -1,4 +1,5 @@
 import {organizationMembershipRepository, } from "../repositories/organizationMembershipRepository.js";
+import {Role, } from "../models/organizationMembership.js"
 import {SendInviteFormComponent, } from "./forms/sendInviteFormComponent.js";
 
 const template = document.createElement('template')
@@ -55,7 +56,7 @@ template.innerHTML = `
         margin-top: 10px;
       }
       
-      .send-invite-modal, .remove-member-modal {
+      .send-invite-modal, .member-modal {
         display: none;
         position: fixed;
         z-index: 1;
@@ -68,7 +69,7 @@ template.innerHTML = `
         background-color: rgba(0, 0, 0, 0.7);
       }
       
-      .send-invite-modal__content, .remove-member-modal__content {
+      .send-invite-modal__content, .member-modal__content {
         background-color: #fefefe;
         margin: 100px auto;
         border: 3px solid var(--primary-dark);
@@ -80,23 +81,24 @@ template.innerHTML = `
         align-items: center;
       }
       
-      .remove-member-modal__content__header {
+      .member-modal__content__member-name, .member-modal__content__member-role {
         margin: 10px;
         text-align: center;
+        font-size: 24px;
       }
       
-      .remove-member-modal__content__wrapper {
+      .member-modal__content__wrapper {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        padding: 10px;
       }
       
-      .remove-member-modal__content__wrapper__yes-button, .remove-member-modal__content__wrapper__cancel-button {
+      .member-modal__content__wrapper__remove-member-button, .member-modal__content__wrapper__change-role-button {
         margin: 10px;
       }
       
       @media screen and (min-width: 992px) {
-        .send-invite-modal__content, .remove-member-modal__content {
+        .send-invite-modal__content, .member-modal__content {
           width: 30%;
         }
       }
@@ -115,18 +117,17 @@ template.innerHTML = `
       <div class="send-invite-modal__content" id="send-invite-modal-content"></div>
     </div>
     
-    <div id="remove-member-modal" class="remove-member-modal">
-      <div class="remove-member-modal__content" id="remove-member-modal-content">
-        <h1 class="remove-member-modal__content__header">Are you sure?</h1>
-        <errors-list-component id="remove-member-errors" class="remove-member-modal__content__errors"></errors-list-component>
-        <div class="remove-member-modal__content__wrapper">
-          <button-component type="success" class="remove-member-modal__content__wrapper__yes-button" id="remove-member-button">
-            Yes
+    <div id="member-modal" class="member-modal">
+      <div class="member-modal__content" id="member-modal-content">
+        <div class="member-modal__content__member-name" id="member-name"></div>
+        <div class="member-modal__content__member-role" id="member-role"></div>
+        <div class="member-modal__content__wrapper">
+          <button-component type="danger" class="member-modal__content__wrapper__remove-member-button" id="remove-member-button" width="300px">
+            Remove member from organization
           </button-component>
-          <button-component type="danger" class="remove-member-modal__content__wrapper__cancel-button" id="cancel-remove-member-button">
-            Cancel
-          </button-component>
+          <button-component type="info" class="member-modal__content__wrapper__change-role-button" id="change-role-button" width="300px"></button-component>
         </div>
+        <errors-list-component id="member-errors" class="member-modal__content__errors"></errors-list-component>
       </div>
     </div>
 `
@@ -145,12 +146,6 @@ export class OrganizationComponent extends HTMLElement {
     connectedCallback() {
         this.shadowRoot.getElementById('name').innerHTML = this.organization.name;
         this._insertMembers(this.organization.organizationMemberships);
-
-        this.shadowRoot.getElementById('cancel-remove-member-button').addEventListener(
-            'click', () => {
-                this.shadowRoot.getElementById('remove-member-modal').style.display = "none";
-            }
-        );
 
         const sendInviteFormComponent = new SendInviteFormComponent();
         sendInviteFormComponent.organizationId = this.organization.id;
@@ -174,45 +169,114 @@ export class OrganizationComponent extends HTMLElement {
         };
     }
 
-    onRemoveMemberClick(event) {
-        this.shadowRoot.getElementById('remove-member-errors').clear();
-        const organizationMembershipId = event.target.getAttribute('id');
+    onMemberClick(event) {
+        this.shadowRoot.getElementById('member-errors').clear();
+
+        const eventTarget = event.target;
+        const organizationMembershipId = eventTarget.getAttribute('id');
+        const role = eventTarget.getAttribute('role');
+        const firstName = eventTarget.getAttribute('firstName');
+        const lastName = eventTarget.getAttribute('lastName');
+
+        this.shadowRoot.getElementById('member-name').innerHTML = `${firstName} ${lastName}`;
+        this.shadowRoot.getElementById('member-role').innerHTML = `Role: ${role}`;
+
+        if (role === Role.ADMIN) {
+            this.shadowRoot.getElementById('change-role-button').setInnerHTML('Change Role to MEMBER');
+        }
+        else if (role === Role.MEMBER) {
+            this.shadowRoot.getElementById('change-role-button').setInnerHTML('Change Role to ADMIN');
+        }
+        else {
+            this.shadowRoot.getElementById('change-role-button').style.display = 'none';
+        }
+
         const target = event.composedPath()[0];
 
-        this.shadowRoot.getElementById('remove-member-modal').style.display = "block";
-        const modal = this.shadowRoot.getElementById('remove-member-modal');
+        this.shadowRoot.getElementById('member-modal').style.display = "block";
+        const modal = this.shadowRoot.getElementById('member-modal');
         modal.onclick = (event) => {
             if (event.target === modal) {
                 modal.style.display = "none";
             }
         };
+
         this.shadowRoot.getElementById('remove-member-button').onclick = async () => {
-            try {
-                await organizationMembershipRepository.delete(organizationMembershipId);
-                this.organization.organizationMemberships = this.organization.organizationMemberships.filter(organizationMembership => {
-                    if (organizationMembership.id !== organizationMembershipId) {
-                        return organizationMembership;
-                    }
-                });
+            await this.onRemoveMemberClick(target, organizationMembershipId);
+        };
+        this.shadowRoot.getElementById('change-role-button').onclick = async () => {
+            await this.onChangeRoleClick(eventTarget, organizationMembershipId);
+        };
+    }
 
-                this.organization.boards.forEach(board => {
-                    board.boardMemberships = board.boardMemberships.filter(boardMembership => {
-                        if (boardMembership.organizationMembership.id !== organizationMembershipId) {
-                            return organizationMembershipId;
-                        }
-                    })
-                })
-
-                target.remove();
-                modal.style.display = "none";
-
-                if (this.stateHasChanged != null) {
-                    this.stateHasChanged();
+    async onRemoveMemberClick(target, organizationMembershipId) {
+        try {
+            await organizationMembershipRepository.delete(organizationMembershipId);
+            this.organization.organizationMemberships = this.organization.organizationMemberships.filter(organizationMembership => {
+                if (organizationMembership.id !== organizationMembershipId) {
+                    return organizationMembership;
                 }
+            });
+
+            this.organization.boards.forEach(board => {
+                board.boardMemberships = board.boardMemberships.filter(boardMembership => {
+                    if (boardMembership.organizationMembership.id !== organizationMembershipId) {
+                        return organizationMembershipId;
+                    }
+                })
+            })
+
+            target.remove();
+            this.shadowRoot.getElementById('member-modal').style.display = "none";
+
+            if (this.stateHasChanged != null) {
+                this.stateHasChanged();
             }
-            catch (e) {
-                this.shadowRoot.getElementById('remove-member-errors').addError(e.message);
+        }
+        catch (e) {
+            this.shadowRoot.getElementById('member-errors').addError(e.message);
+        }
+    }
+
+    async onChangeRoleClick(eventTarget, organizationMembershipId) {
+        try {
+            const currentRole = eventTarget.getAttribute('role');
+
+            let newRole;
+            if (currentRole === Role.MEMBER) {
+                newRole = Role.ADMIN;
             }
+            else if (currentRole === Role.ADMIN) {
+                newRole = Role.MEMBER;
+            }
+            else {
+                return;
+            }
+
+            const role = await organizationMembershipRepository.updateRole(organizationMembershipId, newRole);
+            const organizationMembership = this.organization.organizationMemberships.find(organizationMembership => {
+                if (organizationMembership.id === organizationMembershipId) {
+                    return organizationMembership;
+                }
+            })
+            organizationMembership.role = role;
+            eventTarget.setAttribute('role', role);
+
+            this.shadowRoot.getElementById('member-role').innerHTML = `Role: ${role}`;
+
+            if (role === Role.ADMIN) {
+                this.shadowRoot.getElementById('change-role-button').setInnerHTML('Change Role to MEMBER');
+            }
+            else if (role === Role.MEMBER) {
+                this.shadowRoot.getElementById('change-role-button').setInnerHTML('Change Role to ADMIN');
+            }
+
+            if (this.stateHasChanged != null) {
+                this.stateHasChanged();
+            }
+        }
+        catch (e) {
+            this.shadowRoot.getElementById('member-errors').addError(e.message);
         }
     }
 
@@ -221,8 +285,10 @@ export class OrganizationComponent extends HTMLElement {
 
         organizationMemberships.forEach(organizationMembership => {
             const member = document.createElement('li');
-            member.setAttribute('title', 'Click to remove');
             member.setAttribute('id', organizationMembership.id);
+            member.setAttribute('role', organizationMembership.role);
+            member.setAttribute('firstName', organizationMembership.user.firstName);
+            member.setAttribute('lastName', organizationMembership.user.lastName);
             member.innerHTML = `${organizationMembership.user.firstName} ${organizationMembership.user.lastName}`;
             member.classList.add('container__organization-memberships__list__item');
             if (organizationMembership.role === 'OWNER') {
@@ -230,7 +296,7 @@ export class OrganizationComponent extends HTMLElement {
             }
 
             member.onclick = (event) => {
-                this.onRemoveMemberClick(event);
+                this.onMemberClick(event);
             }
 
             membersList.appendChild(member);

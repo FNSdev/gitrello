@@ -12,7 +12,7 @@ from tickets.api.serializers import (
     UpdateTicketSerializer, CreateCategoryResponseSerializer, CreateTicketAssignmentResponseSerializer,
     CreateCommentResponseSerializer, CreateTicketResponseSerializer, UpdateTicketResponseSerializer,
     MoveTicketActionResponseSerializer, MoveTicketActionSerializer, MoveCategoryActionSerializer,
-    MoveCategoryActionResponseSerializer,
+    MoveCategoryActionResponseSerializer, UpdateCategoryNameSerializer, UpdateCategoryNameResponseSerializer,
 )
 from tickets.services import CategoryService, CommentService, TicketAssignmentService, TicketService
 
@@ -40,6 +40,40 @@ class CategoriesView(views.APIView):
             status=201,
             data=response_serializer.data,
         )
+
+
+# TODO add tests
+class CategoryView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+
+    @retry_on_transaction_serialization_error
+    @atomic
+    @gitrello_schema(request_body=UpdateCategoryNameSerializer, responses={200: UpdateCategoryNameResponseSerializer})
+    def patch(self, request, *args, **kwargs):
+        serializer = UpdateCategoryNameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        permissions = PermissionsService.get_category_permissions(category_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_mutate:
+            raise PermissionDeniedException
+
+        category = CategoryService.update_category_name(
+            category_id=kwargs['id'],
+            name=serializer.validated_data['name'],
+        )
+        response_serializer = UpdateCategoryNameSerializer(instance=category)
+        return Response(status=200, data=response_serializer.data)
+
+    @retry_on_transaction_serialization_error()
+    @atomic
+    @gitrello_schema(responses={204: ''})
+    def delete(self, request, *args, **kwargs):
+        permissions = PermissionsService.get_category_permissions(category_id=kwargs['id'], user_id=request.user.id)
+        if not permissions.can_delete:
+            raise PermissionDeniedException
+
+        CategoryService.delete_category(category_id=kwargs['id'])
+        return Response(status=204)
 
 
 class CategoryActionsViewSet(viewsets.ViewSet):

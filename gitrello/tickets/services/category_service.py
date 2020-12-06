@@ -32,7 +32,7 @@ class CategoryService:
     @classmethod
     def move_category(cls, category_id: int, insert_after_category_id: Optional[int]) -> Category:
         category = Category.objects.filter(id=category_id).first()
-        if not category_id:
+        if not category:
             raise CategoryNotFoundException
 
         if not insert_after_category_id:
@@ -68,3 +68,28 @@ class CategoryService:
         category.save(update_fields=('updated_at', 'priority'))
 
         return category
+
+    # TODO add tests
+    @classmethod
+    def update_category_name(cls, category_id: int, name: str) -> Category:
+        category = Category.objects.filter(id=category_id).first()
+        if not category:
+            raise CategoryNotFoundException
+
+        category.name = name
+        category.save()
+
+        return category
+
+    # TODO add tests
+    @classmethod
+    def delete_category(cls, category_id: int):
+        category = Category.objects.filter(id=category_id).first()
+        if not category:
+            raise CategoryNotFoundException
+
+        Category.objects \
+            .filter(board_id=category.board_id, priority__gt=category.priority) \
+            .update(priority=F('priority') - 1)
+
+        category.delete()

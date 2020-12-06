@@ -8,6 +8,10 @@ class CreateCategorySerializer(serializers.Serializer):
     board_id = serializers.IntegerField()
 
 
+class UpdateCategoryNameSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+
+
 class MoveCategoryActionSerializer(serializers.Serializer):
     insert_after_category_id = serializers.IntegerField(allow_null=True)
 
@@ -38,6 +42,15 @@ class CreateCommentSerializer(serializers.Serializer):
 
 
 class CreateCategoryResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'board_id', 'name', 'priority')
+
+    id = serializers.CharField()
+    board_id = serializers.CharField()
+
+
+class UpdateCategoryNameResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('id', 'board_id', 'name', 'priority')

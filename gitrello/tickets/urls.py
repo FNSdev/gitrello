@@ -1,7 +1,7 @@
 from django.urls import path
 
 from tickets.api.views import (
-    CategoryActionsViewSet, CategoriesView, CommentsView, TicketActionsViewSet, TicketsView, TicketView,
+    CategoryActionsViewSet, CategoriesView, CategoryView, CommentsView, TicketActionsViewSet, TicketsView, TicketView,
     TicketAssignmentsView, TicketAssignmentView,
 )
 
@@ -9,6 +9,7 @@ app_name = 'tickets'
 
 urlpatterns = [
     path('v1/categories', CategoriesView.as_view(), name='categories'),
+    path('v1/categories/<int:id>', CategoryView.as_view(), name='category'),
     path('v1/categories/<int:id>/actions/move', CategoryActionsViewSet.as_view({'post': 'move'}), name='move-category'),
     path('v1/comments', CommentsView.as_view(), name='comments'),
     path('v1/tickets', TicketsView.as_view(), name='tickets'),

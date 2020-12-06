@@ -51,6 +51,38 @@ class CategoryRepository {
             throw new GITrelloError();
         }
     }
+
+    async updateName(category, name) {
+        try {
+            const response = await this.httpClient.patch({
+                url: `${this.resourceUrl}/${category.id}`,
+                data: {'name': name},
+            });
+
+            category.name = response['name'];
+            return category;
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
+
+    async delete(category) {
+        try {
+            await this.httpClient.delete({url: `${this.resourceUrl}/${category.id}`});
+        }
+        catch (e) {
+            console.log(e.message);
+            if (e instanceof GITrelloError) {
+                throw e;
+            }
+            throw new GITrelloError();
+        }
+    }
 }
 
 export const categoryRepository = new CategoryRepository(httpClient);

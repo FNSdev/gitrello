@@ -172,15 +172,19 @@ class PermissionsService:
         if not ticket:
             return Permissions.with_no_permissions()
 
-        is_board_member = BoardMembership.objects \
+        board_membership = BoardMembership.objects \
             .filter(
                 organization_membership__user_id=user_id,
                 board_id=ticket['category__board_id'],
             ) \
-            .exists()
+            .prefetch_related('organization_membership') \
+            .first()
 
-        if not is_board_member:
+        if not board_membership:
             return Permissions.with_no_permissions()
+
+        if board_membership.organization_membership.role == OrganizationMemberRole.MEMBER:
+            return Permissions.with_mutate_permissions()
 
         return Permissions.with_all_permissions()
 

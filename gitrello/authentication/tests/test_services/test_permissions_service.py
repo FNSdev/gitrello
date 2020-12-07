@@ -406,7 +406,7 @@ class TestPermissionsService(TestCase):
             ticket_id=ticket.id,
             user_id=board_membership.organization_membership.user_id,
         )
-        self._assert_has_all_permissions(permissions)
+        self._assert_has_mutate_permissions(permissions)
 
     def test_ticket_permissions_for_not_a_board_member(self):
         ticket = TicketFactory()

@@ -21,7 +21,7 @@ class BoardsView(views.APIView):
 
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateBoardSerializer, responses={201: CreateBoardResponseSerializer})
+    @gitrello_schema(request_body=CreateBoardSerializer, responses={201: CreateBoardResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateBoardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,7 +49,7 @@ class BoardMembershipsView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=CreateBoardMembershipSerializer,
+        request_body=CreateBoardMembershipSerializer,
         responses={201: CreateBoardMembershipResponseSerializer},
     )
     def post(self, request, *args, **kwargs):
@@ -99,6 +99,7 @@ class BoardPermissionsView(views.APIView):
         security=[],
     )
     def get(self, request, *args, **kwargs):
+        # TODO use query params instead of request.data
         serializer = GetBoardPermissionsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

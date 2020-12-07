@@ -67,6 +67,7 @@ class BoardRepository {
                   edges {
                     node {
                       id,
+                      priority,
                       name,
                       tickets {
                         edges {
@@ -161,6 +162,7 @@ class BoardRepository {
                 })
                 categories.push(new Category({
                     id: category['id'],
+                    priority: category['priority'],
                     name: category['name'],
                     tickets: tickets,
                 }))

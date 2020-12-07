@@ -21,7 +21,7 @@ class UsersView(views.APIView):
     @retry_on_transaction_serialization_error
     @atomic
     @gitrello_schema(
-        query_serializer=CreateUserSerializer,
+        request_body=CreateUserSerializer,
         responses={201: CreateUserResponseSerializer},
         security=[],
     )
@@ -100,7 +100,7 @@ class OauthStatesView(views.APIView):
     # TODO add tests
     @retry_on_transaction_serialization_error
     @atomic
-    @gitrello_schema(query_serializer=CreateOauthStateSerializer, responses={201: CreateOauthStateResponseSerializer})
+    @gitrello_schema(request_body=CreateOauthStateSerializer, responses={201: CreateOauthStateResponseSerializer})
     def post(self, request, *args, **kwargs):
         serializer = CreateOauthStateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

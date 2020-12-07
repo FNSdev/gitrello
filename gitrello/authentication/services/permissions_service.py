@@ -61,28 +61,21 @@ class PermissionsService:
         if not target_organization_membership:
             return Permissions.with_no_permissions()
 
-        if target_organization_membership.user_id == user_id:
-            return Permissions.with_all_permissions()
-
         membership = OrganizationMembership.objects \
             .filter(
                 organization_id=target_organization_membership.organization_id,
                 user_id=user_id,
             ) \
-            .values('role') \
             .first()
 
         if not membership:
             return Permissions.with_no_permissions()
 
-        if membership['role'] == OrganizationMemberRole.OWNER:
+        if membership.role == OrganizationMemberRole.OWNER:
             return Permissions.with_all_permissions()
 
-        if membership['role'] == OrganizationMemberRole.ADMIN:
-            if target_organization_membership.role == OrganizationMemberRole.MEMBER:
-                return Permissions.with_all_permissions()
-
-            return Permissions.with_read_permissions()
+        if membership.id == target_organization_membership.id:
+            return Permissions(can_read=True, can_mutate=False, can_delete=True)
 
         return Permissions.with_read_permissions()
 
@@ -179,15 +172,19 @@ class PermissionsService:
         if not ticket:
             return Permissions.with_no_permissions()
 
-        is_board_member = BoardMembership.objects \
+        board_membership = BoardMembership.objects \
             .filter(
                 organization_membership__user_id=user_id,
                 board_id=ticket['category__board_id'],
             ) \
-            .exists()
+            .prefetch_related('organization_membership') \
+            .first()
 
-        if not is_board_member:
+        if not board_membership:
             return Permissions.with_no_permissions()
+
+        if board_membership.organization_membership.role == OrganizationMemberRole.MEMBER:
+            return Permissions.with_mutate_permissions()
 
         return Permissions.with_all_permissions()
 

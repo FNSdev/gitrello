@@ -40,6 +40,9 @@ template.innerHTML = `
         }
       }
     </style>
+    
+    <notifications-modal-component></notifications-modal-component>
+    
     <div id="container" class="container">
       <div id="full-name" class="container__full-name"></div>
       <div id="email" class="container__email"></div>

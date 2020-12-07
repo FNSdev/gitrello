@@ -38,3 +38,8 @@ class OrganizationMembershipAlreadyExistsException(GITrelloOrganizationsExceptio
 class CanNotLeaveOrganizationException(GITrelloOrganizationsException):
     message = "Owner can not leave organization"
     code = 323
+
+
+class CanNotChangeOwnerRoleException(GITrelloOrganizationsException):
+    message = "Owner's role can not be changed"
+    code = 324

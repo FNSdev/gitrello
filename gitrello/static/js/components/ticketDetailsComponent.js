@@ -273,7 +273,7 @@ export class TicketDetailsComponent extends HTMLElement {
             let date = this.shadowRoot.getElementById('form-due-date').value;
             date = date === '' ? null : date;
 
-            this._ticket = await ticketRepository.update(
+            await ticketRepository.update(
                 this._ticket,
                 {
                     title: title,

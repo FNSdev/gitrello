@@ -10,6 +10,7 @@ class CategoryFactory(factory.DjangoModelFactory):
     class Meta:
         model = Category
 
+    priority = factory.sequence(lambda i: i)
     name = factory.sequence(lambda i: f'category_{i}')
     board = factory.SubFactory(BoardFactory)
 

@@ -60,6 +60,10 @@ export class ButtonComponent extends HTMLElement {
             button.innerHTML = this.innerHTML;
         }
     }
+
+    setInnerHTML(value) {
+        this.shadowRoot.querySelector('#button').innerHTML = value;
+    }
 }
 
 window.customElements.define('button-component', ButtonComponent);

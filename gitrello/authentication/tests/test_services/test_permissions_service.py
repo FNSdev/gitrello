@@ -24,6 +24,11 @@ class TestPermissionsService(TestCase):
         self.assertTrue(permissions.can_mutate)
         self.assertFalse(permissions.can_delete)
 
+    def _assert_has_read_and_delete_permissions(self, permissions: Permissions):
+        self.assertTrue(permissions.can_read)
+        self.assertTrue(permissions.can_delete)
+        self.assertFalse(permissions.can_mutate)
+
     def _assert_has_all_permissions(self, permissions: Permissions):
         self.assertTrue(permissions.can_read)
         self.assertTrue(permissions.can_mutate)
@@ -68,9 +73,19 @@ class TestPermissionsService(TestCase):
         target_organization_membership = OrganizationMembershipFactory(
             organization_id=organization_membership.organization_id,
         )
+        target_admin_organization_membership = OrganizationMembershipFactory(
+            organization_id=organization_membership.organization_id,
+            role=OrganizationMemberRole.ADMIN,
+        )
 
         permissions = PermissionsService.get_organization_membership_permissions(
             organization_membership_id=target_organization_membership.id,
+            user_id=organization_membership.user_id,
+        )
+        self._assert_has_all_permissions(permissions)
+
+        permissions = PermissionsService.get_organization_membership_permissions(
+            organization_membership_id=target_admin_organization_membership.id,
             user_id=organization_membership.user_id,
         )
         self._assert_has_all_permissions(permissions)
@@ -99,13 +114,13 @@ class TestPermissionsService(TestCase):
             organization_membership_id=target_organization_membership.id,
             user_id=organization_membership.user_id,
         )
-        self._assert_has_all_permissions(permissions)
+        self._assert_has_read_permissions(permissions)
 
         permissions = PermissionsService.get_organization_membership_permissions(
             organization_membership_id=organization_membership.id,
             user_id=organization_membership.user_id,
         )
-        self._assert_has_all_permissions(permissions)
+        self._assert_has_read_and_delete_permissions(permissions)
 
         permissions = PermissionsService.get_organization_membership_permissions(
             organization_membership_id=target_organization_owner_membership.id,
@@ -143,7 +158,7 @@ class TestPermissionsService(TestCase):
             organization_membership_id=organization_membership.id,
             user_id=organization_membership.user_id,
         )
-        self._assert_has_all_permissions(permissions)
+        self._assert_has_read_and_delete_permissions(permissions)
 
         permissions = PermissionsService.get_organization_membership_permissions(
             organization_membership_id=target_organization_owner_membership.id,
@@ -391,7 +406,7 @@ class TestPermissionsService(TestCase):
             ticket_id=ticket.id,
             user_id=board_membership.organization_membership.user_id,
         )
-        self._assert_has_all_permissions(permissions)
+        self._assert_has_mutate_permissions(permissions)
 
     def test_ticket_permissions_for_not_a_board_member(self):
         ticket = TicketFactory()

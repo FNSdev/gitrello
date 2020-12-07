@@ -1,4 +1,5 @@
 import {boardRepository, } from "../repositories/boardRepository.js";
+import {categoryRepository, } from "../repositories/categoryRepository.js";
 import {CategoryComponent, } from "../components/categoryComponent.js";
 import {HttpClientPermissionDeniedError, } from "../errors.js";
 import {Page, } from "./page.js";
@@ -59,6 +60,52 @@ export class BoardPage extends Page {
         createCategoryForm.boardId = this.board.id;
         createCategoryForm.callback = (category) => this._insertCategory(category);
         this._insertCategories(this.board.categories);
+
+        document.getElementById('categories-list').addEventListener(
+            'dragover', (event) => this.onDragOver(event),
+        )
+        document.getElementById('categories-list').addEventListener(
+            'drop', (event) => this.onDrop(event),
+        )
+    }
+
+    onDragOver(event) {
+        if (!event.dataTransfer.types.includes("category")) {
+            return;
+        }
+
+        if (event.target.id === 'categories-list') {
+            event.preventDefault();
+        }
+    }
+
+    async onDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const category = JSON.parse(event.dataTransfer.getData("category"));
+
+        // Find category that dragged category should be inserted after
+        let categoryComponentBefore = null;
+        let insertAfterCategoryId = null;
+        document.querySelectorAll('.board-container__content__categories-list__item').forEach(categoryComponent => {
+            if (categoryComponent.getBoundingClientRect().right < event.clientX) {
+                categoryComponentBefore = categoryComponent;
+                insertAfterCategoryId = categoryComponent.category.id;
+            }
+        })
+
+        if (
+            (categoryComponentBefore == null && category.priority === 0) ||
+            (categoryComponentBefore != null && category.priority === categoryComponentBefore.category.priority + 1)
+        ) {
+            // We don`t need to do anything if user tries to drag category exactly before/after itself
+            return;
+        }
+
+        await categoryRepository.move(category, insertAfterCategoryId)
+
+        this.router.reload();
     }
 
     _insertCategories(categories) {
@@ -71,6 +118,9 @@ export class BoardPage extends Page {
             await this.router.reload();
         }
         categoryComponent.ticketDeleted = async () => {
+            await this.router.reload();
+        }
+        categoryComponent.categoryDeleted = async () => {
             await this.router.reload();
         }
         categoryComponent.classList.add('board-container__content__categories-list__item');

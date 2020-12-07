@@ -1,10 +1,38 @@
-version: '3.7'
+version: "3.7"
 services:
-  database:
-    image: postgres:11.4-alpine
+  roach_1:
+    container_name: roach_1
+    image: cockroachdb/cockroach:v20.1.2
+    volumes:
+      - ./.data/roach_1:/cockroach/cockroach-data
+    command: start --insecure --join=roach_1,roach_2,roach_3
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: gitrello
-      POSTGRES_USER: gitrello
-      POSTGRES_PASSWORD: admin
+      - "26257:26257"
+      - "8080:8080"
+    networks:
+      roachnet:
+        aliases:
+          - roach_1
+  roach_2:
+    container_name: roach_2
+    image: cockroachdb/cockroach:v20.1.2
+    volumes:
+       - ./.data/roach_2:/cockroach/cockroach-data
+    command: start --insecure --join=roach_1,roach_2,roach_3
+    networks:
+      roachnet:
+        aliases:
+          - roach_2
+  roach_3:
+    container_name: roach_3
+    image: cockroachdb/cockroach:v20.1.2
+    volumes:
+      - ./.data/roach_3:/cockroach/cockroach-data
+    command: start --insecure --join=roach_1,roach_2,roach_3
+    networks:
+      roachnet:
+        aliases:
+          - roach_3
+networks:
+  roachnet:
+    driver: bridge
